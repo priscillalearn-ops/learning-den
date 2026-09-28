@@ -1234,6 +1234,108 @@ function renderFood(){
     if(await eat(f[0])){modal(`<div style="display:flex;justify-content:center"><span data-s="${f[0]}" data-z="9"></span></div><h2 style="text-align:center">好好吃！</h2><p style="text-align:center;margin:0">吃了${f[1]}，飽足度回到 3 顆心。</p><button class="btn gold" data-close>吃飽了</button>`);renderFood()}
   });
 }
+/* ---------- 新手導覽 ---------- */
+const TOUR=[
+ ['me','歡迎來到 Learning Den！','這是一座魔法城市。每天來這裡學一點英文，跟同學一起讀書、賺金幣、布置自己的房間。'],
+ ['castle','在城市裡走一走','點地面，角色就會走過去；點建築會自動走到門口進去。地圖下面也有每棟建築的快速按鈕。'],
+ ['book','魔法學院：今日一題','每天一題，答題 +10 金幣、答對再 +5，還能收集單字卡。題目上方可以選自己的練習範圍，答錯的題目會放進錯題本。'],
+ ['bento','魔法餐廳：每天吃一餐','每天去餐廳吃一次飯就算打卡。頁面上方有三顆飽足度愛心，每少吃一天少一顆，連續三天沒吃會餓倒變成小幽靈！'],
+ ['lamp','讀書房：一起專注','選 15、25 或 50 分鐘，跟同學一起專注，每分鐘 +1 金幣。同班同學會出現在座位上，點座位還能參觀他們的房間。'],
+ ['coin','金幣怎麼用？','到百貨公司買家具、服裝、寵物，布置「我的家」。遊樂場有小遊戲和雙倍挑戰；銀行存錢每天會生利息。'],
+ ['scroll','任務板和布告欄','噴水池旁的任務板有每日、每週和老師出的任務，完成就能領金幣。布告欄可以看老師的公告和本週排行。'],
+ ['chat','好友與老師信箱','連續打卡 15 天，就能加同學好友、互傳私訊和送禮物。老師傳來的訊息會出現在「好友」頁的老師信箱。'],
+ ['feast','準備好了嗎？','第一步：先去魔法餐廳吃第一餐，再到魔法學院答今日一題。有問題隨時到「我的」按「玩法說明」再看一次。']
+];
+function showTutorial(){
+  let i=0;
+  const m=modal('<div id="tour"></div>');
+  m.onclick=null;
+  const draw=()=>{const [sp,title,body]=TOUR[i],last=i===TOUR.length-1;
+    m.querySelector('#tour').innerHTML=`<div style="display:flex;justify-content:center;padding:6px 0">${sp==='me'?avatarSVG(myLook().outfit,9):`<span data-s="${sp}" data-z="9"></span>`}</div>
+      <h2 style="text-align:center;color:var(--gold)">${title}</h2>
+      <p style="margin:0;line-height:1.8">${body}</p>
+      <div style="display:flex;justify-content:center;gap:6px;margin:4px 0" aria-label="第 ${i+1} 頁，共 ${TOUR.length} 頁">${TOUR.map((_,k)=>`<span style="width:10px;height:10px;background:${k===i?'var(--gold)':'#4a3f66'};border:2px solid var(--ink)"></span>`).join('')}</div>
+      <div class="row">${i?'<button class="btn" id="tprev">上一步</button>':'<button class="btn ghost" id="tskip">略過</button>'}
+      ${last?'<button class="btn gold" id="tfood">去餐廳吃飯</button>':'<button class="btn gold" id="tnext">下一步</button>'}</div>
+      ${last?'<button class="btn ghost" id="tfree">自己逛逛</button>':''}`;
+    paintSprites(m);
+    const done=()=>{S.tutorialDone=true;S.lastGreet=today();save();m.remove()};
+    const b=id=>m.querySelector(id);
+    if(b('#tprev'))b('#tprev').onclick=()=>{i--;draw()};
+    if(b('#tnext'))b('#tnext').onclick=()=>{i++;draw()};
+    if(b('#tskip'))b('#tskip').onclick=done;
+    if(b('#tfree'))b('#tfree').onclick=done;
+    if(b('#tfood'))b('#tfood').onclick=()=>{done();renderFood()};
+  };
+  draw();
+}
+
+/* ---------- 每天第一次打開：打招呼＋提醒＋冷笑話 ---------- */
+const JOKES=[
+ ['什麼東西越洗越髒？','水。'],
+ ['哪一種布剪不斷？','瀑布。'],
+ ['什麼門永遠關不起來？','球門。'],
+ ['什麼人最怕太陽？','雪人。'],
+ ['什麼東西要打破才能用？','雞蛋。'],
+ ['小明的爸爸有三個兒子：大毛、二毛，第三個叫什麼？','小明！'],
+ ['哪一種魚最適合當老師？','鯨魚，因為牠「鯨」驗豐富。'],
+ ['什麼東西沒有腳卻一直往前跑？','時間。所以快來打卡吧！'],
+ ['為什麼 6 很怕 7？','因為 7 8 9！（seven ate nine，7 把 9 吃掉了）'],
+ ['Why was the math book sad?','Because it had too many problems.（problem 是「題目」也是「煩惱」）'],
+ ['What has keys but can’t open any door?','A piano!（key 是「鑰匙」也是「琴鍵」）'],
+ ['Why can’t a bicycle stand up by itself?','Because it’s two tired.（two tired 聽起來像 too tired：兩個輪胎＝太累了）'],
+ ['What do you call a sleeping dinosaur?','A dino-snore!（snore 打呼）'],
+ ['Why did the cookie go to the doctor?','Because it felt crummy.（crumb 是餅乾屑，crummy 是「不舒服」）'],
+ ['What is a cat’s favorite color?','Purr-ple!（貓咪呼嚕 purr＋紫色 purple）'],
+ ['What do you call a bear with no teeth?','A gummy bear!（沒牙齒只剩牙齦 gum，也就是小熊軟糖）'],
+ ['Why are fish so smart?','Because they live in schools!（school 是「學校」也是「魚群」）'],
+ ['What kind of tree can fit in your hand?','A palm tree!（palm 是「手掌」也是「棕櫚樹」）'],
+ ['What has hands but can’t clap?','A clock!（時鐘的指針也叫 hands）'],
+ ['Why did the student eat his homework?','Because the teacher said it was a piece of cake!（a piece of cake＝很簡單）'],
+ ['What do you call cheese that isn’t yours?','Nacho cheese!（聽起來像 not your cheese）'],
+ ['Which letter of the alphabet has the most water?','C!（聽起來像 sea，大海）'],
+ ['What building has the most stories?','The library!（story 是「故事」也是「樓層」）'],
+ ['Why did the teacher wear sunglasses?','Because her students were so bright!（bright 是「明亮」也是「聰明」）'],
+ ['How do you make an octopus laugh?','With ten-tickles!（tentacles 觸手，聽起來像 ten tickles 搔十下癢）'],
+ ['What’s the best time to go to the dentist?','Tooth-hurty!（聽起來像 two-thirty，兩點半）'],
+ ['什麼書在書店買不到？','秘書。'],
+ ['什麼蛋不能吃？','考試考到的零蛋！所以今天也要多練幾題。'],
+ ['為什麼史萊姆每天都來讀書房？','因為牠想變成「會」萊姆（會讀書的史萊姆）。'],
+ ['恐怖阿嬤最喜歡哪個英文單字？','「Catch」！所以要快點答對題目逃出來。']
+];
+function dailyGreet(force){
+  if(!S.tier||!S.name||document.querySelector('.modal'))return;
+  if(!S.tutorialDone){showTutorial();return}
+  if(!force&&S.lastGreet===today())return;
+  S.lastGreet=today();save();
+  const h=new Date().getHours(),hi=h<11?'早安':h<18?'午安':'晚安';
+  const y=new Date();y.setDate(y.getDate()-1);
+  const st=streak(),brokeStreak=!S.days[keyOf(y)]&&!S.days[today()]&&Object.keys(S.days).length>0;
+  const lines=[];
+  if(fainted())lines.push(['ghost','你已經三天沒來吃飯，餓倒變成小幽靈了！快去餐廳復活。']);
+  else if(hearts()===1&&!S.meals[today()])lines.push(['heart','肚子好餓…今天再不吃飯就要餓倒了！']);
+  else if(!S.meals[today()])lines.push(['bento','今天還沒吃飯，記得去魔法餐廳打卡。']);
+  if(st&&!S.days[today()])lines.push(['fire',`連續 ${st} 天！今天答一題或專注一次，就能繼續累積。`]);
+  else if(brokeStreak)lines.push(['fire','連續天數重新開始了，沒關係，今天再出發！']);
+  if(annNew())lines.push(['scroll','布告欄有老師的新公告。']);
+  if(questReady())lines.push(['coin','任務板有獎勵可以領。']);
+  const j=JOKES[(dayNum()+hash(S.name))%JOKES.length];
+  const m=modal(`<h2 style="text-align:center;color:var(--gold)">${hi}，${esc(S.name)}！</h2>
+    <div style="display:flex;justify-content:center">${fainted()?'<span data-s="ghost" data-z="7"></span>':avatarSVG(myLook().outfit,7)}</div>
+    ${lines.length?`<div class="flist">${lines.map(([sp,t])=>`<div class="frow" style="padding:8px 10px"><span data-s="${sp}" data-z="3"></span><span class="grow" style="line-height:1.5;font-size:14px">${t}</span></div>`).join('')}</div>`:'<p style="text-align:center;margin:0">今天的任務都完成了，太厲害了！</p>'}
+    <div class="box" style="display:flex;flex-direction:column;gap:6px;background:var(--paper);color:var(--night);outline-color:var(--night);max-height:none;overflow:visible">
+      <p class="lbl" style="margin:0">今日冷笑話</p><div style="line-height:1.6">${esc(j[0])}</div>
+      <button class="btn gold" id="jshow" style="padding:6px">看答案</button>
+      <div id="jans" hidden style="line-height:1.6;color:var(--plum)">${esc(j[1])}</div></div>
+    <div class="row">${!S.meals[today()]?'<button class="btn gold" id="gfood">去吃飯</button>':''}${!S.answers[dkey()]?'<button class="btn mint" id="gdaily">去答今日一題</button>':''}</div>
+    <button class="btn" data-close>開始今天的冒險</button>`);
+  m.querySelector('#jshow').onclick=e=>{e.stopPropagation();m.querySelector('#jans').hidden=false;m.querySelector('#jshow').remove()};
+  if(m.querySelector('#gfood'))m.querySelector('#gfood').onclick=()=>{m.remove();renderFood()};
+  if(m.querySelector('#gdaily'))m.querySelector('#gdaily').onclick=()=>{m.remove();go('daily')};
+}
+/* App 放著過夜、隔天再切回來也會打招呼 */
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&S.lastGreet&&S.lastGreet!==today())setTimeout(()=>dailyGreet(),400)});
+
 /* ---------- 雲端（Supabase） ----------
    SB_URL、SB_KEY 填好，而且不是在 Artifact 預覽框裡時才連線；沒填就是單機版。
    SB_KEY 是公開用的 anon／publishable key，可以放在網頁裡；權限由資料庫的 RLS 把關。 */
@@ -1312,7 +1414,7 @@ const cloud={
 
 /* ---------- 登入 ---------- */
 async function boot(){
-  if(!ONLINE){if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city')}else renderOnboard();return}
+  if(!ONLINE){if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet())}else renderOnboard();return}
   $('#nav').hidden=true;
   $('#view').innerHTML='<p class="small" style="text-align:center;margin-top:40%">連線中…</p>';
   const {data}=await sb.auth.getSession();
@@ -1327,7 +1429,7 @@ async function boot(){
   joinRoom();listenDM();
   TEACHER=(await cloud.run(()=>sb.rpc('is_teacher')))===true;
   if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm&&tm.title)TTITLE=tm.title}
-  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city')}else renderOnboard();
+  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet())}else renderOnboard();
 }
 function renderLogin(){
   $('#nav').hidden=true;
@@ -1425,7 +1527,7 @@ function renderOnboard(){
     S.name=clean(nm);S.tier=pick;S.cls=$('#cc').value.trim();
     S.look={...(S.look||{}),outfit:{...((S.look&&S.look.outfit)||{}),...ch}};if(!S.joined)S.joined=today();
     if(ONLINE){$('#go').textContent='存檔中…';if(await cloud.saveProfile()===undefined){Object.assign(S,old);$('#go').textContent='開始冒險';return}const l=myLook();cloud.saveLook(l.room,l.outfit);leaveRoom();joinRoom()}
-    city=null;save();go('city');
+    const isNew=!S.tutorialDone;city=null;save();go('city');if(isNew)setTimeout(showTutorial,300);
   };
 }
 
@@ -1993,6 +2095,7 @@ function renderMe(){
      ${scopeSelect()}
      <p class="small" style="margin:0">目前：${esc(scopeName())}・${pool().length.toLocaleString()} 題。</p>
    </div>`:''}
+   <button class="btn" id="howto">玩法說明</button>
    ${reminderBox()}
    ${TEACHER?'<button class="btn mint" id="tdash">老師後台</button>':''}
    <button class="btn gold" id="share">產生分享圖</button>
@@ -2000,7 +2103,7 @@ function renderMe(){
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
-  $('#share').onclick=share;bindReminder();
+  $('#share').onclick=share;bindReminder();$('#howto').onclick=showTutorial;
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
