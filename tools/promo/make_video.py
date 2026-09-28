@@ -86,17 +86,40 @@ SCENES = [
  ("food", "每天到餐廳吃飯打卡", "三天沒吃會餓倒，變成小幽靈！"),
  ("daily", "每天一題，打卡不中斷", "答對拿金幣和單字卡"),
  ("room", "和同學一起專注", "讀書房看得到誰在一起讀"),
+ ("quest", "任務板每天換新任務", "簡單、普通、困難，完成就領金幣"),
  ("home", "布置你的房間", "還能養一隻恐龍當寵物"),
- ("shop", "百貨公司買家具和服裝", "金幣全靠認真讀書賺"),
  ("granny", "逃離恐怖阿嬤！", "答對題目才能打開門"),
  ("tower", "單字守城", "答對就能打倒來襲的怪物"),
- ("gift", "送禮物給好朋友", "連續打卡 15 天，解鎖好友與私訊"),
+ ("gift", "送禮物給好朋友", "連續打卡 7 天，解鎖好友與私訊"),
  ("kid", "國小到高中都能玩", "英檢初級風格・國一到國三・會考・高中"),
 ]
-# 有些畫面太長，只取中間那一段（CSS 像素，截圖是 3 倍）
-CROP = {"start": (270, 820), "gift": (150, 700), "granny": (0, 560)}
-TITLE, SCENE, END = 3.5, 3.0, 5
-DUR = TITLE + SCENE * len(SCENES) + END
+CROP = {"start": (270, 820), "gift": (150, 700), "granny": (0, 560), "quest": (0, 720)}
+# 旁白（macOS 美佳）：每個畫面依旁白長度決定秒數
+VO = os.path.join(HERE, "vo")
+def vo_len(k):
+    with wave.open(os.path.join(VO, k + ".wav")) as w: return w.getnframes() / w.getframerate()
+LEAD = .35
+TITLE = max(3.5, vo_len("title") + 1.0)
+DURS = [max(3.0, vo_len(n) + LEAD + .6) for n, _, _ in SCENES]
+STARTS = [TITLE + sum(DURS[:i]) for i in range(len(SCENES))]
+END = max(5, vo_len("end") + 2.0)
+SCENE = 3.0
+SUBS = dict(l.strip().split("|", 1) for l in open(os.path.join(VO, "lines.txt"), encoding="utf-8") if "|" in l)
+def subtitle(im, key, y=1668):
+    """把旁白文字放在畫面下方（靜音播放也看得懂）"""
+    txt = SUBS.get(key, ""); d = ImageDraw.Draw(im)
+    lines, cur = [], ""
+    for ch in txt:
+        cur += ch
+        if text_w(cur, 40) > 940 and ch in "，。！、 ":
+            lines.append(cur.strip()); cur = ""
+        elif text_w(cur, 40) > 980:
+            lines.append(cur[:-1]); cur = ch
+    if cur.strip(): lines.append(cur.strip())
+    h = 18 + 54 * len(lines)
+    ov = Image.new("RGBA", (W, h), (15, 10, 26, 205)); im.paste(ov, (0, y), ov)
+    for i, l in enumerate(lines): draw_text(d, (W / 2, y + 12 + i * 54), l, 40, PAPER, shadow=False)
+DUR = TITLE + sum(DURS) + END
 cards = {}
 for n, _, _ in SCENES:
     shot = load_shot(n) if n not in CROP else Image.open(os.path.join(HERE, "shots", n + ".png")).convert("RGB").crop((0, CROP[n][0] * 3, 1170, CROP[n][1] * 3))
@@ -118,11 +141,13 @@ def title_frame(t):
             y = int(1020 - abs(math.sin(t * 5 + i)) * 40)
             im.paste(sp, (x, y), sp)
     if t > 1.8: draw_text(d, (W / 2, 1380), "國小・國中・高中 的英文學習小鎮", 55, LILAC)
+    subtitle(im, "title")
     return im
 
 def scene_frame(i, t):
     n, big, small = SCENES[i]
-    im = background(TITLE + i * SCENE + t); d = ImageDraw.Draw(im)
+    SCENE = DURS[i]
+    im = background(STARTS[i] + t); d = ImageDraw.Draw(im)
     k = ease(t / .5)
     draw_text(d, (W / 2, 150 + (1 - k) * 40), big, 88, GOLD)
     if t > .25: draw_text(d, (W / 2, 270), small, 44, PAPER)
@@ -130,6 +155,7 @@ def scene_frame(i, t):
     cz = c.resize((int(c.width * z), int(c.height * z)), Image.BILINEAR)
     cy = int(400 + (1 - k) * 240 - (cz.height - c.height) / 2)
     im.paste(cz, (int(W / 2 - cz.width / 2), cy))
+    subtitle(im, n)
     coin = sprite('coin', 7); im.paste(coin, (70, 1810), coin)
     draw_text(d, (140, 1812), "LEARNING DEN", 44, GOLD, anchor="lt", shadow=False)
     if t > SCENE - .25:  # 轉場閃一下
@@ -155,15 +181,15 @@ def end_frame(t):
     for i, nme in enumerate(['kid', 'teen', 'sage', 'king', 'dino']):
         sp = sprite(nme, 16); y = int(1640 - abs(math.sin(t * 5 + i * .7)) * 30)
         im.paste(sp, (int(W / 2 - 2.5 * 170 + i * 170 + 85 - sp.width / 2), y), sp)
+    subtitle(im, "end", y=1740)
     if t > END - .6: im = Image.blend(im, Image.new("RGB", (W, H), (0, 0, 0)), (t - (END - .6)) / .6)
     return im
 
 def frame(t):
     if t < TITLE: return title_frame(t)
-    t2 = t - TITLE
-    i = int(t2 // SCENE)
-    if i < len(SCENES): return scene_frame(i, t2 - i * SCENE)
-    return end_frame(t2 - len(SCENES) * SCENE)
+    for i in range(len(SCENES)):
+        if t < STARTS[i] + DURS[i]: return scene_frame(i, t - STARTS[i])
+    return end_frame(t - (TITLE + sum(DURS)))
 
 # ---------- 原創 8-bit 背景音樂（C–Am–F–G，每小節 2 秒） ----------
 def make_music(path, dur):
@@ -202,6 +228,21 @@ def make_music(path, dur):
         w.writeframes(bytes(data))
 
 music = os.path.join(HERE, "music.wav"); make_music(music, DUR)
+def mix_voice(music_path, out_path):
+    import array
+    with wave.open(music_path) as w: sr = w.getframerate(); m = array.array("h", w.readframes(w.getnframes()))
+    buf = [v * .38 for v in m]
+    cues = [("title", .6)] + [(n, STARTS[i] + LEAD) for i, (n, _, _) in enumerate(SCENES)] + [("end", TITLE + sum(DURS) + .5)]
+    for k, at in cues:
+        with wave.open(os.path.join(VO, k + ".wav")) as w: v = array.array("h", w.readframes(w.getnframes()))
+        s0 = int(at * sr)
+        for j, x in enumerate(v):
+            if s0 + j < len(buf): buf[s0 + j] += x * 1.15
+    peak = max(1, max(abs(x) for x in buf)); g = min(1, 32000 / peak)
+    with wave.open(out_path, "w") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr)
+        w.writeframes(array.array("h", [int(x * g) for x in buf]).tobytes())
+mixed = os.path.join(HERE, "mixed.wav"); mix_voice(music, mixed); music = mixed
 ff = imageio_ffmpeg.get_ffmpeg_exe()
 p = subprocess.Popen([ff, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
     "-i", music, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-preset", "medium", "-c:a", "aac", "-b:a", "160k",
