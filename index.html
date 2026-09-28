@@ -1360,7 +1360,14 @@ const cloud={
   unfriend(uid){return this.run(()=>sb.from('friendships').delete().or(`and(requester.eq.${ME},addressee.eq.${uid}),and(requester.eq.${uid},addressee.eq.${ME})`))},
   findByCode(code){return this.run(()=>sb.rpc('find_by_code',{p_code:code}))},
   thread(uid){return this.run(()=>sb.from('messages').select('id,sender,body,created_at').or(`and(sender.eq.${ME},recipient.eq.${uid}),and(sender.eq.${uid},recipient.eq.${ME})`).order('created_at',{ascending:false}).limit(100))},
-  send(uid,body){return this.run(()=>sb.from('messages').insert({recipient:uid,body}).select('id,sender,body,created_at').single(),'訊息沒送出，再試一次')},
+  async send(uid,body){
+    if(!ONLINE)return null;
+    const {data,error}=await sb.from('messages').insert({recipient:uid,body}).select('id,sender,body,created_at').single();
+    if(!error)return data;
+    console.warn(error);
+    toast(/row-level security/i.test(error.message||'')?(TEACHER?'沒辦法傳給這位學生：確認他是你看得到的班級，而且資料庫已經跑過最新的 schema.sql':'這位同學還不是你的好友，或你被禁言了'):'訊息沒送出：'+(error.message||'連線有問題'));
+    return undefined;
+  },
   markRead(uid){return this.run(()=>sb.rpc('mark_read',{p_friend:uid}))},
   unread(){return this.run(()=>sb.from('messages').select('sender').eq('recipient',ME).is('read_at',null))},
   reportMsg(id){return this.run(()=>sb.from('message_reports').insert({message_id:id}))},
@@ -1958,14 +1965,14 @@ async function tClass(){
    <div class="tscroll"><table class="tbl">
      <thead><tr><th>學生</th><th>今天</th><th class="num">連續</th><th class="num">最長</th><th class="num">本週專注</th><th class="num">本週答對</th><th class="num">錯題</th><th>最後打卡</th><th></th></tr></thead>
      <tbody>${rows.map(r=>`<tr>
-       <td><span style="display:inline-flex;align-items:center;gap:6px"><span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="2"></span>${esc(r.name)}${r.muted?' <span class="pill bad">禁言中</span>':''}</span><br><span class="small">${esc(r.email||'')}</span></td>
+       <td><span style="display:inline-flex;align-items:center;gap:6px"><span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="2"></span>${esc(r.name)}${r.muted?' <span class="pill bad">禁言中</span>':''}</span><br><span class="small">${esc(r.email||'')}</span><br><button class="chip" data-tmsg="${r.user_id}" data-name="${esc(r.name)}" style="margin-top:4px">傳訊息</button></td>
        <td>${r.today_done?'<span class="pill ok">已打卡</span>':'<span class="pill no">還沒</span>'}</td>
        <td class="num">${r.streak}</td><td class="num">${r.best}</td>
        <td class="num">${r.week_minutes} 分</td>
        <td class="num">${r.week_correct}/${r.week_answers}</td>
        <td class="num">${r.mistakes}</td>
        <td>${tday(r.last_day)}</td>
-       <td><button class="chip" data-tmsg="${r.user_id}" data-name="${esc(r.name)}">傳訊息</button> <button class="chip" data-mute="${r.user_id}" data-on="${r.muted?0:1}" data-name="${esc(r.name)}">${r.muted?'解除禁言':'禁言'}</button></td></tr>`).join('')}</tbody>
+       <td><button class="chip" data-mute="${r.user_id}" data-on="${r.muted?0:1}" data-name="${esc(r.name)}">${r.muted?'解除禁言':'禁言'}</button></td></tr>`).join('')}</tbody>
    </table></div>
    <p class="small" style="margin:0">打卡＝當天有答今日一題或完成一次專注。本週＝最近 7 天。禁言後學生不能留言和傳私訊，其他功能照常。</p>`;
   paintSprites($('#tbody'));
@@ -1981,8 +1988,13 @@ const when2=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${p
 async function tMsgs(){
   const rows=await cloud.teacher('teacher_threads');if(curTab!=='teacher'||!$('#tbody'))return;
   if(!rows){$('#tbody').innerHTML='<p class="small">訊息載不到。</p>';return}
-  $('#tbody').innerHTML=rows.length?`<div class="flist">${rows.map(r=>`<button class="frow" data-tmsg="${r.student_id}" data-name="${esc(r.name)}"><span class="grow">${esc(r.name)} <span class="small">${r.class_code?esc(r.class_code)+' 班':''}・${when2(r.last_at)}</span><br><span class="small">${esc((r.last_body||'').slice(0,40))}</span></span>${r.unread?`<span class="badge" style="position:static">${r.unread}</span>`:''}</button>`).join('')}</div>`
-    :'<p class="small">還沒有訊息。到「班級總覽」按學生旁邊的「傳訊息」開始對話。</p>';
+  const kids=await cloud.teacher('teacher_class_report',{p_class:S.tcls||''})||[];
+  const pickHTML=`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px"><label class="small" for="tnew">寫新訊息給 ${S.tcls?esc(S.tcls)+' 班':'沒填班級代碼'}的學生</label>
+    <div class="row"><select id="tnew" style="font-family:inherit;font-size:14px;padding:8px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)">${kids.map(k=>`<option value="${k.user_id}">${esc(k.name)}（${esc(k.email||'')}）</option>`).join('')||'<option value="">這個班還沒有學生</option>'}</select><button class="btn gold" id="tnewgo" style="flex:0 0 auto">寫訊息</button></div>
+    <p class="small" style="margin:0">要換班級，到「班級總覽」上方切換班級代碼。</p></div>`;
+  $('#tbody').innerHTML=pickHTML+(rows.length?`<h2>對話紀錄</h2><div class="flist">${rows.map(r=>`<button class="frow" data-tmsg="${r.student_id}" data-name="${esc(r.name)}"><span class="grow">${esc(r.name)} <span class="small">${r.class_code?esc(r.class_code)+' 班':''}・${when2(r.last_at)}</span><br><span class="small">${esc((r.last_body||'').slice(0,40))}</span></span>${r.unread?`<span class="badge" style="position:static">${r.unread}</span>`:''}</button>`).join('')}</div>`
+    :'<p class="small">還沒有對話。從上面選一位學生開始。</p>');
+  $('#tnewgo').onclick=()=>{const sel=$('#tnew');if(!sel.value){toast('這個班還沒有學生');return}teacherChat(sel.value,sel.options[sel.selectedIndex].text.replace(/（.*$/,''),'msgs')};
   $('#tbody').querySelectorAll('[data-tmsg]').forEach(b=>b.onclick=()=>teacherChat(b.dataset.tmsg,b.dataset.name,'msgs'));
 }
 const classPick=()=>`<select id="tcls2" style="font-family:inherit;font-size:14px;padding:8px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)"><option value="${esc(S.tcls||'')}">${S.tcls?esc(S.tcls)+' 班':'沒填班級代碼的學生'}</option><option value="__all">全部班級</option></select>`;
