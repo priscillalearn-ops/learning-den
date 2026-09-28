@@ -249,7 +249,7 @@ const dayNum=()=>{const d=new Date();return Math.floor(new Date(d.getFullYear(),
 function hash(s){let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;return h}
 function streak(){let d=new Date(),n=0;if(!S.days[keyOf(d)])d.setDate(d.getDate()-1);while(S.days[keyOf(d)]){n++;d.setDate(d.getDate()-1)}return n}
 /* 曾經最長連續打卡幾天（好友與私訊的解鎖條件，跟資料庫的 best_streak 同一套算法） */
-const DM_NEED=15;
+const DM_NEED=7;
 function bestStreak(){let best=0,run=0,prev=null;Object.keys(S.days).sort().forEach(k=>{const d=new Date(k+'T00:00');run=prev&&(d-prev)/864e5===1?run+1:1;prev=d;best=Math.max(best,run)});return best}
 const dmTierOk=()=>S.tier!=='kid';
 const dmOpen=()=>dmTierOk()&&bestStreak()>=DM_NEED;
@@ -905,9 +905,15 @@ function enterBuilding(b){
 }
 /* ---------- 任務板：每日、每週、老師任務 ----------
    線上版由資料庫 quest_board() 計算進度、claim_quest() 發金幣；單機版在瀏覽器照同樣規則算。 */
-const QDEFS=[['d_meal','daily','去餐廳吃飯','meal_days',1,5],['d_answer','daily','答今日一題','answer_days',1,5],['d_focus','daily','在讀書房專注 25 分鐘','focus_minutes',25,10],['d_games','daily','玩 2 場小遊戲','games',2,5],
- ['w_checkin','weekly','本週打卡 5 天','checkin_days',5,30],['w_focus','weekly','本週專注 3 小時','focus_minutes',180,40],['w_chal','weekly','雙倍挑戰贏 1 次','challenge_wins',1,20]];
-const DEMO_MISSION={key:'m0',grp:'teacher',title:'本週答今日一題 5 天',kind:'answer_days',target:5,reward:50,author:'宇宙超年輕大魔法師',end_day:null};
+const QPOOL=[
+ ['d_meal','daily',1,'去餐廳吃飯','meal_days',1,5,1],['d_answer','daily',1,'答今日一題','answer_days',1,5,1],['d_comment','daily',1,'在今日一題留言或送貼圖','comments',1,5,1],['d_game1','daily',1,'玩 1 場小遊戲','games',1,5,1],['d_bank','daily',1,'到銀行存一次錢','bank_deposits',1,5,1],
+ ['d_correct','daily',2,'答對今日一題','answer_correct',1,10,1],['d_focus25','daily',2,'在讀書房專注 25 分鐘','focus_minutes',25,10,1],['d_game2','daily',2,'玩 2 場小遊戲','games',2,10,1],['d_gcoin15','daily',2,'小遊戲賺到 15 金幣','game_coins',15,10,1],
+ ['d_focus50','daily',3,'在讀書房專注 50 分鐘','focus_minutes',50,20,1],['d_game4','daily',3,'玩 4 場小遊戲','games',4,20,1],['d_gcoin30','daily',3,'小遊戲賺到 30 金幣','game_coins',30,20,1],['d_chal','daily',3,'雙倍挑戰贏 1 次','challenge_wins',1,20,0],
+ ['w_meal4','weekly',1,'本週吃飯 4 天','meal_days',4,20,1],['w_check3','weekly',1,'本週打卡 3 天','checkin_days',3,20,1],['w_answer3','weekly',1,'本週答今日一題 3 天','answer_days',3,20,1],
+ ['w_check5','weekly',2,'本週打卡 5 天','checkin_days',5,40,1],['w_focus120','weekly',2,'本週專注 2 小時','focus_minutes',120,40,1],['w_correct4','weekly',2,'本週答對今日一題 4 次','answer_correct',4,40,1],['w_game8','weekly',2,'本週玩 8 場小遊戲','games',8,40,1],
+ ['w_check7','weekly',3,'本週每天都打卡（7 天）','checkin_days',7,80,1],['w_focus300','weekly',3,'本週專注 5 小時','focus_minutes',300,80,1],['w_correct7','weekly',3,'本週答對今日一題 7 次','answer_correct',7,80,1],['w_chal3','weekly',3,'本週雙倍挑戰贏 3 次','challenge_wins',3,80,0]];
+const LVL={1:['簡單','var(--mint)'],2:['普通','var(--gold)'],3:['困難','var(--coral)']};
+const DEMO_MISSION={key:'m0',grp:'teacher',title:'本週答今日一題 5 天',kind:'answer_days',target:5,reward:50,author:'宇宙超年輕大魔法師（Priscilla 老師）',end_day:null};
 let questCache=null,questAt=0;
 function weekStart(){const d=new Date();const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);return keyOf(d)}
 function localProgress(kind,d1){
@@ -918,12 +924,19 @@ function localProgress(kind,d1){
   if(kind==='checkin_days')return ks(S.days).length;
   if(kind==='games')return d1===today()?(gday().plays||0):0;
   if(kind==='challenge_wins')return (S.chalWins||{})[weekStart()]||0;
+  if(kind==='answer_correct')return Object.entries(S.answers).filter(([k,a])=>inR(k.slice(0,10))&&a.ok).length;
+  if(kind==='comments')return Object.keys(S.comments||{}).filter(k=>inR(k.slice(0,10))).reduce((a,k)=>a+S.comments[k].length,0);
+  if(kind==='bank_deposits')return ((S.bank&&S.bank.log)||[]).filter(l=>l.kind==='deposit'&&inR(keyOf(new Date(l.created_at)))).length;
+  if(kind==='game_coins')return d1===today()?GAME_KEYS.reduce((a,k)=>a+(gday()[k]||0),0):0;
   return 0;
 }
 async function loadQuests(force){
   if(!ONLINE){
     const cl=S.qclaims||{},per=(g,k)=>g==='daily'?today():g==='weekly'?'W'+weekStart():'m';
-    questCache=QDEFS.filter(q=>!(q[0]==='w_chal'&&S.tier==='kid')).map(([key,grp,title,kind,target,reward])=>({key,grp,title,kind,target,reward,progress:localProgress(kind,grp==='daily'?today():weekStart()),claimed:cl[key]===per(grp)}))
+    /* 每個等級抽一個：跟資料庫一樣，每個人每天／每週不一樣 */
+    const picks=[];['daily','weekly'].forEach(g=>[1,2,3].forEach(l=>{const c=QPOOL.filter(q=>q[1]===g&&q[2]===l&&(q[7]||S.tier!=='kid'));if(!c.length)return;
+      const seed=S.name+(g==='daily'?today():weekStart());picks.push(c.slice().sort((a,b)=>hash(seed+a[0])-hash(seed+b[0]))[0])}));
+    questCache=picks.map(([key,grp,lvl,title,kind,target,reward])=>({key,grp,lvl,title,kind,target,reward,progress:localProgress(kind,grp==='daily'?today():weekStart()),claimed:cl[key]===per(grp)}))
       .concat([{...DEMO_MISSION,progress:localProgress('answer_days',weekStart()),claimed:cl.m0==='m'}]);
     return questCache;
   }
@@ -938,12 +951,12 @@ async function renderQuests(){
   paintSprites($('#view'));$('#qback').onclick=()=>go('city');
   const list=await loadQuests(true);if(curTab!=='quest')return;
   const row=q=>{const done=q.progress>=q.target,pct=Math.min(100,Math.round(100*q.progress/q.target));
-    return `<div class="titem"><div class="bar"><span>${esc(q.title)}</span><span style="display:inline-flex;align-items:center;gap:3px;color:var(--gold)"><span data-s="coin" data-z="2"></span>${q.reward}</span></div>
+    return `<div class="titem"><div class="bar"><span>${q.lvl&&LVL[q.lvl]?`<span class="pill" style="background:${LVL[q.lvl][1]};color:var(--night);margin-right:6px">${LVL[q.lvl][0]}</span>`:''}${esc(q.title)}</span><span style="display:inline-flex;align-items:center;gap:3px;color:var(--gold)"><span data-s="coin" data-z="2"></span>${q.reward}</span></div>
       ${q.author?`<div class="small" style="display:flex;align-items:center;gap:6px"><span data-s="master" data-z="2"></span>${esc(q.author)}${q.end_day?'・到 '+tday(q.end_day):''}</div>`:''}
       <div class="bar" style="gap:10px"><div class="lock" style="flex:1;height:14px"><i style="width:${pct}%;background:${done?'var(--mint)':'var(--coral)'}"></i></div><span class="small" style="min-width:64px;text-align:right">${Math.min(q.progress,q.target)}／${q.target}</span></div>
       <div class="acts">${q.claimed?'<span class="pill ok">已領取</span>':done?`<button class="btn gold" data-qc="${q.key}">領取 ${q.reward} 金幣</button>`:'<span class="small">還沒完成</span>'}</div></div>`};
   const sec=(g,name,sub)=>{const l=list.filter(q=>q.grp===g);return l.length?`<h2>${name}</h2><p class="small" style="margin:0 0 6px">${sub}</p><div class="flist">${l.map(row).join('')}</div>`:''};
-  $('#qbody').innerHTML=sec('teacher','老師任務','老師出的特別任務，期限內完成就能領獎。')+sec('daily','每日任務','每天半夜 12 點重置。')+sec('weekly','每週任務','每週一重置。');
+  $('#qbody').innerHTML=sec('teacher','老師任務','老師出的特別任務，期限內完成就能領獎。')+sec('daily','每日任務','每天半夜 12 點換新任務，簡單、普通、困難各一個。')+sec('weekly','每週任務','每週一換新任務，簡單、普通、困難各一個。');
   paintSprites($('#qbody'));
   $('#qbody').querySelectorAll('[data-qc]').forEach(b=>b.onclick=async()=>{
     const q=list.find(x=>x.key===b.dataset.qc);b.disabled=true;
@@ -952,7 +965,7 @@ async function renderQuests(){
     toast(`領到 ${q.reward} 金幣！`);renderQuests()});
 }
 /* 布告欄：老師公告＋本週排行。單機版放一則示範公告 */
-const DEMO_ANN=[{id:1,title:'歡迎來到 Learning Den！',body:'每天記得去魔法餐廳吃飯、答今日一題。\n這週大家一起挑戰任務板上的「本週打卡 5 天」！',author:'宇宙超年輕大魔法師',class_code:null,created_at:new Date().toISOString()}];
+const DEMO_ANN=[{id:1,title:'歡迎來到 Learning Den！',body:'每天記得去魔法餐廳吃飯、答今日一題。\n這週大家一起挑戰任務板上的「本週打卡 5 天」！',author:'宇宙超年輕大魔法師（Priscilla 老師）',class_code:null,created_at:new Date().toISOString()}];
 let annCache=null,annAt=0;
 async function loadAnn(force){
   if(!ONLINE){annCache=DEMO_ANN;return DEMO_ANN}
@@ -1243,7 +1256,7 @@ const TOUR=[
  ['lamp','讀書房：一起專注','選 15、25 或 50 分鐘，跟同學一起專注，每分鐘 +1 金幣。同班同學會出現在座位上，點座位還能參觀他們的房間。'],
  ['coin','金幣怎麼用？','到百貨公司買家具、服裝、寵物，布置「我的家」。遊樂場有小遊戲和雙倍挑戰；銀行存錢每天會生利息。'],
  ['scroll','任務板和布告欄','噴水池旁的任務板有每日、每週和老師出的任務，完成就能領金幣。布告欄可以看老師的公告和本週排行。'],
- ['chat','好友與老師信箱','連續打卡 15 天，就能加同學好友、互傳私訊和送禮物。老師傳來的訊息會出現在「好友」頁的老師信箱。'],
+ ['chat','好友與老師信箱',`連續打卡 ${DM_NEED} 天，就能加同學好友、互傳私訊和送禮物。老師傳來的訊息會出現在「好友」頁的老師信箱，也可以回覆老師。`],
  ['feast','準備好了嗎？','第一步：先去魔法餐廳吃第一餐，再到魔法學院答今日一題。有問題隨時到「我的」按「玩法說明」再看一次。']
 ];
 function showTutorial(){
@@ -1342,7 +1355,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 const SB_URL='https://kvqbjkgzziidwulsjols.supabase.co', SB_KEY='sb_publishable_bxPfQ8PsqEAoqxlswoLhBQ_gPtNBivo';
 const ONLINE=!!(SB_URL&&SB_KEY&&window.supabase&&window.top===window);
 const sb=ONLINE?supabase.createClient(SB_URL,SB_KEY):null;
-let ME=null,TEACHER=false,TTITLE='宇宙超年輕大魔法師';
+let ME=null,TEACHER=false,TTITLE='宇宙超年輕大魔法師',TNAME='';
 const isBlocked=uid=>S.blocked.some(b=>b.startsWith(`u:${uid}:`));
 const cloud={
   /* 傳入產生查詢的函式；失敗回傳 undefined，查無資料或單機版回傳 null */
@@ -1368,7 +1381,7 @@ const cloud={
   card(w){const c=S.cards[w];return this.run(()=>sb.from('cards').upsert({user_id:ME,word:w,zh:c.zh,n:c.n}))},
   stats(q){return this.run(()=>sb.rpc('daily_stats',{p_qid:q.id,p_day:today()}))},
   friends(){return this.run(()=>sb.from('friendships').select('requester,addressee,status,rq:profiles!friendships_requester_fkey(name,tier),ad:profiles!friendships_addressee_fkey(name,tier)'))},
-  request(uid){return this.run(()=>sb.from('friendships').insert({addressee:uid}),'邀請沒送出：對方要是同等級、也連續打卡滿 15 天才行')},
+  request(uid){return this.run(()=>sb.from('friendships').insert({addressee:uid}),'邀請沒送出：對方要是同等級、也連續打卡滿 7 天才行')},
   accept(uid){return this.run(()=>sb.from('friendships').update({status:'accepted'}).eq('requester',uid).eq('addressee',ME),'沒接受成功，再試一次')},
   unfriend(uid){return this.run(()=>sb.from('friendships').delete().or(`and(requester.eq.${ME},addressee.eq.${uid}),and(requester.eq.${uid},addressee.eq.${ME})`))},
   findByCode(code){return this.run(()=>sb.rpc('find_by_code',{p_code:code}))},
@@ -1435,7 +1448,7 @@ async function boot(){
   }
   joinRoom();listenDM();
   TEACHER=(await cloud.run(()=>sb.rpc('is_teacher')))===true;
-  if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm&&tm.title)TTITLE=tm.title}
+  if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm){if(tm.title)TTITLE=tm.title;TNAME=tm.name||''}}
   if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet())}else renderOnboard();
 }
 function renderLogin(){
@@ -1773,7 +1786,7 @@ function renderQuiz(){
 }
 
 /* ---------- 好友與私訊 ----------
-   規則：國小不開放；曾經連續打卡 15 天解鎖；只能加同等級、也解鎖的人；私訊只能傳給好友。
+   規則：國小不開放；曾經連續打卡 7 天解鎖；只能加同等級、也解鎖的人；私訊只能傳給好友。
    這些規則資料庫也會再檢查一次（schema.sql 的 dm_ok、are_friends）。 */
 let unread={},dmChan=null,chatWith=null,unseenGifts=0;
 function drawUnread(){const n=Object.values(unread).reduce((a,b)=>a+b,0)+unseenGifts,b=$('#unread');b.hidden=!n;b.textContent=n>99?'99+':n}
@@ -1941,13 +1954,18 @@ async function renderTeacher(view){
   $('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current','false'));
   $('#view').innerHTML=`
    <div class="bar"><h2>老師後台</h2><button class="btn ghost" id="tback" style="padding:5px 10px;font-size:13px">回到我的</button></div>
-   <div class="bar" style="justify-content:flex-start;gap:10px"><span data-s="master" data-z="4"></span><span>學生看到的你：<span style="color:var(--gold)">${esc(TTITLE)}</span></span><button class="chip" id="ttitle">改稱號</button></div>
+   <div class="bar" style="justify-content:flex-start;gap:10px"><span data-s="master" data-z="4"></span><span>學生看到的你：<span style="color:var(--gold)">${esc(TTITLE)}${TNAME?'（'+esc(TNAME)+'）':''}</span></span><button class="chip" id="ttitle">改稱號和名字</button></div>
    <div class="chips">${[['class','班級總覽'],['msgs','學生訊息'],['ann','公告'],['mission','任務'],['reports','檢舉處理'],['recent','最新留言']].map(([k,n])=>`<button class="chip" data-tv="${k}" aria-pressed="${tview===k}">${n}</button>`).join('')}</div>
    <div id="tclass"></div>
    <div id="tbody"><p class="small">載入中…</p></div>`;
   $('#tback').onclick=()=>go('me');paintSprites($('#view'));
-  $('#ttitle').onclick=()=>{const m=modal(`<h2>改稱號</h2><p class="small" style="margin:0">學生在訊息、公告和任務看到的名字（16 字內）。</p><input type="text" id="tt" maxlength="16" value="${esc(TTITLE)}"><p class="err" id="tterr"></p><div class="row"><button class="btn" data-close>取消</button><button class="btn gold" id="yes">儲存</button></div>`);
-    m.querySelector('#yes').onclick=async()=>{const v=m.querySelector('#tt').value.trim();if(!v){m.querySelector('#tterr').textContent='請輸入稱號';return}if(await cloud.rpc('set_teacher_title',{p_title:v})!==undefined){TTITLE=v;m.remove();toast('稱號改好了');renderTeacher()}}};
+  $('#ttitle').onclick=()=>{const m=modal(`<h2>改稱號和名字</h2><p class="small" style="margin:0">學生在訊息、公告和任務看到「稱號（名字）」，例如 宇宙超年輕大魔法師（Priscilla 老師）。</p>
+      <label class="small" for="tt">稱號（16 字內）</label><input type="text" id="tt" maxlength="16" value="${esc(TTITLE)}">
+      <label class="small" for="tn">名字（12 字內，可以不填）</label><input type="text" id="tn" maxlength="12" value="${esc(TNAME)}" placeholder="Priscilla 老師">
+      <p class="err" id="tterr"></p><div class="row"><button class="btn" data-close>取消</button><button class="btn gold" id="yes">儲存</button></div>`);
+    m.querySelector('#yes').onclick=async()=>{const v=m.querySelector('#tt').value.trim(),n=m.querySelector('#tn').value.trim();if(!v){m.querySelector('#tterr').textContent='請輸入稱號';return}
+      if(await cloud.rpc('set_teacher_title',{p_title:v})===undefined)return;if(await cloud.rpc('set_teacher_name',{p_name:n})===undefined)return;
+      TTITLE=v;TNAME=n;m.remove();toast('改好了');renderTeacher()}};
   $('#view').querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>renderTeacher(b.dataset.tv));
   if(!['reports','msgs'].includes(tview)){
     if(!tclasses)tclasses=await cloud.teacher('teacher_classes');
