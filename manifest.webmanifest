@@ -1,0 +1,15 @@
+{
+  "name": "Learning Den 陪你一起讀書啦",
+  "short_name": "Learning Den",
+  "description": "每天一題英文，一起在讀書房專注。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2b2140",
+  "theme_color": "#2b2140",
+  "lang": "zh-Hant",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
