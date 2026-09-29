@@ -230,6 +230,23 @@ const BOT_TALK={
  teen:['我差點選錯','這題老師有教過','私中考題好刁','第一次全對','易錯題耶','香蕉也要讀書'],
  sage:['effect / affect 每次都搞混','學測考過類似的','這個字根很好記','秒答','看了例句才懂','咖啡續杯中']
 };
+/* NPC 同學：每個等級 20 位，每天依日期和學生暱稱隨機抽 5 位出場，每位都有自己的隨機造型 */
+const BOT_POOL={
+ kid:['打瞌睡的企鵝','愛吃布丁的恐龍','會唱歌的香菇','找不到襪子的章魚','翻跟斗的小雞','會跳舞的花椰菜','戴眼鏡的小熊','愛洗澡的河馬','害羞的小海豹','吃太飽的倉鼠',
+  '會飛的小豬','迷路的小綿羊','愛畫畫的長頸鹿','睡過頭的貓咪','彈鋼琴的小狗','穿雨鞋的鴨子','抱著枕頭的無尾熊','愛唱歌的麻雀','在跳繩的兔子','撿到星星的小狐狸'],
+ teen:['熬夜的香蕉','會飛的拖鞋','被作業追的馬鈴薯','忘記帶筆的河馬','超想睡的無尾熊','在背單字的高麗菜','考前抱佛腳的章魚','喝珍奶的企鵝','打籃球的蘿蔔','抄錯筆記的鸚鵡',
+  '早餐只吃吐司的熊','愛遲到的蝸牛','補習班下課的松鼠','手機被沒收的貓','忘記寫功課的小羊','背公式的地瓜','找不到橡皮擦的烏龜','午睡流口水的狗','帶兩把傘的狐狸','搶福利社的麻糬'],
+ sage:['喝第三杯咖啡的貓頭鷹','學測倒數的鬆餅','背單字的仙人掌','迷路的逗號','考古題吸塵器','熬夜刷題的熊貓','寫不完作文的鉛筆','模考發呆的企鵝','在圖書館打盹的獅子','被分數嚇到的蘑菇',
+  '愛講冷笑話的雪人','夢到微積分的兔子','整理筆記的刺蝟','志願填不完的海龜','喝能量飲的樹懶','背單字背到發光的魚','考完就去吃雞排的狗','讀書讀到發芽的豆苗','自習室的守門人','被長句打敗的恐龍']
+};
+function dayBots(){
+  const tier=S.tier||'teen',seed=today()+tier+(S.name||'');
+  return BOT_POOL[tier].slice().sort((a,b)=>hash(seed+a)-hash(seed+b)).slice(0,5).map(n=>[n,tier]);
+}
+/* NPC 的造型：用名字決定，同一位 NPC 走到哪裡都穿一樣 */
+function botOutfit(name){
+  const o={};WEAR_SLOTS.forEach(([sl])=>{const l=SHOP.filter(i=>i.slot===sl&&!i.cards);o[sl]=l[hash(name+sl)%l.length].id});return o;
+}
 const STICKERS=['讚','好難','我答對','加油','好好玩'];
 const BAD=['笨蛋','白痴','白癡','智障','幹','靠北','去死','stupid','idiot','fuck','shit','damn'];
 
@@ -660,7 +677,7 @@ async function visitRoom(who,uid,tier){
   else{
     const pickSlot=s=>{const l=SHOP.filter(i=>i.slot===s);return l[hash(who+s)%l.length].id};
     const room={};[...ROOM_SLOTS,...PET_SLOTS].forEach(([s])=>room[s]=pickSlot(s));
-    const outfit={};WEAR_SLOTS.forEach(([s])=>outfit[s]=pickSlot(s));look=lookOf({room,outfit},tier);
+    look=lookOf({room,outfit:botOutfit(who)},tier);
   }
   modal(`<h2>${esc(who)} 的房間</h2>${roomSVG(look,look.outfit,who+' 的房間')}<button class="btn" data-close>回去讀書</button>`);
 }
@@ -966,7 +983,7 @@ function renderCity(){
   const spawn=S.citySpawn||[10,8];
   if(!city||!city.me){
     city={me:mkWalker(spawn[0],spawn[1],{armed:!doorAt(spawn[0],spawn[1])}),npcs:[],bubbles:[],keys:new Set(),peers:{},sent:0};
-    T().bots.filter(b=>!S.blocked.includes(b[0])).slice(0,4).forEach((b,i)=>{
+    dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,4).forEach((b,i)=>{
       const spots=[[4,4],[15,4],[5,10],[12,8]];city.npcs.push(mkWalker(spots[i][0],spots[i][1],{name:b[0],tier:b[1],wait:1+i}));
     });
   }
@@ -1142,7 +1159,7 @@ function cityDraw(){
   const bang=(x,y)=>{const by=y*TS-9+Math.round(Math.sin(t*5)*2);c.fillStyle='#ffd166';c.fillRect(x*TS+5,by,6,8);c.fillStyle='#1a1026';c.fillRect(x*TS+7,by+1,2,4);c.fillRect(x*TS+7,by+6,2,1)};
   if(annNew())bang(NOTICE[0],NOTICE[1]);if(questReady())bang(QUEST[0],QUEST[1]);
   /* 人物依 y 排序，比較前面的蓋在後面的上面 */
-  const people=[...city.npcs.map(n=>({px:n.px,py:n.py,face:n.face,g:null,sp:n.tier,name:n.name})),
+  const people=[...city.npcs.map(n=>({px:n.px,py:n.py,face:n.face,outfit:lookOf({outfit:botOutfit(n.name)},n.tier).outfit,name:n.name})),
     ...Object.values(city.peers).map(p=>({px:p.px,py:p.py,outfit:lookOf({outfit:p.outfit},p.tier).outfit,name:p.name})),
     {px:city.me.px,py:city.me.py,face:city.me.face,outfit:myLook().outfit,name:'你',me:true,ghost:fainted()}].sort((a,b)=>a.py-b.py);
   people.forEach(p=>{
@@ -1765,7 +1782,7 @@ function practice(){
 /* 答題統計＋留言：單機版用模擬數字，線上版抓真的 */
 async function fillSocial(q){
   const t=T(),talk=BOT_TALK[S.tier],base=hash(today()+S.tier);
-  const bots=t.bots.map(b=>b[0]).filter(x=>!S.blocked.includes(x));
+  const bots=dayBots().map(b=>b[0]).filter(x=>!S.blocked.includes(x));
   const list=bots.slice(0,ONLINE?3:4).map((b,i)=>({who:b,txt:talk[(base+i)%talk.length],bot:true}));
   if(!ONLINE){
     (S.comments[dkey()]||[]).forEach(c=>list.push({who:S.name,txt:c,me:true}));
@@ -1806,7 +1823,7 @@ async function checkCardRewards(){
 /* ---------- 讀書房 ---------- */
 let tm={mode:'idle',end:0,len:0,left:0,speed:1,tick:null,wake:null};
 const botMin={};
-function roomBots(){T().bots.filter(b=>!S.blocked.includes(b[0])).slice(0,5).forEach((b,i)=>{if(botMin[b[0]]==null)botMin[b[0]]=5+hash(b[0]+today())%70});return T().bots.filter(b=>!S.blocked.includes(b[0])).slice(0,5)}
+function roomBots(){dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,5).forEach((b,i)=>{if(botMin[b[0]]==null)botMin[b[0]]=5+hash(b[0]+today())%70});return dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,5)}
 function fmt(s){s=Math.max(0,Math.ceil(s));return `${pad(Math.floor(s/60))}:${pad(s%60)}`}
 /* 座位：自己＋線上真人＋NPC 補滿六個位子 */
 function drawSeats(){
@@ -1815,7 +1832,7 @@ function drawSeats(){
   const seat=(fig,label,cls,attrs)=>`<button class="seat" ${attrs}>${fig}<span class="desk"></span><span${cls?` style="color:${cls}"`:''}>${label}</span></button>`;
   box.innerHTML=seat(avatarSVG(myLook().outfit,4),`你 ${myMins()}m`,'var(--gold)','data-mine="1" aria-label="我的房間"')
     +real.map(p=>seat(avatarSVG(lookOf({outfit:p.outfit},p.tier).outfit,4),`${esc(p.name)} ${p.mins||0}m`,p.focus?'var(--mint)':'var(--dim)',`data-vu="${esc(p.uid)}" data-vn="${esc(p.name)}" data-vt="${esc(p.tier)}" aria-label="看 ${esc(p.name)} 的房間"`)).join('')
-    +bots.map(b=>seat(`<span data-s="${b[1]}" data-z="4"></span>`,`${esc(b[0])} <span data-bm="${esc(b[0])}">${botMin[b[0]]}</span>m`,'',`data-vn="${esc(b[0])}" data-vt="${b[1]}" aria-label="看 ${esc(b[0])} 的房間"`)).join('');
+    +bots.map(b=>seat(avatarSVG(lookOf({outfit:botOutfit(b[0])},b[1]).outfit,4),`${esc(b[0])} <span data-bm="${esc(b[0])}">${botMin[b[0]]}</span>m`,'',`data-vn="${esc(b[0])}" data-vt="${b[1]}" aria-label="看 ${esc(b[0])} 的房間"`)).join('');
   box.querySelectorAll('[data-vn]').forEach(e=>e.onclick=()=>visitRoom(e.dataset.vn,e.dataset.vu,e.dataset.vt));
   box.querySelector('[data-mine]').onclick=()=>renderShop('room');
   $('#cnt').textContent=`${1+real.length+bots.length} 人在讀書房`;
@@ -1855,7 +1872,7 @@ async function drawBoard(){
   let rows;
   if(!ONLINE){
     rows=[{name:S.name,tier:S.tier,week_minutes:weekMinutes(),streak:streak(),is_me:true}]
-      .concat(roomBots().map(b=>({name:b[0],tier:b[1],week_minutes:botMin[b[0]]*4,streak:3+hash(b[0])%9})));
+      .concat(roomBots().map(b=>({name:b[0],tier:b[1],week_minutes:botMin[b[0]]*4,streak:3+hash(b[0])%9,bot:1})));
     rows.sort((a,b)=>b.week_minutes-a.week_minutes);
   }else if(!S.cls){
     $('#board').innerHTML='<p class="small" style="margin:0;line-height:1.6">到「我的 → 換等級／改名字」填班級代碼，就能看到同班的本週專注排行。</p>';return;
@@ -1867,7 +1884,7 @@ async function drawBoard(){
   $('#board').innerHTML=`<p class="small" style="margin:0 0 8px">${S.cls&&ONLINE?esc(S.cls)+' 班':''}本週專注排行</p>
     <div class="flist">${rows.slice(0,10).map((r,i)=>`<div class="frow" style="padding:6px 10px;${r.is_me?'outline:2px solid var(--gold);outline-offset:-5px':''}">
       <span style="width:22px;color:${i<3?'var(--gold)':'var(--dim)'};font-variant-numeric:tabular-nums">${i+1}</span>
-      <span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="3"></span>
+      ${r.bot?avatarSVG(lookOf({outfit:botOutfit(r.name)},r.tier).outfit,3):r.is_me?avatarSVG(myLook().outfit,3):`<span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="3"></span>`}
       <span class="grow" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}${r.is_me?'（你）':''}</span>
       <span style="font-variant-numeric:tabular-nums">${hrs(r.week_minutes)}h</span>
       <span style="display:flex;align-items:center;gap:2px;color:var(--coral);font-size:12px;min-width:40px;justify-content:flex-end"><span data-s="fire" data-z="2"></span>${r.streak}</span></div>`).join('')}</div>`;
@@ -1917,7 +1934,7 @@ function finishFocus(){
   milestoneCheck(before);
 }
 function renderQuiz(){
-  if(!tm.quiz){tm.quiz={q:pick(pool()),t0:Date.now(),done:null,rival:T().bots[Math.floor(Math.random()*3)][0],rt:(2+Math.random()*4).toFixed(1)}}
+  if(!tm.quiz){tm.quiz={q:pick(pool()),t0:Date.now(),done:null,rival:dayBots()[Math.floor(Math.random()*3)][0],rt:(2+Math.random()*4).toFixed(1)}}
   const z=tm.quiz,q=z.q;
   $('#quiz').innerHTML=`<div class="box paper"><p class="lbl">快問快答・跟 ${esc(z.rival)} 比速度</p>
    ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="6"></span></div>`:''}
