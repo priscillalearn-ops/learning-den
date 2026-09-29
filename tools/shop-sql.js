@@ -9,8 +9,8 @@ if (a < 0 || b < 0) throw new Error('index.html 裡找不到 SHOP_START／SHOP_E
 const SHOP = new Function(html.slice(a, b) + ';return SHOP;')();
 const q = s => "'" + String(s).replace(/'/g, "''") + "'";
 const n = v => v == null ? 'null' : v;
-const rows = SHOP.map(i => `  (${q(i.id)}, ${q(i.slot)}, ${i.price}, ${n(i.cards)}, ${i.from ? q(i.from) : 'null'}, ${i.until ? q(i.until) : 'null'})`).join(',\n');
-const block = `-- SHOP_SEED_START\ninsert into public.shop_items (id, slot, price, unlock_cards, avail_from, avail_until) values\n${rows}\non conflict (id) do update set slot = excluded.slot, price = excluded.price, unlock_cards = excluded.unlock_cards, avail_from = excluded.avail_from, avail_until = excluded.avail_until;\n-- SHOP_SEED_END`;
+const rows = SHOP.map(i => `  (${q(i.id)}, ${q(i.slot)}, ${i.price}, ${n(i.cards)}, ${i.from ? q(i.from) : 'null'}, ${i.until ? q(i.until) : 'null'}, ${i.gacha ? q(i.gacha) : 'null'})`).join(',\n');
+const block = `-- SHOP_SEED_START\ninsert into public.shop_items (id, slot, price, unlock_cards, avail_from, avail_until, gacha) values\n${rows}\non conflict (id) do update set slot = excluded.slot, price = excluded.price, unlock_cards = excluded.unlock_cards, avail_from = excluded.avail_from, avail_until = excluded.avail_until, gacha = excluded.gacha;\n-- SHOP_SEED_END`;
 const f = path.join(__dirname, '../supabase/schema.sql');
 const sql = fs.readFileSync(f, 'utf8');
 const s = sql.indexOf('-- SHOP_SEED_START'), e = sql.indexOf('-- SHOP_SEED_END');
