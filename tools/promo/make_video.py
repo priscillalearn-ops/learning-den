@@ -87,26 +87,29 @@ SCENES = [
  ("daily", "每天一題，打卡不中斷", "答對拿金幣和單字卡"),
  ("room", "和同學一起專注", "讀書房看得到誰在一起讀"),
  ("quest", "任務板每天換新任務", "簡單、普通、困難，完成就領金幣"),
- ("home", "布置你的房間", "還能養一隻恐龍當寵物"),
+ ("home", "布置你的房間", "收集單字卡還能解鎖專屬獎勵"),
+ ("gacha", "魔法盲盒抽 SSR！", "答完今日一題，每天免費抽一次"),
  ("granny", "逃離恐怖阿嬤！", "答對題目才能打開門"),
  ("tower", "單字守城", "答對就能打倒來襲的怪物"),
  ("gift", "送禮物給好朋友", "連續打卡 7 天，解鎖好友與私訊"),
  ("kid", "國小到高中都能玩", "英檢初級風格・國一到國三・會考・高中"),
 ]
-CROP = {"start": (270, 820), "gift": (150, 700), "granny": (0, 560), "quest": (0, 720)}
+CROP = {"start": (270, 820), "gift": (150, 700), "granny": (0, 560), "quest": (0, 720), "gacha": (20, 520)}
 # 旁白（macOS 美佳）：每個畫面依旁白長度決定秒數
 VO = os.path.join(HERE, "vo")
 def vo_len(k):
     with wave.open(os.path.join(VO, k + ".wav")) as w: return w.getnframes() / w.getframerate()
 LEAD = .35
-TITLE = max(3.5, vo_len("title") + 1.0)
-DURS = [max(3.0, vo_len(n) + LEAD + .6) for n, _, _ in SCENES]
+VOICE = False
+TITLE = max(3.5, vo_len("title") + 1.0) if VOICE else 3.5
+DURS = [max(3.0, vo_len(n) + LEAD + .6) if VOICE else 3.2 for n, _, _ in SCENES]
 STARTS = [TITLE + sum(DURS[:i]) for i in range(len(SCENES))]
-END = max(5, vo_len("end") + 2.0)
+END = max(5, vo_len("end") + 2.0) if VOICE else 5
 SCENE = 3.0
 SUBS = dict(l.strip().split("|", 1) for l in open(os.path.join(VO, "lines.txt"), encoding="utf-8") if "|" in l)
 def subtitle(im, key, y=1668):
     """把旁白文字放在畫面下方（靜音播放也看得懂）"""
+    if not VOICE: return
     txt = SUBS.get(key, ""); d = ImageDraw.Draw(im)
     lines, cur = [], ""
     for ch in txt:
@@ -242,7 +245,8 @@ def mix_voice(music_path, out_path):
     with wave.open(out_path, "w") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr)
         w.writeframes(array.array("h", [int(x * g) for x in buf]).tobytes())
-mixed = os.path.join(HERE, "mixed.wav"); mix_voice(music, mixed); music = mixed
+if VOICE:
+    mixed = os.path.join(HERE, "mixed.wav"); mix_voice(music, mixed); music = mixed
 ff = imageio_ffmpeg.get_ffmpeg_exe()
 p = subprocess.Popen([ff, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
     "-i", music, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-preset", "medium", "-c:a", "aac", "-b:a", "160k",
