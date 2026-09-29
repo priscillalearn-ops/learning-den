@@ -7,7 +7,6 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '../..');
-const DST = path.join(__dirname, '../index.html');
 const SOURCES = [
   { key: 'HS', label: '高中', file: 'granny-escape-b3l1/index.html' }
 ];
@@ -26,15 +25,10 @@ function extract(file) {
   return { units, presets: box.PRESETS.filter(p => p.ids.every(i => ids.has(i))) };
 }
 
-let dst = fs.readFileSync(DST, 'utf8');
 for (const { key, label, file } of SOURCES) {
   const { units, presets } = extract(file);
-  const START = `/* ${key}_BANK_START */`, END = `/* ${key}_BANK_END */`;
-  const s = dst.indexOf(START), e = dst.indexOf(END);
-  if (s < 0 || e < 0) throw new Error(`Word Den 的 index.html 裡找不到 ${key}_BANK 標記`);
-  const block = `${START}\nconst ${key}_UNITS=${JSON.stringify(units)};\nconst ${key}_PRESETS=${JSON.stringify(presets)};\n${END}`;
-  dst = dst.slice(0, s) + block + dst.slice(e + END.length);
+  const out = path.join(__dirname, '../banks', key === 'HS' ? 'sage.json' : key.toLowerCase() + '.json');
+  fs.writeFileSync(out, JSON.stringify({ units, presets }));
   const total = units.reduce((n, u) => n + u.v.length + u.g.length + u.c.length, 0);
-  console.log(`${label}：${units.length} 個單元、${total} 題、${presets.length} 個組合包`);
+  console.log(`${label}：${units.length} 個單元、${total} 題、${presets.length} 個組合包 → ${path.basename(out)}`);
 }
-fs.writeFileSync(DST, dst);

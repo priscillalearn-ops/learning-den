@@ -1,7 +1,7 @@
 # 國小（見習魔法師）題庫：全民英檢初級「風格」的原創題目（不是官方考古題）。
 # 每題寫法：(題目, [正解, 誘答...], 解析, 圖)；正解一律寫第一個，產生時會固定打散選項順序。
 # 用法：在 Magic_World_App 資料夾執行  python3 learning-den/tools/gept-kid.py
-# 會把 learning-den/index.html 裡 KID_BANK_START/END 之間換成新的題庫。
+# 會寫到 learning-den/banks/kid.json（網站選了等級才會下載）。
 import json, random, re, pathlib
 
 P = [  # 看圖認字（圖是 App 裡的像素圖）
@@ -160,12 +160,6 @@ units = [
   {"id": "GD", "pub": "全民英檢初級風格", "grade": "國小", "name": "英檢初級　對話回應", "short": "英檢初級", "src": {"c": "對話回應"}, "tags": {"c": "對話"}, "v": [], "g": [], "c": shuf(D, 4)},
 ]
 presets = [{"name": "看圖＋字彙", "ids": ["GP", "GV"]}, {"name": "文法＋對話", "ids": ["GG", "GD"]}]
-p = pathlib.Path(__file__).parent.parent / "index.html"
-s = p.read_text(encoding="utf-8")
-block = "/* KID_BANK_START */\nconst KID_UNITS=" + json.dumps(units, ensure_ascii=False) + ";\nconst KID_PRESETS=" + json.dumps(presets, ensure_ascii=False) + ";\n/* KID_BANK_END */"
-if "/* KID_BANK_START */" in s:
-    s = re.sub(r"/\* KID_BANK_START \*/.*?/\* KID_BANK_END \*/", lambda m: block, s, flags=re.S)
-else:
-    s = s.replace("/* JH_BANK_START */", block + "\n/* JH_BANK_START */", 1)
-p.write_text(s, encoding="utf-8")
+p = pathlib.Path(__file__).parent.parent / "banks" / "kid.json"
+p.write_text(json.dumps({"units": units, "presets": presets}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print("國小題庫：", sum(len(u["v"]) + len(u["g"]) + len(u["c"]) for u in units), "題")

@@ -15,6 +15,7 @@ fs.writeFileSync(path.join(out, 'index.html'),
   src.replace(/<\/style>\n/, '</style>\n</head>\n<body>\n') + '\n</body>\n</html>\n');
 for (const f of ['privacy.html', 'about.html', 'manifest.webmanifest']) fs.copyFileSync(path.join(__dirname, '..', f), path.join(out, f));
 fs.cpSync(path.join(__dirname, '../icons'), path.join(out, 'icons'), { recursive: true });
+fs.cpSync(path.join(__dirname, '../banks'), path.join(out, 'banks'), { recursive: true });
 // 每日打卡提醒：給 iPhone／其他行事曆用的 .ics（每天重複，時間到跳通知）
 const SITE = 'https://priscillalearn-ops.github.io/learning-den/';
 fs.mkdirSync(path.join(out, 'reminders'), { recursive: true });

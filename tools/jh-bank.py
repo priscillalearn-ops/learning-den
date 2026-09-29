@@ -1,7 +1,7 @@
 # 國中（冒險騎士）題庫：Learning Den 原創題目，依國一、國二、國三程度與會考題型編寫。
 # 每題寫法：(題目, [正解, 誘答...], 解析)；正解一律寫第一個，產生時會固定打散選項順序。
 # 用法：在 Magic_World_App 資料夾執行  python3 learning-den/tools/jh-bank.py
-# 會把 learning-den/index.html 裡 JH_BANK_START/END 之間換成新的題庫。
+# 會寫到 learning-den/banks/teen.json（網站選了等級才會下載）。
 import json, random, re, pathlib
 
 J1V = [
@@ -225,9 +225,6 @@ units = [
 ]
 presets = [{"name": "國一全部", "ids": ["J1V", "J1G"]}, {"name": "國二全部", "ids": ["J2V", "J2G"]},
            {"name": "國三全部", "ids": ["J3V", "J3G"]}, {"name": "會考總複習（國一～國三＋會考）", "ids": [u["id"] for u in units]}]
-p = pathlib.Path(__file__).parent.parent / "index.html"
-s = p.read_text(encoding="utf-8")
-block = "/* JH_BANK_START */\nconst JH_UNITS=" + json.dumps(units, ensure_ascii=False) + ";\nconst JH_PRESETS=" + json.dumps(presets, ensure_ascii=False) + ";\n/* JH_BANK_END */"
-s = re.sub(r"/\* JH_BANK_START \*/.*?/\* JH_BANK_END \*/", lambda m: block, s, flags=re.S)
-p.write_text(s, encoding="utf-8")
+p = pathlib.Path(__file__).parent.parent / "banks" / "teen.json"
+p.write_text(json.dumps({"units": units, "presets": presets}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print("國中題庫：", sum(len(u["v"]) + len(u["g"]) + len(u["c"]) for u in units), "題")

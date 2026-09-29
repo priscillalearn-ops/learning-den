@@ -3,12 +3,8 @@
 // 題庫同步（import-granny.js）之後要重跑，再把 question_keys.sql 貼到 Supabase 執行。
 const fs = require('fs');
 const path = require('path');
-const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-const box = {};
-for (const key of ['JH', 'HS']) {
-  const a = html.indexOf(`/* ${key}_BANK_START */`), b = html.indexOf(`/* ${key}_BANK_END */`);
-  new Function('box', html.slice(a, b).replace(/\/\*.*?\*\//, '') + `;box.${key}=${key}_UNITS;`)(box);
-}
+const read = t => JSON.parse(fs.readFileSync(path.join(__dirname, '../banks', t + '.json'), 'utf8')).units;
+const box = { JH: read('teen'), HS: read('sage') };
 const rows = [];
 const q = s => "'" + String(s).replace(/'/g, "''") + "'";
 // 國小題目太少，不開放雙倍挑戰，所以不放答案
