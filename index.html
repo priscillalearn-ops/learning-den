@@ -163,6 +163,8 @@ const SPR={
  dog:['o......o','oo.oo.oo','.oooooo.','.okooko.','.oooooo.','..okko..','.oooooo.','.o....o.']
 };
 function sprite(name,z){const m=SPR[name];let r='';m.forEach((row,y)=>[...row].forEach((c,x)=>{if(PAL[c])r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`}));return `<svg width="${8*z}" height="${8*z}" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block" aria-hidden="true">${r}</svg>`}
+/* 看圖題的圖：每個出題的地方都要放，不然只剩 What is this? */
+const qPic=(q,z=6)=>q&&q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="${z}"></span></div>`:'';
 function paintSprites(root=document){root.querySelectorAll('[data-s]').forEach(e=>{e.innerHTML=sprite(e.dataset.s,+e.dataset.z||4)})}
 
 /* ---------- 等級與題庫 ---------- */
@@ -791,9 +793,10 @@ function playChal(id,st,qs){
   const show=()=>{const q=qs[i];
     gameShell('雙倍挑戰',`<div class="bar"><span>第 ${i+1}／5 題・押 ${st} 金幣</span><span class="timer" id="cclock" style="font-size:20px">5:00</span></div>
       <div class="box paper" style="display:flex;flex-direction:column;gap:8px">${q.src?`<p class="lbl" style="margin:0">${esc(q.src)} ${q.tag||TAG[q.t]}</p>`:''}
-      <div style="line-height:1.6">${esc(q.q)}</div>
+      ${qPic(q)}<div style="line-height:1.6">${esc(q.q)}</div>
       ${q.o.map((o,k)=>`<button class="btn opt" data-ci="${k}" style="padding:7px 10px">${'ABCD'[k]}. ${esc(o)}</button>`).join('')}</div>`);
     $('#gback').onclick=()=>{const m=modal(`<h2>離開挑戰？</h2><p class="small">押的金幣不會退，沒答的題目算錯。</p><div class="row"><button class="btn" data-close>繼續答題</button><button class="btn coral" id="yes">離開</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();while(ans.length<5)ans.push(-1);submit()}};
+    paintSprites($('#view'));
     $('#view').querySelectorAll('[data-ci]').forEach(b=>b.onclick=()=>{ans.push(+b.dataset.ci);i++;if(i<5)show();else submit()});
   };
   const submit=async()=>{
@@ -804,10 +807,11 @@ function playChal(id,st,qs){
     if(pay>st){S.chalWins=S.chalWins||{};S.chalWins[weekStart()]=(S.chalWins[weekStart()]||0)+1;save()}
     gameShell('挑戰結果',`<div class="box" style="background:${pay>st?'var(--kid)':pay===st?'var(--deep)':'#5a2a3a'};text-align:center">
         <h2>答對 ${n}／5 題</h2><p style="margin:6px 0 0;font-size:18px;color:var(--gold)">${pay>st?`贏了 +${pay-st} 金幣（拿回 ${pay}）`:pay===st?`打平，拿回 ${st} 金幣`:`押的 ${st} 金幣沒收了`}</p></div>
-      ${qs.map((q,k)=>`<div class="titem"><div style="line-height:1.5">${k+1}. ${esc(q.q)}</div>
+      ${qs.map((q,k)=>`<div class="titem"><div style="line-height:1.5;display:flex;gap:8px;align-items:center">${k+1}. ${q.pic?`<span data-s="${q.pic}" data-z="3"></span>`:''}${esc(q.q)}</div>
         <div class="small">正解：${esc(q.o[keys[k]])}${ans[k]!==keys[k]?`・你選：${ans[k]>=0?esc(q.o[ans[k]]):'沒作答'}`:'・答對'}</div></div>`).join('')}
       <p class="small" style="margin:0">答錯的題目已經放進錯題本。</p>
       <button class="btn gold" id="cagain">再挑戰一次</button>`);
+    paintSprites($('#view'));
     $('#cagain').onclick=gChal;
   };
   tick=setInterval(()=>{const c=$('#cclock');if(!c){return}const left=Math.max(0,end-Date.now());c.textContent=fmt(left/1000);if(left<=0){clearInterval(tick);while(ans.length<5)ans.push(-1);submit()}},250);
@@ -1788,10 +1792,11 @@ function practice(){
   const q=pr.q,done=pr.c!=null;
   $('#prac').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px">
     <p class="lbl" style="margin:0">${pr.review?`複習錯題・剩 ${wrongs().length} 題`:`多練幾題・${esc(scopeName())}`}・這輪 ${pr.ok}/${pr.n}${q.src?`<br>${esc(q.src)} ${q.tag||TAG[q.t]}`:''}</p>
-    <div style="line-height:1.6">${esc(q.q)}</div>
+    ${qPic(q)}<div style="line-height:1.6">${esc(q.q)}</div>
     ${q.o.map((o,i)=>`<button class="btn opt ${done?(i===q.a?'right':i===pr.c?'wrong':''):''}" data-pi="${i}" style="padding:7px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}
     ${done?`<p style="margin:0;line-height:1.6">${q.ex?esc(q.ex):`${esc(q.w)}：${esc(q.zh)}`}</p><div class="row"><button class="btn ghost" id="pend" style="color:var(--night);border-color:var(--night)">休息</button><button class="btn gold" id="pnext">下一題</button></div>`:''}
   </div>`;
+  paintSprites($('#prac'));
   if(!done)$('#prac').querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>{pr.c=+b.dataset.pi;pr.n++;if(pr.c===q.a){pr.ok++;if(pr.review)clearWrong(q)}else addWrong(q);practice()});
   else{$('#pnext').onclick=()=>{pr.last=pr.q;pr.q=null;practice();$('#rev')&&($('#rev').textContent=`複習錯題（${wrongs().length}）`)};$('#pend').onclick=()=>{$('#prac').innerHTML='';toast(`這輪答對 ${pr.ok}/${pr.n} 題`)}}
 }
