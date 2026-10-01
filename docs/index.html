@@ -227,10 +227,10 @@ function bankError(){
   $('#retry').onclick=boot;
 }
 const TAG={v:'單字',g:'文法',c:'克漏字'};
-/* 年級分群：不給自己打代碼，只能從這裡選（讀書房、排行、公告、任務都照年級分） */
+/* 年級大群：讀書房和城市照年級分（班級代碼還是可以自己打，給老師後台、同班排行和公告用） */
 const GRADES={kid:['國小'],teen:['國一','國二','國三'],sage:['高一','高二','高三']};
-const gradeOK=(tier,c)=>!!(GRADES[tier]&&GRADES[tier].includes(c));
-const gName=c=>c||'還沒選年級';
+const gradeOK=(tier,g)=>!!(GRADES[tier]&&GRADES[tier].includes(g));
+const roomKey=()=>gradeOK(S.tier,S.grade)?'g-'+S.grade:'t-'+S.tier;
 const BOT_TALK={
  kid:['讚','好簡單','我答對了','加油','布丁好好吃'],
  teen:['我差點選錯','這題老師有教過','私中考題好刁','第一次全對','易錯題耶','香蕉也要讀書'],
@@ -1137,7 +1137,7 @@ function openNotice(tab){
   const show=async t=>{m.querySelectorAll('[data-nt]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.nt===t));const nb=m.querySelector('#nbody');
     if(t==='rank'){nb.innerHTML='<div id="board"><p class="small">載入中…</p></div>';drawBoard();return}
     const list=await loadAnn(true);if(!ONLINE)annCache=list;
-    nb.innerHTML=list.length?list.map(a=>`<div class="titem" style="margin-bottom:8px"><div class="bar"><span style="color:var(--gold)">${esc(a.title)}</span><span class="small">${when2(a.created_at)}</span></div><div style="line-height:1.7;white-space:pre-line">${esc(a.body)}</div><div class="small" style="display:flex;align-items:center;gap:6px"><span data-s="master" data-z="2"></span>${esc(a.author)}${a.class_code?'・'+esc(a.class_code):''}</div></div>`).join(''):'<p class="small">目前沒有公告。</p>';
+    nb.innerHTML=list.length?list.map(a=>`<div class="titem" style="margin-bottom:8px"><div class="bar"><span style="color:var(--gold)">${esc(a.title)}</span><span class="small">${when2(a.created_at)}</span></div><div style="line-height:1.7;white-space:pre-line">${esc(a.body)}</div><div class="small" style="display:flex;align-items:center;gap:6px"><span data-s="master" data-z="2"></span>${esc(a.author)}${a.class_code?'・'+esc(a.class_code)+' 班':''}</div></div>`).join(''):'<p class="small">目前沒有公告。</p>';
     paintSprites(nb);if(list.length){S.annSeen=Math.max(S.annSeen||0,...list.map(a=>a.id));save()}};
   m.querySelectorAll('[data-nt]').forEach(b=>b.onclick=()=>show(b.dataset.nt));show(tab||'ann');
 }
@@ -1191,7 +1191,7 @@ function cityDraw(){
 let cityChan=null,cityChanName='';
 function joinCity(){
   if(!ONLINE||!ME||!S.tier)return;
-  const name='city-'+(S.cls?'c-'+S.cls:'t-'+S.tier);if(cityChan&&cityChanName===name)return;
+  const name='city-'+roomKey();if(cityChan&&cityChanName===name)return;
   if(cityChan)sb.removeChannel(cityChan);cityChanName=name;
   cityChan=sb.channel(name,{config:{presence:{key:ME}}});
   cityChan.on('presence',{event:'sync'},()=>{
@@ -1547,7 +1547,7 @@ const cloud={
   async run(f,msg){if(!ONLINE)return null;try{const {data,error}=await f();if(error)throw error;return data}catch(e){console.warn(e);if(msg)toast(msg===true?(e.message&&/[\u4e00-\u9fff]/.test(e.message)?e.message:'連線有問題，再試一次'):msg);return undefined}},
   /* 遊戲、挑戰、銀行：資料庫擋下時直接顯示它的中文原因（例如「金幣不夠」） */
   rpc(fn,args){return this.run(()=>sb.rpc(fn,args||{}),true)},
-  saveProfile(){return this.run(()=>sb.from('profiles').upsert({id:ME,name:S.name,tier:S.tier,class_code:S.cls||null}),'存檔失敗，檢查一下網路')},
+  saveProfile(){return this.run(()=>sb.from('profiles').upsert({id:ME,name:S.name,tier:S.tier,class_code:S.cls||null,grade:gradeOK(S.tier,S.grade)?S.grade:null}),'存檔失敗，檢查一下網路')},
   answer(q,c,ok){return this.run(()=>sb.from('answers').insert({user_id:ME,day:today(),tier:S.tier,qid:q.id,choice:c,correct:ok}),'作答沒存到雲端，檢查一下網路')},
   mistake(qid,n){return this.run(()=>sb.from('mistakes').upsert({user_id:ME,qid,n}))},
   unmistake(qid){return this.run(()=>sb.from('mistakes').delete().eq('user_id',ME).eq('qid',qid))},
@@ -1590,7 +1590,7 @@ const cloud={
   /* 登入後把雲端紀錄載回來；回傳 false 代表連不上 */
   async hydrate(){
     const [p,a,f,c,b,w,pu,lk,wl,ml]=await Promise.all([
-      this.run(()=>sb.from('profiles').select('name,tier,class_code,created_at').eq('id',ME).maybeSingle()),
+      this.run(()=>sb.from('profiles').select('name,tier,class_code,grade,created_at').eq('id',ME).maybeSingle()),
       this.run(()=>sb.from('answers').select('day,tier,qid,choice,correct').eq('user_id',ME)),
       this.run(()=>sb.from('focus_sessions').select('day,minutes').eq('user_id',ME)),
       this.run(()=>sb.from('cards').select('word,zh,n').eq('user_id',ME)),
@@ -1607,7 +1607,7 @@ const cloud={
     if(lk!==undefined)S.look=lk?{room:lk.room,outfit:lk.outfit}:{};
     if(wl)S.tx=wl.tx||0;
     if(ml){S.meals={};ml.forEach(r=>S.meals[r.day]=r.food)}
-    if(p){S.name=p.name;S.tier=p.tier;S.cls=p.class_code||'';S.joined=keyOf(new Date(p.created_at))}else{S.name='';S.tier='';S.joined=today()}
+    if(p){S.name=p.name;S.tier=p.tier;S.cls=p.class_code||'';S.grade=p.grade||'';S.joined=keyOf(new Date(p.created_at))}else{S.name='';S.tier='';S.joined=today()}
     S.days={};S.minutes={};S.answers={};S.cards={};
     a.forEach(r=>{S.days[r.day]=true;S.answers[r.day+':'+r.tier]={c:r.choice,ok:r.correct,qid:r.qid}});
     f.forEach(r=>{S.days[r.day]=true;S.minutes[r.day]=(S.minutes[r.day]||0)+r.minutes});
@@ -1638,14 +1638,14 @@ async function boot(){
   if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm){if(tm.title)TTITLE=tm.title;TNAME=tm.name||''}}
   if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet())}else renderOnboard();
 }
-/* 舊玩家的班級代碼不是年級（以前可以亂打），進來先請他選年級；國小直接放國小 */
+/* 舊玩家還沒有年級：進來先選一次（國小直接放國小） */
 async function fixGrade(){
-  if(!S.tier||!S.name||gradeOK(S.tier,S.cls))return;
+  if(!S.tier||!S.name||gradeOK(S.tier,S.grade))return;
   const g=GRADES[S.tier];
-  const set=async c=>{const old=S.cls;S.cls=c;if(ONLINE&&await cloud.saveProfile()===undefined){S.cls=old;return false}save();if(ONLINE){leaveRoom();joinRoom()}return true};
+  const set=async x=>{const old=S.grade;S.grade=x;if(ONLINE&&await cloud.saveProfile()===undefined){S.grade=old;return false}save();if(ONLINE){leaveRoom();joinRoom()}return true};
   if(g.length===1){await set(g[0]);return}
   await new Promise(done=>{
-    const m=modal(`<h2>選你的年級</h2><p class="small" style="margin:0;line-height:1.6">讀書房改成照年級分了，同年級的同學會在同一間。${S.cls?`（以前填的「${esc(S.cls)}」不再使用）`:''}</p>
+    const m=modal(`<h2>選你的年級</h2><p class="small" style="margin:0;line-height:1.6">讀書房改成照年級分，同年級的同學會在同一間。班級代碼還是照舊。</p>
       <div class="chips">${g.map(x=>`<button class="chip" data-gr="${x}" style="font-size:18px;padding:10px 18px">${x}</button>`).join('')}</div>`);
     m.onclick=e=>{if(e.target===m)e.stopImmediatePropagation()};
     m.querySelectorAll('[data-gr]').forEach(b=>b.onclick=async()=>{if(await set(b.dataset.gr)){m.remove();toast(`歡迎來到 ${b.dataset.gr} 讀書房`);done()}});
@@ -1673,7 +1673,7 @@ let chan=null,chanName='',peers=[];
 const myMins=()=>(S.minutes[today()]||0)+(tm.mode==='focus'?Math.floor((tm.len-tm.left)/60):0);
 function joinRoom(){
   if(!ONLINE||!ME||!S.tier)return;
-  const name='room-'+(S.cls?'c-'+S.cls:'t-'+S.tier);if(chan&&chanName===name)return;
+  const name='room-'+roomKey();if(chan&&chanName===name)return;
   leaveRoom();chanName=name;
   chan=sb.channel(name,{config:{presence:{key:ME}}});
   chan.on('presence',{event:'sync'},()=>{
@@ -1703,6 +1703,9 @@ function renderOnboard(){
    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px">
      <label for="nm" class="small">你的冒險者名字</label>
      <input type="text" id="nm" maxlength="10" placeholder="小明" value="${esc(S.name)}">
+     <div id="gradeBox"></div>
+     <label for="cc" class="small">班級代碼（選填，老師會給你）</label>
+     <input type="text" id="cc" maxlength="8" placeholder="702" value="${esc(S.cls)}">
    </div>
    <p class="small" style="margin:0">選擇你的冒險等級</p>
    ${Object.entries(TIERS).map(([k,t])=>`
@@ -1710,7 +1713,6 @@ function renderOnboard(){
        <span data-s="${k}" data-z="5"></span>
        <span><h2>${t.name}</h2><span style="font-size:12px">${t.stage}｜${t.hint}</span></span>
      </button>`).join('')}
-   <div id="gradeBox"></div>
    <p class="small" style="margin:0">選你的角色（之後可以在百貨公司換裝）</p>
    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:10px">
      <div style="display:flex;justify-content:center" id="cprev"></div>
@@ -1735,11 +1737,12 @@ function renderOnboard(){
     $('#cskin').querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{ch.skin=b.dataset.sk;drawChar()});
   };
   drawChar();
-  let gr=gradeOK(pick,S.cls)?S.cls:'';
-  const drawGrade=()=>{const g=GRADES[pick];if(!g){$('#gradeBox').innerHTML='';return}
+  let gr=gradeOK(pick,S.grade)?S.grade:'';
+  const drawGrade=()=>{const g=GRADES[pick];
+    if(!g){$('#gradeBox').innerHTML='<span class="small">先在下面選冒險等級，再選年級</span>';return}
     if(g.length===1)gr=g[0];
-    $('#gradeBox').innerHTML=`<p class="small" style="margin:0 0 6px">你幾年級？（同年級的同學會在同一間讀書房）</p>
-      <div class="chips">${g.map(x=>`<button class="chip" type="button" data-gr="${x}" aria-pressed="${gr===x}" style="${gr===x?'background:var(--gold);color:var(--night)':''}">${x}</button>`).join('')}</div>`;
+    $('#gradeBox').innerHTML=`<span class="small">你的年級（同年級的同學會在同一間讀書房）</span>
+      <div class="chips" style="margin-top:4px">${g.map(x=>`<button class="chip" type="button" data-gr="${x}" aria-pressed="${gr===x}" style="${gr===x?'background:var(--gold);color:var(--night)':''}">${x}</button>`).join('')}</div>`;
     $('#gradeBox').querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{gr=b.dataset.gr;$('#oerr').textContent='';drawGrade()})};
   drawGrade();
   $('#view').querySelectorAll('.tier').forEach(b=>b.onclick=()=>{if(pick!==b.dataset.t)gr='';pick=b.dataset.t;loadBank(pick);$('#view').querySelectorAll('.tier').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#oerr').textContent='';drawGrade()});
@@ -1751,8 +1754,8 @@ function renderOnboard(){
     if(!gradeOK(pick,gr)){$('#oerr').textContent='選你的年級';return}
     if(S.tier&&S.tier!==pick)S.timerLen=0;
     $('#go').textContent='載入題庫中…';if(!(await loadBank(pick))){$('#go').textContent='開始冒險';$('#oerr').textContent='題庫載不到，檢查網路再試一次';return}
-    const old={name:S.name,tier:S.tier,cls:S.cls};
-    S.name=clean(nm);S.tier=pick;S.cls=gr;
+    const old={name:S.name,tier:S.tier,cls:S.cls,grade:S.grade};
+    S.name=clean(nm);S.tier=pick;S.cls=$('#cc').value.trim();S.grade=gr;
     S.look={...(S.look||{}),outfit:{...((S.look&&S.look.outfit)||{}),...ch}};if(!S.joined)S.joined=today();
     if(ONLINE){$('#go').textContent='存檔中…';if(await cloud.saveProfile()===undefined){Object.assign(S,old);$('#go').textContent='開始冒險';return}const l=myLook();cloud.saveLook(l.room,l.outfit);leaveRoom();joinRoom()}
     const isNew=!S.tutorialDone;city=null;save();go('city');if(isNew)setTimeout(showTutorial,300);
@@ -1899,7 +1902,7 @@ function drawSeats(){
 function renderRoom(){
   const t=T(),len=S.timerLen||t.focus;
   $('#view').innerHTML=`${header()}${tm.mode==='idle'?remindBar():''}
-   <div class="bar"><span>${S.cls?esc(S.cls)+' 讀書房':'公開讀書房・'+t.stage}</span><span style="color:var(--mint)" id="cnt"></span></div>
+   <div class="bar"><span>${gradeOK(S.tier,S.grade)?esc(S.grade)+' 讀書房':'公開讀書房・'+t.stage}</span><span style="color:var(--mint)" id="cnt"></span></div>
    <div class="box room" id="seats"></div>
    <div class="timer" id="clock" aria-live="off">${fmt(tm.mode==='idle'?len*60:tm.left)}</div>
    <p class="small" id="mlabel" style="text-align:center;margin:0">${tm.mode==='break'?'休息時間・來一題快問快答':tm.mode==='idle'?'選好時間，按開始':'專注中…'}</p>
@@ -1918,7 +1921,7 @@ function renderRoom(){
   else if(tm.mode==='focus')ctl.innerHTML=`<button class="btn coral" id="pause">${tm.paused?'繼續':'暫停'}</button><button class="btn ghost" id="stop">放棄</button>`;
   else ctl.innerHTML=`<button class="btn mint" id="skip">結束休息</button>`;
   if($('#start'))$('#start').onclick=()=>startFocus(len);
-  if($('#inv'))$('#inv').onclick=()=>modal(`<h2>邀請好友</h2>${S.cls?`<p class="small">同年級的同學會自動進到同一間讀書房。請同學登入時選：</p><div class="timer" style="font-size:34px">${esc(S.cls)}</div>`:`<p class="small">你還沒選年級。到「我的 → 換等級／改名字」選好年級，同年級的同學就會在同一間讀書房。</p>`}<button class="btn" data-close>好</button>`);
+  if($('#inv'))$('#inv').onclick=()=>modal(`<h2>邀請好友</h2><p class="small">同年級的同學會自動在同一間讀書房。請同學在「我的 → 換等級／改名字」選：</p><div class="timer" style="font-size:34px">${esc(S.grade||T().stage)}</div>${S.cls?`<p class="small" style="margin:0">想看同班排行，再填一樣的班級代碼：${esc(S.cls)}</p>`:''}<button class="btn" data-close>好</button>`);
   if($('#pause'))$('#pause').onclick=()=>{if(tm.paused){tm.paused=false;tm.end=Date.now()+tm.left*1000/tm.speed}else{tm.paused=true}saveTimer();trackMe();renderRoom()};
   if($('#stop'))$('#stop').onclick=()=>{const m=modal(`<h2>確定要放棄嗎？</h2><p class="small">這次的專注時間不會算進紀錄。</p><div class="row"><button class="btn" data-close>繼續讀</button><button class="btn coral" id="yes">放棄</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();endTimer();renderRoom()}};
   if($('#skip'))$('#skip').onclick=()=>{endTimer();renderRoom()};
@@ -1933,13 +1936,13 @@ async function drawBoard(){
       .concat(roomBots().map(b=>({name:b[0],tier:b[1],week_minutes:botMin[b[0]]*4,streak:3+hash(b[0])%9,bot:1})));
     rows.sort((a,b)=>b.week_minutes-a.week_minutes);
   }else if(!S.cls){
-    $('#board').innerHTML='<p class="small" style="margin:0;line-height:1.6">到「我的 → 換等級／改名字」選年級，就能看到同年級的本週專注排行。</p>';return;
+    $('#board').innerHTML='<p class="small" style="margin:0;line-height:1.6">到「我的 → 換等級／改名字」填班級代碼，就能看到同班的本週專注排行。</p>';return;
   }else{
     rows=await cloud.board();if(!$('#board'))return;
     if(!rows){$('#board').innerHTML='<p class="small" style="margin:0">排行暫時載不到</p>';return}
   }
   const hrs=m=>(m/60).toFixed(1);
-  $('#board').innerHTML=`<p class="small" style="margin:0 0 8px">${S.cls&&ONLINE?esc(S.cls)+' ':''}本週專注排行</p>
+  $('#board').innerHTML=`<p class="small" style="margin:0 0 8px">${S.cls&&ONLINE?esc(S.cls)+' 班':''}本週專注排行</p>
     <div class="flist">${rows.slice(0,10).map((r,i)=>`<div class="frow" style="padding:6px 10px;${r.is_me?'outline:2px solid var(--gold);outline-offset:-5px':''}">
       <span style="width:22px;color:${i<3?'var(--gold)':'var(--dim)'};font-variant-numeric:tabular-nums">${i+1}</span>
       ${r.bot?avatarSVG(lookOf({outfit:botOutfit(r.name)},r.tier).outfit,3):r.is_me?avatarSVG(myLook().outfit,3):`<span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="3"></span>`}
@@ -2190,9 +2193,9 @@ async function renderTeacher(view){
     if(!tclasses){$('#tbody').innerHTML='<p class="small">載不到班級。確認已經在 Supabase 把你設成老師，並重跑過最新的 schema.sql。</p>';return}
     if(!tclasses.length){$('#tbody').innerHTML='<p class="small">還沒有學生登入。</p>';return}
     if(S.tcls==null||!tclasses.some(c=>c.class_code===S.tcls))S.tcls=tclasses[0].class_code;
-    $('#tclass').innerHTML=`<label for="tsel" class="small">年級</label>
+    $('#tclass').innerHTML=`<label for="tsel" class="small">班級代碼</label>
       <select id="tsel" style="font-family:inherit;font-size:14px;padding:8px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night);margin-left:8px">
-      ${tclasses.map(c=>`<option value="${esc(c.class_code)}" ${c.class_code===S.tcls?'selected':''}>${esc(gName(c.class_code))}（${c.students} 人）</option>`).join('')}</select>`;
+      ${tclasses.map(c=>`<option value="${esc(c.class_code)}" ${c.class_code===S.tcls?'selected':''}>${c.class_code?esc(c.class_code)+' 班':'沒填班級代碼'}（${c.students} 人）</option>`).join('')}</select>`;
     $('#tsel').onchange=()=>{S.tcls=$('#tsel').value;save();renderTeacher()};
   }
   ({class:tClass,msgs:tMsgs,ann:tAnn,mission:tMission,reports:tReports,recent:tRecent})[tview]();
@@ -2238,15 +2241,15 @@ async function tMsgs(){
   const rows=await cloud.teacher('teacher_threads');if(curTab!=='teacher'||!$('#tbody'))return;
   if(!rows){$('#tbody').innerHTML='<p class="small">訊息載不到。</p>';return}
   const kids=await cloud.teacher('teacher_class_report',{p_class:S.tcls||''})||[];
-  const pickHTML=`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px"><label class="small" for="tnew">寫新訊息給 ${esc(gName(S.tcls))}的學生</label>
+  const pickHTML=`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px"><label class="small" for="tnew">寫新訊息給 ${S.tcls?esc(S.tcls)+' 班':'沒填班級代碼'}的學生</label>
     <div class="row"><select id="tnew" style="font-family:inherit;font-size:14px;padding:8px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)">${kids.map(k=>`<option value="${k.user_id}">${esc(k.name)}（${esc(k.email||'')}）</option>`).join('')||'<option value="">這個班還沒有學生</option>'}</select><button class="btn gold" id="tnewgo" style="flex:0 0 auto">寫訊息</button></div>
-    <p class="small" style="margin:0">要換年級，到「班級總覽」上方切換年級。</p></div>`;
-  $('#tbody').innerHTML=pickHTML+(rows.length?`<h2>對話紀錄</h2><div class="flist">${rows.map(r=>`<button class="frow" data-tmsg="${r.student_id}" data-name="${esc(r.name)}"><span class="grow">${esc(r.name)} <span class="small">${r.class_code?esc(r.class_code):''}・${when2(r.last_at)}</span><br><span class="small">${esc((r.last_body||'').slice(0,40))}</span></span>${r.unread?`<span class="badge" style="position:static">${r.unread}</span>`:''}</button>`).join('')}</div>`
+    <p class="small" style="margin:0">要換班級，到「班級總覽」上方切換班級代碼。</p></div>`;
+  $('#tbody').innerHTML=pickHTML+(rows.length?`<h2>對話紀錄</h2><div class="flist">${rows.map(r=>`<button class="frow" data-tmsg="${r.student_id}" data-name="${esc(r.name)}"><span class="grow">${esc(r.name)} <span class="small">${r.class_code?esc(r.class_code)+' 班':''}・${when2(r.last_at)}</span><br><span class="small">${esc((r.last_body||'').slice(0,40))}</span></span>${r.unread?`<span class="badge" style="position:static">${r.unread}</span>`:''}</button>`).join('')}</div>`
     :'<p class="small">還沒有對話。從上面選一位學生開始。</p>');
   $('#tnewgo').onclick=()=>{const sel=$('#tnew');if(!sel.value){toast('這個班還沒有學生');return}teacherChat(sel.value,sel.options[sel.selectedIndex].text.replace(/（.*$/,''),'msgs')};
   $('#tbody').querySelectorAll('[data-tmsg]').forEach(b=>b.onclick=()=>teacherChat(b.dataset.tmsg,b.dataset.name,'msgs'));
 }
-const classPick=()=>`<select id="tcls2" style="font-family:inherit;font-size:14px;padding:8px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)"><option value="${esc(S.tcls||'')}">${S.tcls?esc(S.tcls):'還沒選年級的學生'}</option><option value="__all">全部年級</option></select>`;
+const classPick=()=>`<select id="tcls2" style="font-family:inherit;font-size:14px;padding:8px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)"><option value="${esc(S.tcls||'')}">${S.tcls?esc(S.tcls)+' 班':'沒填班級代碼的學生'}</option><option value="__all">全部班級</option></select>`;
 const pickedClass=()=>{const v=$('#tcls2').value;return v==='__all'?null:v};
 async function tAnn(){
   const rows=await cloud.teacher('list_announcements');if(curTab!=='teacher'||!$('#tbody'))return;
@@ -2255,7 +2258,7 @@ async function tAnn(){
      <label class="small" for="atitle">標題（30 字內）</label><input type="text" id="atitle" maxlength="30" placeholder="這週段考加油！">
      <label class="small" for="abody">內容（500 字內）</label><textarea id="abody" maxlength="500" rows="4" style="font-family:inherit;font-size:15px;padding:10px;border:3px solid var(--ink);background:var(--paper);color:var(--night)" placeholder="週五考 B3 L1–L2，記得用「多練幾題」複習。"></textarea>
      <p class="err" id="aerr"></p><button class="btn gold" id="apost">發布到布告欄</button></div>
-   <h2>已發的公告</h2>${(rows||[]).filter(a=>a.mine).map(a=>`<div class="titem"><div class="bar"><span>${esc(a.title)}</span><span class="small">${a.class_code?esc(a.class_code):'全部年級'}・${when2(a.created_at)}</span></div><div style="line-height:1.6;white-space:pre-line">${esc(a.body)}</div><div class="acts"><button class="btn ghost" data-adel="${a.id}">刪除</button></div></div>`).join('')||'<p class="small">還沒有公告。</p>'}`;
+   <h2>已發的公告</h2>${(rows||[]).filter(a=>a.mine).map(a=>`<div class="titem"><div class="bar"><span>${esc(a.title)}</span><span class="small">${a.class_code?esc(a.class_code)+' 班':'全部班級'}・${when2(a.created_at)}</span></div><div style="line-height:1.6;white-space:pre-line">${esc(a.body)}</div><div class="acts"><button class="btn ghost" data-adel="${a.id}">刪除</button></div></div>`).join('')||'<p class="small">還沒有公告。</p>'}`;
   $('#apost').onclick=async()=>{const t=$('#atitle').value.trim(),b=$('#abody').value.trim();if(!t||!b){$('#aerr').textContent='標題和內容都要填';return}
     if(await cloud.rpc('post_announcement',{p_class:pickedClass(),p_title:t,p_body:b})!==undefined){toast('公告發出去了');tAnn()}};
   $('#tbody').querySelectorAll('[data-adel]').forEach(b=>b.onclick=async()=>{if(await cloud.rpc('delete_announcement',{p_id:+b.dataset.adel})!==undefined){toast('已刪除');tAnn()}});
@@ -2271,7 +2274,7 @@ async function tMission(){
      <div class="row"><label class="small">目標<input type="text" id="mtarget" inputmode="numeric" value="5"></label><label class="small">獎勵金幣（1–100）<input type="text" id="mreward" inputmode="numeric" value="50"></label><label class="small">期限（天）<input type="text" id="mdays" inputmode="numeric" value="7"></label></div>
      <p class="small" style="margin:0">從今天開始算，期限內累積達到目標，學生就能在任務板領獎。</p>
      <p class="err" id="merr2"></p><button class="btn gold" id="mpost">發布任務</button></div>
-   <h2>我出的任務</h2>${(rows||[]).map(m=>`<div class="titem"><div class="bar"><span>${esc(m.title)}</span><span class="small">${m.class_code?esc(m.class_code):'全部年級'}・到 ${tday(m.end_day)}</span></div><div class="small">${MKINDS[m.kind][0]} ${m.target} ${MKINDS[m.kind][1]}・獎勵 ${m.reward} 金幣・已有 ${m.claims} 人完成</div><div class="acts"><button class="btn ghost" data-mdel="${m.id}">刪除</button></div></div>`).join('')||'<p class="small">還沒有任務。</p>'}`;
+   <h2>我出的任務</h2>${(rows||[]).map(m=>`<div class="titem"><div class="bar"><span>${esc(m.title)}</span><span class="small">${m.class_code?esc(m.class_code)+' 班':'全部班級'}・到 ${tday(m.end_day)}</span></div><div class="small">${MKINDS[m.kind][0]} ${m.target} ${MKINDS[m.kind][1]}・獎勵 ${m.reward} 金幣・已有 ${m.claims} 人完成</div><div class="acts"><button class="btn ghost" data-mdel="${m.id}">刪除</button></div></div>`).join('')||'<p class="small">還沒有任務。</p>'}`;
   $('#mpost').onclick=async()=>{const n=id=>+$('#'+id).value.trim(),t=$('#mtitle').value.trim(),err=$('#merr2');
     if(!t){err.textContent='請填任務名稱';return}
     if(!(n('mtarget')>=1)){err.textContent='目標要大於 0';return}
@@ -2288,13 +2291,13 @@ async function tReports(){
   $('#tbody').innerHTML=`
    <h2>被檢舉的留言（${cs.length}）</h2>
    ${cs.length?cs.map(c=>`<div class="titem">
-     <div class="bar"><span>${esc(c.author)} <span class="small">${c.class_code?esc(c.class_code)+'・':''}${tday(c.day)}</span></span><span class="pill bad">${c.reports} 人檢舉</span></div>
+     <div class="bar"><span>${esc(c.author)} <span class="small">${c.class_code?esc(c.class_code)+' 班・':''}${tday(c.day)}</span></span><span class="pill bad">${c.reports} 人檢舉</span></div>
      <div style="line-height:1.6">${esc(c.body)}${c.hidden?' <span class="pill no">已隱藏</span>':''}</div>
      <div class="acts"><button class="btn ${c.hidden?'':'coral'}" data-hide="${c.comment_id}" data-v="${c.hidden?0:1}">${c.hidden?'恢復顯示':'隱藏留言'}</button><button class="btn ghost" data-dc="${c.comment_id}">沒問題，撤銷檢舉</button><button class="btn ghost" data-mute="${c.author_id}" data-name="${esc(c.author)}">禁言 ${esc(c.author)}</button></div>
    </div>`).join(''):'<p class="small">目前沒有被檢舉的留言。</p>'}
    <h2>被檢舉的私訊（${ms.length}）</h2>
    ${ms.length?ms.map(m=>`<div class="titem">
-     <div class="bar"><span>${esc(m.sender)} → ${esc(m.recipient)} <span class="small">${m.class_code?esc(m.class_code)+'・':''}${when(m.created_at)}</span></span><span class="pill bad">${m.reports} 人檢舉</span></div>
+     <div class="bar"><span>${esc(m.sender)} → ${esc(m.recipient)} <span class="small">${m.class_code?esc(m.class_code)+' 班・':''}${when(m.created_at)}</span></span><span class="pill bad">${m.reports} 人檢舉</span></div>
      <div style="line-height:1.6">${esc(m.body)}</div>
      <div class="acts"><button class="btn coral" data-dm="${m.message_id}">刪除這則私訊</button><button class="btn ghost" data-dmm="${m.message_id}">沒問題，撤銷檢舉</button><button class="btn ghost" data-mute="${m.sender_id}" data-name="${esc(m.sender)}">禁言 ${esc(m.sender)}</button></div>
    </div>`).join(''):'<p class="small">目前沒有被檢舉的私訊。</p>'}`;
@@ -2325,7 +2328,7 @@ function renderMe(){
   const cards=Object.entries(S.cards);
   $('#view').innerHTML=`
    <div style="display:flex;gap:12px;align-items:center">${avatarSVG(myLook().outfit,7)}
-     <div style="flex:1"><h2>${t.name} ${esc(S.name)}</h2><div class="small">${t.stage}${S.cls&&S.cls!==t.stage?'・'+esc(S.cls):''}</div></div>${coinChip()}</div>
+     <div style="flex:1"><h2>${t.name} ${esc(S.name)}</h2><div class="small">${t.stage}${S.grade&&S.grade!==t.stage?'・'+esc(S.grade):''}${S.cls?'・'+esc(S.cls)+' 班':''}</div></div>${coinChip()}</div>
    <button id="myroom" style="padding:0;border:0;background:none;cursor:pointer" aria-label="布置我的房間">${roomSVG(myLook(),myLook().outfit,'我的房間')}</button>
    <div class="row"><button class="btn gold" id="deco">布置房間</button><button class="btn" id="wear">換裝</button></div>
    <div class="box stats" style="background:var(--deep)">
