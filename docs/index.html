@@ -1057,7 +1057,7 @@ const BUILDINGS=[
  {id:'arcade',name:'遊樂場',x:1,y:14,w:5,h:3,door:[3,17],roof:'#3f8f5a',wall:'#f4ecd8',open:()=>go('games')},
  {id:'home',name:'我的家',x:8,y:14,w:5,h:3,door:[10,17],roof:'#f4a6c6',wall:'#fbe3ec',open:()=>renderHome()},
  {id:'store',name:'百貨公司',x:16,y:14,w:5,h:3,door:[18,17],roof:'#5dcaa5',wall:'#e1f5ee',open:()=>renderShop('room','city')},
- {id:'guild',name:'任務公會',x:8,y:22,w:5,h:3,door:[10,21],roof:'#8b5e3c',wall:'#f4ecd8',open:()=>renderQuests()}
+ {id:'guild',name:'任務公會',x:8,y:22,w:5,h:3,door:[10,21],roof:'#8b5e3c',wall:'#f4ecd8',open:()=>renderGuild()}
 ];
 const NOTICE=[9,7],QUEST=[20,7],PARK=[29,6,3,4];
 let CITY=null,cityLoop=0,city=null;
@@ -1163,7 +1163,8 @@ async function pickCoin(i){
   if(amt>0){toast(`撿到 ${amt} 金幣！今天還有 ${mapCoins().filter(c=>!c.got).length} 枚藏在城裡`);if(city)city.bubbles.push({who:city.me,txt:`+${amt}`,until:performance.now()+1200})}
 }
 /* ---------- 萬聖節糖果大作戰（10/1～11/7，不考英文） ----------
-   在廣場的南瓜攤開始：90 秒內在城裡撿糖果，小幽靈會飄過牆追你，被碰到會掉 2 顆糖、暈 1.5 秒。
+   在廣場的南瓜攤開始：90 秒內在城裡撿糖果。小幽靈會穿牆追城裡最近的人（你、NPC、其他同學），
+   被碰到掉 1 顆糖，之後 2 秒無敵；不會被定住，可以一直走。
    糖果換金幣，每場最多 20，每天最多 40。 */
 const HW_STAND=[12,10],HW_MAX=20,HW_SECS=90;
 function hwStart(){
@@ -1173,19 +1174,25 @@ function hwStart(){
   /* 幽靈從離你最遠的角落出發，前 3 秒不會動 */
   const far=[[-11,-8],[11,-8],[-11,8],[11,8],[0,-9],[0,9]].map(([dx,dy])=>[HW_STAND[0]+dx,HW_STAND[1]+dy]).sort((a,b)=>Math.hypot(b[0]-me.x,b[1]-me.y)-Math.hypot(a[0]-me.x,a[1]-me.y)).slice(0,3);
   const ghosts=far.map(([x,y])=>({px:x*TS+8,py:y*TS+8,face:1,cool:3}));
-  city.hw={end:performance.now()+HW_SECS*1000,candies,ghosts,got:0,stun:0,hits:0};
+  city.hw={end:performance.now()+HW_SECS*1000,candies,ghosts,got:0,safe:0,hits:0};
   me.path=[];me.goal=null;toast('開始！撿糖果、躲幽靈！');
 }
 function hwTick(dt){
   const h=city.hw,me=city.me,now=performance.now();if(!h)return;
   if(now>=h.end){hwEnd();return}
-  const left=(h.end-now)/1000,spd=26+(HW_SECS-left)*.25;
+  const left=(h.end-now)/1000,spd=18+(HW_SECS-left)*.12;
   h.candies=h.candies.filter(c=>{if(c.x===me.x&&c.y===me.y&&Math.hypot(me.px-(c.x*TS+8),me.py-(c.y*TS+8))<8){h.got++;return false}return true});
   if(!h.candies.length){h.end=now;return}
-  h.ghosts.forEach(g=>{const dx=me.px-g.px,dy=me.py-g.py,d=Math.hypot(dx,dy)||1;
-    if(g.cool>0){g.cool-=dt;if(g.hit){g.px-=dx/d*spd*dt*.6;g.py-=dy/d*spd*dt*.6}return}
+  /* 每隻幽靈追離牠最近的人：你、NPC、線上同學都算 */
+  const people=[{o:me,me:true},...city.npcs.map(o=>({o})),...Object.values(city.peers).map(o=>({o}))];
+  h.ghosts.forEach(g=>{
+    if(g.cool>0){g.cool-=dt;if(g.flee){const dx=g.flee.px-g.px,dy=g.flee.py-g.py,d=Math.hypot(dx,dy)||1;g.px-=dx/d*spd*dt;g.py-=dy/d*spd*dt}return}
+    let tg=null,best=1e9;people.forEach(p=>{const d=Math.hypot(p.o.px-g.px,p.o.py-g.py)+(p.me&&now<h.safe?400:0);if(d<best){best=d;tg=p}});
+    if(!tg)return;const dx=tg.o.px-g.px,dy=tg.o.py-g.py,d=Math.hypot(dx,dy)||1;
     g.px+=dx/d*spd*dt;g.py+=dy/d*spd*dt;if(Math.abs(dx)>1)g.face=dx<0?-1:1;
-    if(d<9&&now>h.stun){h.got=Math.max(0,h.got-2);h.hits++;h.stun=now+1500;me.path=[];g.cool=2.5;g.hit=1;city.bubbles.push({who:me,txt:'嚇！掉了 2 顆糖',until:now+1400})}});
+    if(d<9){g.cool=2;g.flee=tg.o;
+      if(tg.me){if(now>h.safe){h.got=Math.max(0,h.got-1);h.hits++;h.safe=now+2000;city.bubbles.push({who:me,txt:'嚇！掉了 1 顆糖',until:now+1200})}}
+      else city.bubbles.push({who:tg.o,txt:pick(['哇啊！','有鬼！','救命～','嚇死我了']),until:now+1200})}});
 }
 async function hwEnd(){
   const h=city.hw;if(!h||h.done)return;h.done=true;city.hw=null;
@@ -1200,7 +1207,7 @@ async function hwEnd(){
 function hwOpen(){
   modal(`<div style="display:flex;justify-content:center;gap:8px"><span data-s="ghost" data-z="6"></span><span data-s="bat" data-z="6"></span></div>
     <h2 style="text-align:center">萬聖節糖果大作戰</h2>
-    <p style="margin:0;line-height:1.7">${HW_SECS} 秒內在城裡撿糖果，<b style="color:var(--gold)">一顆糖 1 金幣</b>（每場最多 ${HW_MAX}）。<br>小幽靈會穿牆追你，被碰到會掉 2 顆糖、嚇到不能動一下！<br>不用考英文，純玩！只到 11/7。</p>
+    <p style="margin:0;line-height:1.7">${HW_SECS} 秒內在城裡撿糖果，<b style="color:var(--gold)">一顆糖 1 金幣</b>（每場最多 ${HW_MAX}）。<br>小幽靈會穿牆追城裡的人（也會去嚇 NPC 和其他同學），被碰到只會掉 1 顆糖，之後 2 秒無敵！<br>不用考英文，純玩！只到 11/7。</p>
     <p class="small" style="margin:0">今天領了 ${gday().halloween||0}／${GAME_CAP} 金幣・最佳紀錄 ${S.hwBest||0} 顆</p>
     <div class="row"><button class="btn" data-close>等等再玩</button><button class="btn gold" id="hwgo">開始！</button></div>`).querySelector('#hwgo').onclick=e=>{e.target.closest('.modal').remove();hwStart()};
 }
@@ -1225,7 +1232,7 @@ function openCityMap(){
 }
 function cityTap(tx,ty){
   const me=city.me;
-  if(city.hw){if(performance.now()<city.hw.stun)return;const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal=null}return}
+  if(city.hw){const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal=null}return}
   if(halloween()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='hw';if(!p.length){me.goal=null;hwOpen()}}return}
   const npc=city.npcs.find(n=>n.x===tx&&n.y===ty);
   if(npc){const talk=BOT_TALK[S.tier];city.bubbles.push({who:npc,txt:['嗨！','今天打卡了嗎？',talk[hash(npc.name+Date.now())%talk.length],'一起去讀書房吧'][Math.floor(Math.random()*4)],until:performance.now()+2500});return}
@@ -1243,7 +1250,6 @@ function cityTick(dt){
     const k=[...city.keys].pop(),d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[k];
     if(d&&walk(me.x+d[0],me.y+d[1])){me.path=[[me.x+d[0],me.y+d[1]]];me.goal=null}
   }
-  if(city.hw&&performance.now()<city.hw.stun)me.path=[];
   if(stepWalker(me,dt,72)){
     mapCoins().forEach(c=>{if(!c.got&&c.x===me.x&&c.y===me.y)pickCoin(c.i)});
     if(city.hw)me.armed=false;
@@ -1417,13 +1423,13 @@ function cityDraw(){
   const petOf=(o,id)=>id&&ITEM[id]&&ITEM[id].g&&o.petX!=null?[{pet:id,px:o.petX,py:o.petY,face:o.face,hop:o.petMove?Math.abs(Math.sin(t*10+(o.px||0)))*3:0}]:[];
   const people=[...city.npcs.flatMap(n=>[{px:n.px,py:n.py,face:n.face,outfit:lookOf({outfit:botOutfit(n.name)},n.tier).outfit,name:n.name},...petOf(n,npcPet(n.name))]),
     ...Object.values(city.peers).flatMap(p=>[{px:p.px,py:p.py,face:p.face,outfit:lookOf({outfit:p.outfit},p.tier).outfit,name:p.name},...petOf(p,p.pet)]),
-    {px:city.me.px,py:city.me.py,face:city.me.face,outfit:myLook().outfit,name:'你',me:true,ghost:fainted()},...petOf(city.me,myLook().room.pet)].sort((a,b)=>a.py-b.py);
+    {px:city.me.px,py:city.me.py,face:city.me.face,outfit:myLook().outfit,name:'你',me:true,ghost:fainted(),blink:city.hw&&performance.now()<city.hw.safe},...petOf(city.me,myLook().room.pet)].sort((a,b)=>a.py-b.py);
   people.forEach(p=>{
     if(p.pet){drawPet(c,p.pet,p.px,p.py,p.face,p.hop);return}
     const X=Math.round(p.px-8),Y=Math.round(p.py-12),bob=p.me&&city.me.path.length?Math.round(Math.sin(t*16))*0:0;
     c.fillStyle='rgba(0,0,0,.25)';c.fillRect(X+3,Y+15,10,2);
     let g,pal;if(p.ghost){g=SPR.ghost;pal=PAL}else if(p.outfit){({g,pal}=avatarGrid(p.outfit))}else{g=SPR[p.sp];pal=PAL}
-    c.globalAlpha=p.ghost?.6+Math.sin(t*3)*.15:1;
+    c.globalAlpha=p.ghost?.6+Math.sin(t*3)*.15:p.blink?(Math.sin(t*30)>0?.35:1):1;
     g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=pal[ch];if(col&&ch!=='.'){c.fillStyle=col;const fx=p.face<0?7-xx:xx;c.fillRect(X+fx*2,Y+yy*2+bob,2,2)}}));
     c.globalAlpha=1;
     if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle='rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle='#f4ecd8';c.fillText(p.name,p.px,Y-3)}
@@ -1884,6 +1890,7 @@ const cloud={
   mistake(qid,n){return this.run(()=>sb.from('mistakes').upsert({user_id:ME,qid,n}))},
   unmistake(qid){return this.run(()=>sb.from('mistakes').delete().eq('user_id',ME).eq('qid',qid))},
   board(){return this.run(()=>sb.rpc('class_board'))},
+  gradeBoard(){return this.run(()=>sb.rpc('grade_board'))},
   buy(id){return this.run(()=>sb.rpc('buy_item',{p_item:id}),true)},
   saveLook(room,outfit){return this.run(()=>sb.rpc('save_look',{p_room:room,p_outfit:outfit}),'房間佈置沒存到雲端')},
   look(uid){return this.run(()=>sb.from('looks').select('room,outfit').eq('user_id',uid).maybeSingle(),'房間載不到')},
@@ -2340,27 +2347,83 @@ function drawRoomChat(){
     save();toast(`已封鎖 ${m.name}`);drawRoomChat()});
 }
 /* 本週專注排行：線上版是同班代碼的真實同學；單機版拿 NPC 陪你比 */
+/* 本週專注排行：年級排行（同年級一起比）／讀書會排行（同班級代碼）。單機版拿 NPC 陪你比 */
+let boardTab='grade';
 async function drawBoard(){
+  const box=$('#board');if(!box)return;
+  const gname=gradeOK(S.tier,S.grade)?S.grade:T().stage;
+  const tabs=`<div class="chips" style="margin-bottom:8px"><button class="chip" data-bt="grade" aria-pressed="${boardTab==='grade'}">${esc(gname)} 排行</button><button class="chip" data-bt="guild" aria-pressed="${boardTab==='guild'}">讀書會排行</button></div>`;
+  const bind=()=>box.querySelectorAll('[data-bt]').forEach(b=>b.onclick=()=>{boardTab=b.dataset.bt;drawBoard()});
   let rows;
+  if(boardTab==='guild'&&!S.cls){box.innerHTML=tabs+'<p class="small" style="margin:0;line-height:1.6">填一樣班級代碼的同學就是同一個讀書會。到「我的 → 換等級／改名字」填班級代碼，或去城市的「任務公會」加入。</p>';bind();return}
   if(!ONLINE){
+    const bots=(boardTab==='guild'?freeBots():roomBots()).slice(0,6);
     rows=[{name:S.name,tier:S.tier,week_minutes:weekMinutes(),streak:streak(),is_me:true}]
-      .concat(roomBots().map(b=>({name:b[0],tier:b[1],week_minutes:botMin[b[0]]*4,streak:3+hash(b[0])%9,bot:1})));
+      .concat(bots.map(b=>({name:b[0],tier:b[1],week_minutes:(botMin[b[0]]||5+hash(b[0])%70)*4,streak:3+hash(b[0])%9,bot:1})));
     rows.sort((a,b)=>b.week_minutes-a.week_minutes);
-  }else if(!S.cls){
-    $('#board').innerHTML='<p class="small" style="margin:0;line-height:1.6">到「我的 → 換等級／改名字」填班級代碼，就能看到同班的本週專注排行。</p>';return;
   }else{
-    rows=await cloud.board();if(!$('#board'))return;
-    if(!rows){$('#board').innerHTML='<p class="small" style="margin:0">排行暫時載不到</p>';return}
+    box.innerHTML=tabs+'<p class="small" style="margin:0">載入排行中…</p>';bind();
+    rows=await (boardTab==='guild'?cloud.board():cloud.gradeBoard());if(!$('#board'))return;
+    if(!rows){box.innerHTML=tabs+'<p class="small" style="margin:0">排行暫時載不到</p>';bind();return}
   }
   const hrs=m=>(m/60).toFixed(1);
-  $('#board').innerHTML=`<p class="small" style="margin:0 0 8px">${S.cls&&ONLINE?esc(S.cls)+' 班':''}本週專注排行</p>
+  box.innerHTML=tabs+`<p class="small" style="margin:0 0 8px">${boardTab==='guild'?esc(S.cls)+' 讀書會':esc(gname)}・最近 7 天專注排行</p>
     <div class="flist">${rows.slice(0,10).map((r,i)=>`<div class="frow" style="padding:6px 10px;${r.is_me?'outline:2px solid var(--gold);outline-offset:-5px':''}">
       <span style="width:22px;color:${i<3?'var(--gold)':'var(--dim)'};font-variant-numeric:tabular-nums">${i+1}</span>
       ${r.bot?avatarSVG(lookOf({outfit:botOutfit(r.name)},r.tier).outfit,3):r.is_me?avatarSVG(myLook().outfit,3):`<span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="3"></span>`}
       <span class="grow" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}${r.is_me?'（你）':''}</span>
       <span style="font-variant-numeric:tabular-nums">${hrs(r.week_minutes)}h</span>
       <span style="display:flex;align-items:center;gap:2px;color:var(--coral);font-size:12px;min-width:40px;justify-content:flex-end"><span data-s="fire" data-z="2"></span>${r.streak}</span></div>`).join('')}</div>`;
-  paintSprites($('#board'));
+  paintSprites(box);bind();
+}
+/* ---------- 讀書會（公會） ----------
+   班級代碼一樣的同學就是同一個讀書會。每週有大家一起完成的公會任務，目標依人數調整；
+   達成後每個成員各自領一次。線上版由資料庫 guild_info()／claim_guild() 計算。 */
+const GUILD_DEMO=[['g_focus','大家一起專注','分鐘',60,50],['g_answer','大家一起答今日一題','次',3,40],['g_meal','大家一起去餐廳吃飯','次',4,30],['g_all','每位成員這週都打卡','人',1,60]];
+async function renderGuild(){
+  curTab='guild';$('#app').classList.remove('wide');
+  $('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab==='city'?'page':'false'));
+  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="gdback" style="padding:5px 10px;font-size:13px">← 城市</button><span>任務公會</span>${coinChip()}</div><div id="gdbody"><p class="small">載入中…</p></div>
+    <button class="btn" id="gdquest">我的個人任務板</button>`;
+  paintSprites($('#view'));$('#gdback').onclick=()=>go('city');$('#gdquest').onclick=()=>renderQuests();
+  const body=$('#gdbody');
+  if(!S.cls){
+    body.innerHTML=`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px;line-height:1.6">
+      <h2 style="margin:0">加入讀書會</h2><p class="small" style="margin:0">填一樣班級代碼的同學就是同一個讀書會，每週一起完成公會任務，大家都能領金幣！</p>
+      <label class="small" for="gdcls">班級代碼（老師會給你，例如 702）</label>
+      <div class="row"><input type="text" id="gdcls" maxlength="8" placeholder="702"><button class="btn gold" id="gdjoin" style="flex:0 0 auto">加入</button></div></div>`;
+    $('#gdjoin').onclick=async()=>{const v=$('#gdcls').value.trim();if(!v){toast('先填班級代碼');return}
+      const old=S.cls;S.cls=v;if(ONLINE&&await cloud.saveProfile()===undefined){S.cls=old;return}save();toast(`加入 ${v} 讀書會！`);renderGuild()};
+    return;
+  }
+  let g;
+  if(ONLINE){g=await cloud.run(()=>sb.rpc('guild_info'),true);if(curTab!=='guild')return;if(!g){body.innerHTML='<p class="small">讀書會資料載不到，請老師先跑最新的 SQL。</p>';return}}
+  else{
+    const bots=freeBots().slice(0,4),n=bots.length+1,w=weekStart(),cl=(S.gclaims||{})[w]||[];
+    const mine={g_focus:Object.keys(S.minutes).filter(k=>k>=w).reduce((a,k)=>a+S.minutes[k],0),g_answer:Object.keys(S.answers).filter(k=>k.slice(0,10)>=w).length,g_meal:Object.keys(S.meals).filter(k=>k>=w).length,g_all:S.days[today()]?1:0};
+    const botAdd={g_focus:150*bots.length,g_answer:3*bots.length,g_meal:3*bots.length,g_all:bots.length};
+    g={name:S.cls,count:n,members:[{name:S.name,tier:S.tier,is_me:true,week_minutes:weekMinutes(),answers:mine.g_answer,streak:streak()},...bots.map(b=>({name:b[0],tier:b[1],bot:1,week_minutes:150+hash(b[0])%120,answers:2+hash(b[0])%4,streak:3+hash(b[0])%9}))].sort((a,b)=>b.week_minutes-a.week_minutes),
+      missions:GUILD_DEMO.map(([key,title,unit,per,reward])=>({key,title,unit,reward,progress:mine[key]+botAdd[key],target:key==='g_all'?n:per*n,claimed:cl.includes(key)}))};
+  }
+  const hrs=m=>(m/60).toFixed(1);
+  body.innerHTML=`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:12px"><span data-s="castle" data-z="6"></span>
+      <div class="grow"><h2 style="margin:0">${esc(g.name)} 讀書會</h2><span class="small">${g.count} 位成員・每週一重新開始</span></div></div>
+    <h2>本週公會任務</h2><p class="small" style="margin:0 0 6px">大家一起努力，達成後每個人都能各領一次獎勵。目標會依人數調整。</p>
+    <div class="flist">${g.missions.map(m=>{const done=m.progress>=m.target,pct=Math.min(100,Math.round(100*m.progress/Math.max(1,m.target)));
+      return `<div class="titem"><div class="bar"><span>${esc(m.title)}</span><span style="display:inline-flex;align-items:center;gap:4px;color:var(--gold)"><span data-s="coin" data-z="2"></span>${m.reward}</span></div>
+        <div class="bar" style="gap:10px"><div class="lock" style="flex:1;height:14px"><i style="width:${pct}%;background:${done?'var(--mint)':'var(--coral)'}"></i></div><span class="small" style="min-width:80px;text-align:right">${Math.min(m.progress,m.target)}／${m.target} ${m.unit}</span></div>
+        <div class="acts">${m.claimed?'<span class="pill ok">已領取</span>':done?`<button class="btn gold" data-gc="${m.key}">領取 ${m.reward} 金幣</button>`:'<span class="small">還沒達成</span>'}</div></div>`}).join('')}</div>
+    <h2>成員（本週專注）</h2>
+    <div class="flist">${g.members.map((r,i)=>`<div class="frow" style="padding:6px 10px;${r.is_me?'outline:2px solid var(--gold);outline-offset:-5px':''}">
+      <span style="width:22px;color:${i<3?'var(--gold)':'var(--dim)'}">${i+1}</span>
+      ${r.bot?avatarSVG(lookOf({outfit:botOutfit(r.name)},r.tier).outfit,3):r.is_me?avatarSVG(myLook().outfit,3):`<span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="3"></span>`}
+      <span class="grow" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}${r.is_me?'（你）':''}</span>
+      <span class="small">答題 ${r.answers}</span><span style="min-width:44px;text-align:right">${hrs(r.week_minutes)}h</span></div>`).join('')}</div>`;
+  paintSprites(body);
+  body.querySelectorAll('[data-gc]').forEach(b=>b.onclick=async()=>{const m=g.missions.find(x=>x.key===b.dataset.gc);b.disabled=true;
+    if(ONLINE){const r=await cloud.rpc('claim_guild',{p_key:m.key});if(!r){b.disabled=false;return}syncWallet(r.wallet)}
+    else{const w=weekStart();S.gclaims=S.gclaims||{};S.gclaims[w]=[...(S.gclaims[w]||[]),m.key];S.tx=(S.tx||0)+m.reward;save()}
+    toast(`讀書會任務完成！+${m.reward} 金幣`);renderGuild()});
 }
 function startFocus(len){
   tm={...tm,mode:'focus',len:len*60,left:len*60,end:Date.now()+len*60*1000/tm.speed,paused:false};
