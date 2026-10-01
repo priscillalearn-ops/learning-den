@@ -263,6 +263,8 @@ const KEY='wordden.v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||null}catch(e){return null}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let S=load()||{};
+/* 邀請連結 ?invite=ABC123：先記下來，建好角色後自動填入 */
+try{const iv=new URLSearchParams(location.search).get('invite');if(iv)localStorage.setItem('wordden.invite',iv.trim().toUpperCase().slice(0,8))}catch(e){}
 function fresh(){return{name:'',tier:'',cls:'',answers:{},comments:{},days:{},minutes:{},cards:{},blocked:[],timerLen:0,scopes:{},wrong:{},timer:null,owned:{},look:{},remind:'2000',tx:0,bank:null,gday:null,meals:{},joined:''}}
 if(!S.tier)S=Object.assign(fresh(),S);
 if(!S.scopes)S.scopes={};if(!S.wrong)S.wrong={};if(!S.owned)S.owned={};if(!S.meals)S.meals={};if(!S.look)S.look={};if(Array.isArray(S.scope)){S.scopes.sage=S.scope;delete S.scope}
@@ -473,6 +475,7 @@ const SHOP=[
  {id:'hat_bunny',slot:'hat',name:'兔耳朵',price:150,hat:'bunny',c:['#f4ecd8']},
  {id:'hat_cat',slot:'hat',name:'貓耳朵',price:150,hat:'catear',c:['#c98a3a']},
  {id:'hat_crown',slot:'hat',name:'金色皇冠',price:400,hat:'crown',c:['#ffd166']},
+ {id:'hat_friend_crown',slot:'hat',name:'友情皇冠',price:9999,hat:'crown',c:['#f4a6c6'],bundle:'invite'},
  {id:'top_blue',slot:'top',name:'藍色上衣',price:0,c:['#3a7bd5']},
  {id:'top_red',slot:'top',name:'紅色上衣',price:0,c:['#d94f4f']},
  {id:'top_purple',slot:'top',name:'紫色長袍',price:0,c:['#8a5cd6']},
@@ -650,7 +653,7 @@ function renderShop(cat,from){
        const on=(slot in L.room?L.room[slot]:L.outfit[slot])===it.id,own=owns(it.id);
        return `<button class="sitem${on?' on':''}" data-it="${it.id}">${itemThumb(it)}<span>${esc(it.name)}</span>
          ${it.gacha?`<span class="pill" style="background:${RARITY[it.gacha][1]};color:var(--night)">盲盒 ${it.gacha}</span>`:it.rare?'<span class="pill" style="background:var(--gold);color:var(--night)">稀有</span>':it.season?`<span class="pill" style="background:var(--coral);color:var(--night)">${it.season}限定・到 ${it.until.replace('-','/')}</span>`:''}
-         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?'禮包限定':it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
+         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
    <p class="demo" style="text-align:left;line-height:1.6">答今日一題 +10（答對再 +5）・專注每分鐘 +1（每天最多 ${FOCUS_CAP}）・連續打卡 3／7／15／30 天有額外獎勵。</p>`;
   paintSprites($('#view'));
   $('#sback').onclick=()=>shopFrom==='home'?renderHome():go(shopFrom);
@@ -666,7 +669,7 @@ function pickItem(it){
   if(owns(it.id)){equip(it);return}
   if(it.cards){const n=Object.keys(S.cards).length;modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div><h2 style="text-align:center">${esc(it.name)}</h2><p style="text-align:center;margin:0;line-height:1.6">收集 ${it.cards} 張單字卡就會自動得到，不能用金幣買。<br>你現在有 ${n} 張，還差 ${Math.max(0,it.cards-n)} 張。</p><button class="btn" data-close>好</button>`);return}
   if(it.gacha){toast(`${it.name}只能從遊樂場的魔法盲盒抽到（${it.gacha}）`);return}
-  if(it.bundle){toast(`${it.name}是新手大禮包限定的`);return}
+  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:`${it.name}是新手大禮包限定的`);return}
   if(!inWin(it)){toast('這個限定商品現在沒有販售');return}
   const bal=coins();
   const m=modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div>
@@ -1446,6 +1449,75 @@ function showTutorial(){
   draw();
 }
 
+/* ---------- 邀請好友 ----------
+   被邀請的人：建角色 7 天內填邀請碼，馬上 +100。
+   邀請的人：好友答今日一題滿 3 天，+100（最多算 10 位）；成功邀請 3 位送「友情皇冠」。
+   線上版由資料庫判斷（use_invite／claim_invites），單機版只模擬被邀請的那一半。 */
+const INV={join:100,reward:100,need:3,max:10,crown:3};
+const pendingInvite=()=>{try{return localStorage.getItem('wordden.invite')||''}catch(e){return ''}};
+const dropInvite=()=>{try{localStorage.removeItem('wordden.invite')}catch(e){}};
+function myInvCode(){
+  if(ONLINE)return S.invCode||'';
+  if(!S.invCode){S.invCode=(hash(S.name+Date.now())>>>0).toString(16).toUpperCase().padStart(6,'0').slice(0,6);save()}
+  return S.invCode;
+}
+const invLink=()=>SITE+'?invite='+encodeURIComponent(myInvCode());
+async function useInvite(code,quiet){
+  code=(code||'').trim().toUpperCase();if(!code)return false;
+  let ok=false;
+  if(ONLINE){const r=await cloud.rpc('use_invite',{p_code:code});if(r){ok=true;syncWallet(r.wallet);S.invUsed=r.inviter||true}}
+  else if(S.invUsed)toast('你已經填過邀請碼了');
+  else if(code===myInvCode())toast('不能填自己的邀請碼');
+  else{ok=true;S.invUsed=true;S.tx=(S.tx||0)+INV.join}
+  dropInvite();save();
+  if(ok){toast(`填好邀請碼了！+${INV.join} 金幣`);if(!quiet)showInvite()}
+  return ok;
+}
+async function showInvite(){
+  let st=null;
+  if(ONLINE){st=await cloud.run(()=>sb.rpc('claim_invites'));if(st){syncWallet(st.wallet);if(st.crown)S.owned.hat_friend_crown=0;if(st.code)S.invCode=st.code;save()}}
+  const code=myInvCode(),friends=(st&&st.friends)||[],paid=friends.filter(f=>f.paid).length;
+  const canEnter=ONLINE?!!(st&&st.can_enter):!S.invUsed;
+  const m=modal(`<h2 style="text-align:center">邀請好友拿獎勵</h2>
+    <div class="box paper" style="text-align:center;display:flex;flex-direction:column;gap:6px">
+      <span class="small" style="color:var(--plum)">我的邀請碼</span>
+      <div class="timer" style="font-size:36px;color:var(--night)">${code?esc(code):'——'}</div>
+      ${code?`<button class="btn gold" id="ivshare">分享邀請連結</button>`:'<span class="small">資料庫還沒更新，先請老師跑最新的 SQL</span>'}
+    </div>
+    <div class="flist small" style="line-height:1.6">
+      <div class="frow" style="padding:8px">好友用你的連結或邀請碼加入：<b style="color:var(--gold)">好友馬上 +${INV.join}</b></div>
+      <div class="frow" style="padding:8px">好友答今日一題滿 ${INV.need} 天：<b style="color:var(--gold)">你 +${INV.reward}</b>（最多 ${INV.max} 位）</div>
+      <div class="frow" style="padding:8px">${itemThumb(ITEM.hat_friend_crown)}<span>成功邀請 ${INV.crown} 位：送你<b style="color:var(--gold)">友情皇冠</b>（買不到）</span></div>
+    </div>
+    ${ONLINE?`<p class="small" style="margin:0">已邀請 ${friends.length} 位・完成 ${paid} 位${friends.length?'':'，快去邀請同學吧！'}</p>
+      ${friends.length?`<div class="flist">${friends.map(f=>`<div class="frow"><span class="grow">${esc(f.name)}</span><span class="small">${f.paid?'已完成 ✓':`答題 ${Math.min(f.days,INV.need)}／${INV.need} 天`}</span></div>`).join('')}</div>`:''}`
+      :'<p class="small" style="margin:0">單機版只能試填邀請碼；邀請好友的獎勵要登入線上版才算。</p>'}
+    ${canEnter?`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:6px">
+      <label class="small" for="ivin">有人邀請你嗎？填他的邀請碼（加入 7 天內可以填一次）</label>
+      <div class="row"><input type="text" id="ivin" maxlength="8" placeholder="A1B2C3" value="${esc(pendingInvite())}" style="text-transform:uppercase"><button class="btn gold" id="ivgo" style="flex:0 0 auto">送出</button></div></div>`:''}
+    <button class="btn ghost" data-close>關閉</button>`);
+  if(m.querySelector('#ivshare'))m.querySelector('#ivshare').onclick=async()=>{
+    const text=`一起來 Learning Den 讀英文！用我的邀請碼 ${code} 加入，你馬上有 ${INV.join} 金幣`;
+    try{if(navigator.share){await navigator.share({title:'Learning Den',text,url:invLink()});return}}catch(e){return}
+    try{await navigator.clipboard.writeText(text+'\n'+invLink());toast('連結複製好了，貼給同學吧')}catch(e){prompt('複製這個連結傳給同學',invLink())}};
+  if(m.querySelector('#ivgo'))m.querySelector('#ivgo').onclick=async()=>{const v=m.querySelector('#ivin').value;if(!v.trim()){toast('先填邀請碼');return}m.remove();await useInvite(v)};
+}
+/* 登入時偷偷結算：好友達標就發獎勵、跳通知 */
+async function checkInvites(){
+  if(!ONLINE)return;
+  const st=await cloud.run(()=>sb.rpc('claim_invites'));if(!st)return;
+  if(st.code&&S.invCode!==st.code){S.invCode=st.code;save()}
+  syncWallet(st.wallet);
+  if(st.newly&&st.newly.length){
+    if(st.crown)S.owned.hat_friend_crown=0;save();
+    modal(`<h2 style="text-align:center">邀請獎勵到了！</h2>
+      <p style="text-align:center;margin:0;line-height:1.7">${st.newly.map(esc).join('、')} 已經答題滿 ${INV.need} 天<br><b style="color:var(--gold)">+${st.newly.length*INV.reward} 金幣</b></p>
+      ${st.crown_new?`<div style="display:flex;justify-content:center">${itemThumb(ITEM.hat_friend_crown)}</div><p style="text-align:center;margin:0">成功邀請 ${INV.crown} 位，送你<b style="color:var(--gold)">友情皇冠</b>！到百貨公司換裝就能戴。</p>`:''}
+      <button class="btn gold" data-close>太棒了</button>`);
+  }
+  /* 從邀請連結進來、已經建好角色但還沒填的：自動幫他填 */
+  if(pendingInvite()&&st.can_enter)await useInvite(pendingInvite(),true);
+}
 /* ---------- 新手大禮包：每個帳號領一次（線上版由資料庫確認沒領過） ----------
    內容：300 金幣、禮包限定寵物「新手小雞」、3 張盲盒券。新玩家看完導覽就會收到，舊玩家下次打開也會收到。 */
 const STARTER={coins:300,items:['pet_chick'],tickets:3};
@@ -1611,7 +1683,7 @@ const cloud={
     if(lk!==undefined)S.look=lk?{room:lk.room,outfit:lk.outfit}:{};
     if(wl)S.tx=wl.tx||0;
     if(ml){S.meals={};ml.forEach(r=>S.meals[r.day]=r.food)}
-    if(p){S.name=p.name;S.tier=p.tier;S.cls=p.class_code||'';S.grade=p.grade||S.grade||'';S.joined=keyOf(new Date(p.created_at))}else{S.name='';S.tier='';S.joined=today()}
+    if(p){S.name=p.name;S.tier=p.tier;S.cls=p.class_code||'';S.grade=p.grade||S.grade||'';S.invCode=p.invite_code||'';S.joined=keyOf(new Date(p.created_at))}else{S.name='';S.tier='';S.joined=today()}
     S.days={};S.minutes={};S.answers={};S.cards={};
     a.forEach(r=>{S.days[r.day]=true;S.answers[r.day+':'+r.tier]={c:r.choice,ok:r.correct,qid:r.qid}});
     f.forEach(r=>{S.days[r.day]=true;S.minutes[r.day]=(S.minutes[r.day]||0)+r.minutes});
@@ -1640,7 +1712,7 @@ async function boot(){
   joinRoom();listenDM();
   TEACHER=(await cloud.run(()=>sb.rpc('is_teacher')))===true;
   if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm){if(tm.title)TTITLE=tm.title;TNAME=tm.name||''}}
-  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet())}else renderOnboard();
+  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet()).then(()=>setTimeout(checkInvites,1500))}else renderOnboard();
 }
 /* 舊玩家還沒有年級：進來先選一次（國小直接放國小） */
 async function fixGrade(){
@@ -1708,6 +1780,8 @@ function renderOnboard(){
      <label for="nm" class="small">你的冒險者名字</label>
      <input type="text" id="nm" maxlength="10" placeholder="小明" value="${esc(S.name)}">
      <div id="gradeBox"></div>
+     ${S.name?'':`<label for="ivc" class="small">好友的邀請碼（選填，填了你和好友都有獎勵）</label>
+     <input type="text" id="ivc" maxlength="8" placeholder="例如 A1B2C3" value="${esc(pendingInvite())}" style="text-transform:uppercase">`}
      <label for="cc" class="small">班級代碼（選填，老師會給你）</label>
      <input type="text" id="cc" maxlength="8" placeholder="702" value="${esc(S.cls)}">
    </div>
@@ -1762,7 +1836,8 @@ function renderOnboard(){
     S.name=clean(nm);S.tier=pick;S.cls=$('#cc').value.trim();S.grade=gr;
     S.look={...(S.look||{}),outfit:{...((S.look&&S.look.outfit)||{}),...ch}};if(!S.joined)S.joined=today();
     if(ONLINE){$('#go').textContent='存檔中…';if(await cloud.saveProfile()===undefined){Object.assign(S,old);$('#go').textContent='開始冒險';return}const l=myLook();cloud.saveLook(l.room,l.outfit);leaveRoom();joinRoom()}
-    const isNew=!S.tutorialDone;city=null;save();go('city');if(isNew)setTimeout(showTutorial,300);
+    const ivc=$('#ivc')&&$('#ivc').value.trim().toUpperCase();
+    const isNew=!S.tutorialDone;city=null;save();go('city');if(ivc)await useInvite(ivc,true);if(isNew)setTimeout(showTutorial,300);
   };
 }
 
@@ -1935,7 +2010,7 @@ function renderRoom(){
   else if(tm.mode==='focus')ctl.innerHTML=`<button class="btn coral" id="pause">${tm.paused?'繼續':'暫停'}</button><button class="btn ghost" id="stop">放棄</button>`;
   else ctl.innerHTML=`<button class="btn mint" id="skip">結束休息</button>`;
   if($('#start'))$('#start').onclick=()=>startFocus(len);
-  if($('#inv'))$('#inv').onclick=()=>modal(`<h2>邀請好友</h2><p class="small">同年級的同學會自動在同一間讀書房。請同學在「我的 → 換等級／改名字」選：</p><div class="timer" style="font-size:34px">${esc(S.grade||T().stage)}</div>${S.cls?`<p class="small" style="margin:0">想看同班排行，再填一樣的班級代碼：${esc(S.cls)}</p>`:''}<button class="btn" data-close>好</button>`);
+  if($('#inv'))$('#inv').onclick=showInvite;
   if($('#pause'))$('#pause').onclick=()=>{if(tm.paused){tm.paused=false;tm.end=Date.now()+tm.left*1000/tm.speed}else{tm.paused=true}saveTimer();trackMe();renderRoom()};
   if($('#stop'))$('#stop').onclick=()=>{const m=modal(`<h2>確定要放棄嗎？</h2><p class="small">這次的專注時間不會算進紀錄。</p><div class="row"><button class="btn" data-close>繼續讀</button><button class="btn coral" id="yes">放棄</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();endTimer();renderRoom()}};
   if($('#skip'))$('#skip').onclick=()=>{endTimer();renderRoom()};
@@ -2363,12 +2438,12 @@ function renderMe(){
    <button class="btn" id="howto">玩法說明</button>
    ${reminderBox()}
    ${TEACHER?'<button class="btn mint" id="tdash">老師後台</button>':''}
-   <button class="btn gold" id="share">產生分享圖</button>
+   <div class="row"><button class="btn gold" id="share">產生分享圖</button><button class="btn mint" id="meinv">邀請好友拿獎勵</button></div>
    <div class="row"><button class="btn ghost" id="chg">換等級／改名字</button><button class="btn ghost" id="rst">${ONLINE?'登出':'清除資料'}</button></div>
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
-  $('#share').onclick=share;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;
+  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
