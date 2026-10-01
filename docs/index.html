@@ -378,6 +378,16 @@ const SHAPE={
  blackcat:['.k....k.','.kk..kk.','.kkkkkk.','.kykkyk.','.kkkkkk.','..kPPk..','.kkkkkk.','.k.kk.k.'],
  dinorainbow:['.....rrr','....rkrr','....yyyy','t..yyy..','t.ttttt.','.bbbyyb.','..bbbb..','..p..p..'],
  chick:['........','..yyyy..','.ykyyky.','.yyooyy.','.yyyyyy.','yyyyyyyy','.yyyyyy.','..o..o..'],
+ jack:['...G..','.1111.','1k11k1','111111','1kkkk1','.1111.','.2222.','..22..'],
+ lampghost:['.ww.','wwww','wkkw','wwww','w.ww','.2..','.2..','.2..','.2..','222.'],
+ pghost:['2222222','2111112','21www12','2wkwkw2','2wwwww2','2wwkww2','2w1w1w2','2111112','2222222'],
+ pbat:['2222222','21yy112','21yy112','2111112','2k1k1k2','2kkkkk2','21kkk12','2111112','2222222'],
+ rugweb:['.1w11w11w11w11w11w1.','w1w1w1w1w1w1w1w1w1w1','.1w11w11w11w11w11w1.'],
+ bedcoffin:['1...............','1www............','12222222w2222222','1222222www222222','1111111111111111','1..............1'],
+ winhallow:['222222222222','21111211yy12','2111121yyyy2','2k1k121yyyy2','222222222222','211k12111y12','211112111112','2k1112111k12','222222222222'],
+ ghostpet:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','.wwPPww.','.wwwwww.','.wwwwww.','.w.ww.w.'],
+ pumpkinpet:['...G....','..GG....','.111111.','11k11k11','11111111','11kkkk11','.111111.','........'],
+ spider:['k......k','.k....k.','..kkkk..','kkrkkrkk','..kkkk..','.k.kk.k.','k......k','........'],
  pxmas:['2222222','2111112','211G112','21GGG12','2GGyGG2','21GGG12','2GGGGG2','211o112','2222222']
 };
 /* slot：房間 wall floor window poster bed desk chair lamp plant rug pet；服裝 hat top acc */
@@ -440,6 +450,24 @@ const SHOP=[
  {id:'hat_pumpkin',slot:'hat',name:'南瓜帽',price:150,hat:'pumpkin',c:['#ff8a5c'],from:'10-01',until:'11-07',season:'萬聖節'},
  {id:'pet_bat',slot:'pet',name:'小蝙蝠',price:350,g:'bat',c:['#7a3f9e'],from:'10-01',until:'11-07',season:'萬聖節'},
  {id:'wall_halloween',slot:'wall',name:'萬聖節壁紙',price:200,c:['#2b1d0e','#ff8a5c'],stars:true,from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'floor_halloween',slot:'floor',name:'南瓜格子地板',price:150,c:['#2b1d0e','#c25a1c'],check:true,from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'win_hallow',slot:'window',name:'滿月蝙蝠窗',price:150,g:'winhallow',c:['#1d2a5c','#5a3d2b'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'poster_ghost',slot:'poster',name:'小幽靈海報',price:100,g:'pghost',c:['#2b1d0e','#ff8a5c'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'poster_bat',slot:'poster',name:'蝙蝠月亮海報',price:100,g:'pbat',c:['#1d2a5c','#7a3f9e'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'bed_coffin',slot:'bed',name:'吸血鬼棺材床',price:350,g:'bedcoffin',c:['#3a2a20','#7a3f9e'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'lamp_ghost',slot:'lamp',name:'幽靈立燈',price:120,g:'lampghost',c:['#f4ecd8','#5a3d2b'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'plant_jack',slot:'plant',name:'南瓜燈',price:100,g:'jack',c:['#ff8a5c','#5a3d2b'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'rug_web',slot:'rug',name:'蜘蛛網地毯',price:120,g:'rugweb',c:['#2b2b33'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'pet_ghost',slot:'pet',name:'小幽靈',price:350,g:'ghostpet',from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'pet_pumpkin',slot:'pet',name:'南瓜精靈',price:400,g:'pumpkinpet',c:['#ff8a5c'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'pet_spider',slot:'pet',name:'小蜘蛛',price:250,g:'spider',from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'hat_witch_purple',slot:'hat',name:'紫色女巫帽',price:200,hat:'witch',c:['#7a3f9e'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'hat_horns',slot:'hat',name:'小惡魔角',price:180,hat:'horns',c:['#d94f4f'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'hat_mummy',slot:'hat',name:'木乃伊繃帶',price:180,hat:'mummy',c:['#f4ecd8'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'top_vampire',slot:'top',name:'吸血鬼黑袍',price:150,c:['#2b2b33'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'top_pumpkin',slot:'top',name:'南瓜裝',price:120,c:['#ff8a5c'],from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'acc_fangs',slot:'acc',name:'吸血鬼尖牙',price:100,acc:'fangs',from:'10-01',until:'11-07',season:'萬聖節'},
+ {id:'acc_mask',slot:'acc',name:'舞會面具',price:120,acc:'mask',from:'10-01',until:'11-07',season:'萬聖節'},
  {id:'hat_santa',slot:'hat',name:'聖誕帽',price:150,hat:'santa',c:['#d94f4f'],from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'pet_reindeer',slot:'pet',name:'麋鹿',price:400,g:'reindeer',from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'poster_xmas',slot:'poster',name:'聖誕樹海報',price:120,g:'pxmas',c:['#1d2a5c','#c98a3a'],from:'12-01',until:'12-31',season:'聖誕節'},
@@ -529,9 +557,9 @@ const inWin=it=>!it.from||(mmdd()>=it.from&&mmdd()<=it.until);
 const buyable=it=>!it.cards&&!it.gacha&&!it.bundle&&inWin(it);
 
 /* 角色：帽子（0–2 列）＋臉（3–5）＋衣服（6）＋腳（7），配件疊在上面 */
-const HAT={witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
+const HAT={witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],horns:['.h....h.','.hooooh.','.oooooo.'],mummy:['..hhhh..','.hghhgh.','.hhhhhh.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
   cap:['........','..hhhh..','.hhhhhhh'],bunny:['.h....h.','.h....h.','.hhhhhh.'],catear:['.h....h.','.hh..hh.','.hhhhhh.'],crown:['........','.h.hh.h.','.hhhhhh.']};
-const ACC={beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
+const ACC={fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
 function avatarGrid(outfit){
   const hat=ITEM[outfit.hat]||ITEM.hat_none,top=ITEM[outfit.top]||ITEM.top_blue,acc=ITEM[outfit.acc];
   const g=[...HAT[hat.hat||'hair'],'..ssss..','..ksks..','..ssss..','.cccccc.','..n..n..'];
@@ -1056,7 +1084,9 @@ function cityTick(dt){
       for(let i=0;i<8;i++){const tx=n.x+Math.round(Math.random()*6-3),ty=n.y+Math.round(Math.random()*6-3);if(walk(tx,ty)&&!doorAt(tx,ty)){const p=bfs(n.x,n.y,tx,ty);if(p&&p.length<8){n.path=p;break}}}}}
     stepWalker(n,dt,40);
   });
-  Object.values(city.peers).forEach(p=>{p.px+=(p.tx-p.px)*Math.min(1,dt*6);p.py+=(p.ty-p.py)*Math.min(1,dt*6)});
+  Object.values(city.peers).forEach(p=>{const ox=p.px;p.px+=(p.tx-p.px)*Math.min(1,dt*6);p.py+=(p.ty-p.py)*Math.min(1,dt*6);if(Math.abs(p.px-ox)>.05)p.face=p.px>ox?1:-1});
+  /* 寵物跟在主人後面走 */
+  [city.me,...city.npcs,...Object.values(city.peers)].forEach(o=>followPet(o,dt));
   const now=performance.now();city.bubbles=city.bubbles.filter(b=>b.until>now);
   /* 省即時訊息額度：只有城市裡有別的同學時才傳位置，最多 1 秒一次，停下來再補傳最後位置 */
   const moved=me.px!==city.lastX||me.py!==city.lastY,someone=Object.keys(city.peers).length>0;
@@ -1177,10 +1207,12 @@ function cityDraw(){
   const bang=(x,y)=>{const by=y*TS-9+Math.round(Math.sin(t*5)*2);c.fillStyle='#ffd166';c.fillRect(x*TS+5,by,6,8);c.fillStyle='#1a1026';c.fillRect(x*TS+7,by+1,2,4);c.fillRect(x*TS+7,by+6,2,1)};
   if(annNew())bang(NOTICE[0],NOTICE[1]);if(questReady())bang(QUEST[0],QUEST[1]);
   /* 人物依 y 排序，比較前面的蓋在後面的上面 */
-  const people=[...city.npcs.map(n=>({px:n.px,py:n.py,face:n.face,outfit:lookOf({outfit:botOutfit(n.name)},n.tier).outfit,name:n.name})),
-    ...Object.values(city.peers).map(p=>({px:p.px,py:p.py,outfit:lookOf({outfit:p.outfit},p.tier).outfit,name:p.name})),
-    {px:city.me.px,py:city.me.py,face:city.me.face,outfit:myLook().outfit,name:'你',me:true,ghost:fainted()}].sort((a,b)=>a.py-b.py);
+  const petOf=(o,id)=>id&&ITEM[id]&&ITEM[id].g&&o.petX!=null?[{pet:id,px:o.petX,py:o.petY,face:o.face,hop:o.petMove?Math.abs(Math.sin(t*10+(o.px||0)))*3:0}]:[];
+  const people=[...city.npcs.flatMap(n=>[{px:n.px,py:n.py,face:n.face,outfit:lookOf({outfit:botOutfit(n.name)},n.tier).outfit,name:n.name},...petOf(n,npcPet(n.name))]),
+    ...Object.values(city.peers).flatMap(p=>[{px:p.px,py:p.py,face:p.face,outfit:lookOf({outfit:p.outfit},p.tier).outfit,name:p.name},...petOf(p,p.pet)]),
+    {px:city.me.px,py:city.me.py,face:city.me.face,outfit:myLook().outfit,name:'你',me:true,ghost:fainted()},...petOf(city.me,myLook().room.pet)].sort((a,b)=>a.py-b.py);
   people.forEach(p=>{
+    if(p.pet){drawPet(c,p.pet,p.px,p.py,p.face,p.hop);return}
     const X=Math.round(p.px-8),Y=Math.round(p.py-12),bob=p.me&&city.me.path.length?Math.round(Math.sin(t*16))*0:0;
     c.fillStyle='rgba(0,0,0,.25)';c.fillRect(X+3,Y+15,10,2);
     let g,pal;if(p.ghost){g=SPR.ghost;pal=PAL}else if(p.outfit){({g,pal}=avatarGrid(p.outfit))}else{g=SPR[p.sp];pal=PAL}
@@ -1192,6 +1224,21 @@ function cityDraw(){
   c.font='7px "DotGothic16", sans-serif';
   city.bubbles.forEach(b=>{const w=c.measureText(b.txt).width+8,X=b.who.px-w/2,Y=b.who.py-34;c.fillStyle='#f4ecd8';c.fillRect(X,Y,w,12);c.fillStyle='#1a1026';c.textAlign='center';c.fillText(b.txt,b.who.px,Y+9)});
 }
+/* 寵物：跟在主人身後半格，走路時會一跳一跳 */
+const PETS=SHOP.filter(i=>i.slot==='pet'&&i.g);
+function npcPet(name){const h=hash(name+'pet');return h%3===0?PETS[h%PETS.length].id:null}
+function followPet(o,dt){
+  if(!o)return;const f=o.face<0?-1:1,tx=o.px-f*11,ty=o.py+3;
+  if(o.petX==null){o.petX=tx;o.petY=ty}
+  const k=Math.min(1,dt*4);o.petX+=(tx-o.petX)*k;o.petY+=(ty-o.petY)*k;
+  o.petMove=Math.abs(tx-o.petX)+Math.abs(ty-o.petY)>1.5;
+}
+function drawPet(c,id,x,y,face,hop){
+  const it=ITEM[id];if(!it||!it.g||!SHAPE[it.g])return;
+  const g=SHAPE[it.g],cl=it.c||[],pal={...RPAL,'1':cl[0],'2':cl[1]},z=1.5,X=Math.round(x-6),Y=Math.round(y-12-hop);
+  c.fillStyle='rgba(0,0,0,.22)';c.fillRect(X+2,Math.round(y-1),8,2);
+  g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=pal[ch];if(col&&ch!=='.'){c.fillStyle=col;const fx=face<0?7-xx:xx;c.fillRect(X+fx*z,Y+yy*z,z,z)}}));
+}
 /* 城市即時在線（線上版） */
 let cityChan=null,cityChanName='';
 function joinCity(){
@@ -1202,15 +1249,15 @@ function joinCity(){
   cityChan.on('presence',{event:'sync'},()=>{
     const st=cityChan.presenceState(),seen={};
     Object.entries(st).forEach(([k,v])=>{if(k===ME||isBlocked(k))return;const d=v[v.length-1];seen[k]=1;
-      const p=city&&city.peers[k];if(p){Object.assign(p,{tx:d.x,ty:d.y,name:d.name,tier:d.tier,outfit:d.outfit})}
-      else if(city)city.peers[k]={uid:k,px:d.x,py:d.y,tx:d.x,ty:d.y,name:d.name,tier:d.tier,outfit:d.outfit}});
+      const p=city&&city.peers[k];if(p){Object.assign(p,{tx:d.x,ty:d.y,name:d.name,tier:d.tier,outfit:d.outfit,pet:d.pet})}
+      else if(city)city.peers[k]={uid:k,px:d.x,py:d.y,tx:d.x,ty:d.y,name:d.name,tier:d.tier,outfit:d.outfit,pet:d.pet}});
     if(city)Object.keys(city.peers).forEach(k=>{if(!seen[k])delete city.peers[k]});
     /* 有新同學進城：把自己的位置傳一次給他 */
     if(city&&Object.keys(seen).some(k=>!city.known||!city.known[k])){city.known=seen;city.lastX=null;city.sent=0}
   });
   cityChan.subscribe(st=>{if(st==='SUBSCRIBED')cityTrack()});
 }
-function cityTrack(){if(cityChan&&city)cityChan.track({name:S.name,tier:S.tier,outfit:myLook().outfit,x:Math.round(city.me.px),y:Math.round(city.me.py)})}
+function cityTrack(){if(cityChan&&city)cityChan.track({name:S.name,tier:S.tier,outfit:myLook().outfit,pet:myLook().room.pet,x:Math.round(city.me.px),y:Math.round(city.me.py)})}
 function leaveCity(){if(cityChan){sb.removeChannel(cityChan);cityChan=null;cityChanName=''}}
 document.addEventListener('keydown',e=>{if(curTab!=='city'||!city||e.target.closest('input,select,textarea'))return;const k=e.key.length===1?e.key.toLowerCase():e.key;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(k)){e.preventDefault();city.keys.add(k)}});
 document.addEventListener('keyup',e=>{if(!city)return;const k=e.key.length===1?e.key.toLowerCase():e.key;city.keys.delete(k)});
@@ -1997,12 +2044,13 @@ function renderRoom(){
    <div class="chips" style="justify-content:center">${[15,25,50].map(m=>`<button class="chip" data-len="${m}" aria-pressed="${len===m}" ${tm.mode!=='idle'?'aria-disabled="true"':''}>${m} 分鐘</button>`).join('')}</div>
    <div class="row" id="ctl"></div>
    <div id="quiz"></div>
+   <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px" id="rchat"></div>
    <div class="box" style="background:var(--deep)" id="board"><p class="small" style="margin:0">載入排行中…</p></div>
    ${ONLINE?'':`<button class="chip" id="spd" style="align-self:center" aria-pressed="${tm.speed>1}">快轉 ×60</button>
    <p class="demo">單機版才有快轉，方便試玩。</p>`}`;
   drawSeats();paintSprites($('#view'));
   $('#view').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const f=b.dataset.rm==='free';if(!!S.freeRoom===f)return;
-    S.freeRoom=f;save();if(ONLINE){leaveRoom();joinRoom()}renderRoom();toast(`換到${roomLabel()}`)});
+    S.freeRoom=f;save();if(ONLINE){leaveRoom();joinRoom()}rchat.room='';renderRoom();toast(`換到${roomLabel()}`)});
   $('#view').querySelectorAll('[data-len]').forEach(b=>b.onclick=()=>{if(tm.mode!=='idle'){toast('專注中不能換時間');return}S.timerLen=+b.dataset.len;save();renderRoom()});
   if($('#spd'))$('#spd').onclick=()=>{tm.speed=tm.speed>1?1:60;if(tm.mode!=='idle'&&!tm.paused)tm.end=Date.now()+tm.left*1000/tm.speed;renderRoom()};
   const ctl=$('#ctl');
@@ -2015,7 +2063,72 @@ function renderRoom(){
   if($('#stop'))$('#stop').onclick=()=>{const m=modal(`<h2>確定要放棄嗎？</h2><p class="small">這次的專注時間不會算進紀錄。</p><div class="row"><button class="btn" data-close>繼續讀</button><button class="btn coral" id="yes">放棄</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();endTimer();renderRoom()}};
   if($('#skip'))$('#skip').onclick=()=>{endTimer();renderRoom()};
   if(tm.mode==='break')renderQuiz();
-  drawClock();drawBoard();
+  drawClock();drawBoard();openRoomChat();
+}
+/* ---------- 讀書房聊天室 ----------
+   跟讀書房同一間（年級房或自由房），只留最近 24 小時。國小只能送貼圖，國中 30 字、高中 60 字，有不雅字過濾。
+   可以檢舉和封鎖；3 個人檢舉就自動藏起來，老師在後台處理。專注中先收起來，免得分心。 */
+const RCHAT_MAX={kid:0,teen:30,sage:60};
+let rchat={room:'',msgs:[],chan:null,open:false,last:0};
+const chatRoom=()=>S.freeRoom?'free':roomKey();
+async function openRoomChat(){
+  const box=$('#rchat');if(!box)return;
+  const room=chatRoom();
+  if(rchat.room!==room){
+    if(rchat.chan&&ONLINE)sb.removeChannel(rchat.chan);
+    rchat={room,msgs:[],chan:null,open:rchat.open,last:rchat.last};
+    if(ONLINE){
+      const r=await cloud.run(()=>sb.from('room_chat').select('id,user_id,name,tier,body,created_at').eq('room',room).eq('hidden',false).order('id',{ascending:false}).limit(40));
+      if(rchat.room!==room)return;
+      rchat.msgs=(r||[]).reverse();
+      rchat.chan=sb.channel('rchat-'+ME).on('postgres_changes',{event:'*',schema:'public',table:'room_chat'},({eventType,new:m})=>{
+        if(!m||m.room!==room||rchat.room!==room)return;
+        rchat.msgs=rchat.msgs.filter(x=>x.id!==m.id);
+        if(!m.hidden&&eventType!=='DELETE')rchat.msgs.push(m);
+        rchat.msgs.sort((a,b)=>a.id-b.id);rchat.msgs=rchat.msgs.slice(-40);drawRoomChat();
+      }).subscribe();
+    }else{
+      /* 單機版：NPC 先聊幾句 */
+      const bots=S.freeRoom?freeBots():roomBots(),now=Date.now();
+      rchat.msgs=bots.slice(0,3).map((b,i)=>({id:-i-1,user_id:'bot',name:b[0],tier:b[1],body:BOT_TALK[b[1]][hash(b[0]+today())%BOT_TALK[b[1]].length],created_at:new Date(now-(3-i)*240000).toISOString()}));
+    }
+  }
+  drawRoomChat();
+}
+function drawRoomChat(){
+  const box=$('#rchat');if(!box)return;
+  const focus=tm.mode==='focus'&&!rchat.open,t=T(),max=RCHAT_MAX[S.tier]||0;
+  const list=rchat.msgs.filter(m=>!(m.user_id&&isBlocked(m.user_id))&&!S.blocked.includes(m.name));
+  const hhmm=x=>{const d=new Date(x);return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
+  if(focus){box.innerHTML=`<div class="bar"><span class="small">${esc(roomLabel())} 聊天室・${list.length} 則</span><button class="chip" id="rcopen">打開聊天室</button></div><p class="small" style="margin:0">專注中先收起來，休息時再聊。</p>`;
+    $('#rcopen').onclick=()=>{rchat.open=true;drawRoomChat()};return}
+  box.innerHTML=`<div class="bar"><span class="small">${esc(roomLabel())} 聊天室</span>${tm.mode==='focus'?'<button class="chip" id="rcclose">收起來</button>':''}</div>
+    <div id="rclist" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;padding-right:2px">
+      ${list.length?list.map(m=>{const mine=ONLINE?m.user_id===ME:m.user_id==='me';
+        return mine?`<div class="bub me">${esc(m.body)}<time>${hhmm(m.created_at)}</time></div>`
+          :`<div class="bub them"><b style="font-size:12px;color:var(--plum)">${esc(m.name)}</b><br>${esc(m.body)}<time>${hhmm(m.created_at)}・<button class="more" data-rcr="${m.id}" style="font-size:11px;padding:0;color:var(--plum)">檢舉</button>・<button class="more" data-rcb="${m.id}" style="font-size:11px;padding:0;color:var(--plum)">封鎖</button></time></div>`}).join('')
+        :'<p class="small" style="margin:0">還沒有人說話，打個招呼吧！</p>'}
+    </div>
+    ${max?`<div class="row"><input type="text" id="rcin" maxlength="${max}" placeholder="說點什麼（${max} 字內）" aria-label="聊天訊息"><button class="btn gold" id="rcsend" style="flex:0 0 auto">送出</button></div>`:''}
+    <div class="chips">${STICKERS.map(x=>`<button class="chip" data-rcs="${x}">${x}</button>`).join('')}</div>
+    <p class="small" style="margin:0">${max?'':'見習魔法師用貼圖聊天。'}看到不舒服的話可以檢舉或封鎖，老師會處理。</p>`;
+  const lst=$('#rclist');lst.scrollTop=lst.scrollHeight;
+  if($('#rcclose'))$('#rcclose').onclick=()=>{rchat.open=false;drawRoomChat()};
+  const send=async txt=>{
+    txt=clean(txt.trim());if(!txt)return false;
+    if(Date.now()-rchat.last<3000){toast('慢一點，3 秒後再送');return false}
+    rchat.last=Date.now();
+    if(ONLINE){if(await cloud.rpc('send_room_chat',{p_room:rchat.room,p_body:txt})===undefined)return false}
+    else{rchat.msgs.push({id:Date.now(),user_id:'me',name:S.name,tier:S.tier,body:txt,created_at:new Date().toISOString()});drawRoomChat();
+      const b=pick(S.freeRoom?freeBots():roomBots());if(b&&Math.random()<.6)setTimeout(()=>{if(!$('#rchat'))return;rchat.msgs.push({id:Date.now(),user_id:'bot',name:b[0],tier:b[1],body:pick(BOT_TALK[b[1]]),created_at:new Date().toISOString()});drawRoomChat()},1500+Math.random()*2000)}
+    return true};
+  if($('#rcsend')){const go=async()=>{if(await send($('#rcin').value))$('#rcin').value=''};$('#rcsend').onclick=go;$('#rcin').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing)go()}}
+  box.querySelectorAll('[data-rcs]').forEach(b=>b.onclick=()=>send(b.dataset.rcs));
+  box.querySelectorAll('[data-rcr]').forEach(b=>b.onclick=async()=>{const id=+b.dataset.rcr;
+    if(ONLINE&&id>0){if(await cloud.rpc('report_room_chat',{p_id:id})===undefined)return}toast('已檢舉，老師會收到通知')});
+  box.querySelectorAll('[data-rcb]').forEach(b=>b.onclick=()=>{const m=rchat.msgs.find(x=>x.id===+b.dataset.rcb);if(!m)return;
+    if(ONLINE&&m.user_id&&m.user_id!=='bot'){S.blocked.push(`u:${m.user_id}:${m.name}`);cloud.block(m.user_id);peers=peers.filter(p=>p.uid!==m.user_id)}else S.blocked.push(m.name);
+    save();toast(`已封鎖 ${m.name}`);drawRoomChat()});
 }
 /* 本週專注排行：線上版是同班代碼的真實同學；單機版拿 NPC 陪你比 */
 async function drawBoard(){
@@ -2373,7 +2486,7 @@ async function tMission(){
   $('#tbody').querySelectorAll('[data-mdel]').forEach(b=>b.onclick=async()=>{if(await cloud.rpc('delete_mission',{p_id:+b.dataset.mdel})!==undefined){toast('已刪除');tMission()}});
 }
 async function tReports(){
-  const [cs,ms]=await Promise.all([cloud.teacher('teacher_comment_reports'),cloud.teacher('teacher_message_reports')]);
+  const [cs,ms,rc]=await Promise.all([cloud.teacher('teacher_comment_reports'),cloud.teacher('teacher_message_reports'),cloud.teacher('teacher_chat_reports')]);
   if(curTab!=='teacher'||!$('#tbody'))return;
   if(!cs||!ms){$('#tbody').innerHTML='<p class="small">檢舉資料載不到。</p>';return}
   const when=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
@@ -2389,7 +2502,15 @@ async function tReports(){
      <div class="bar"><span>${esc(m.sender)} → ${esc(m.recipient)} <span class="small">${m.class_code?esc(m.class_code)+' 班・':''}${when(m.created_at)}</span></span><span class="pill bad">${m.reports} 人檢舉</span></div>
      <div style="line-height:1.6">${esc(m.body)}</div>
      <div class="acts"><button class="btn coral" data-dm="${m.message_id}">刪除這則私訊</button><button class="btn ghost" data-dmm="${m.message_id}">沒問題，撤銷檢舉</button><button class="btn ghost" data-mute="${m.sender_id}" data-name="${esc(m.sender)}">禁言 ${esc(m.sender)}</button></div>
-   </div>`).join(''):'<p class="small">目前沒有被檢舉的私訊。</p>'}`;
+   </div>`).join(''):'<p class="small">目前沒有被檢舉的私訊。</p>'}
+   <h2>被檢舉的讀書房聊天（${(rc||[]).length}）</h2>
+   ${rc&&rc.length?rc.map(r=>`<div class="titem">
+     <div class="bar"><span>${esc(r.author)} <span class="small">${esc(r.room==='free'?'自由房':r.room.replace(/^[gt]-/,''))}・${when(r.created_at)}</span></span><span class="pill bad">${r.reports} 人檢舉</span></div>
+     <div style="line-height:1.6">${esc(r.body)}${r.hidden?' <span class="pill no">已隱藏</span>':''}</div>
+     <div class="acts"><button class="btn ${r.hidden?'':'coral'}" data-rch="${r.chat_id}" data-v="${r.hidden?0:1}">${r.hidden?'恢復顯示':'隱藏'}</button><button class="btn ghost" data-rcd="${r.chat_id}">沒問題，撤銷檢舉</button><button class="btn ghost" data-mute="${r.author_id}" data-name="${esc(r.author)}">禁言 ${esc(r.author)}</button></div>
+   </div>`).join(''):rc?'<p class="small">目前沒有被檢舉的聊天。</p>':'<p class="small">聊天檢舉載不到，請先跑最新的 SQL。</p>'}`;
+  $('#tbody').querySelectorAll('[data-rch]').forEach(b=>b.onclick=()=>act('teacher_hide_chat',{p_id:+b.dataset.rch,p_hidden:b.dataset.v==='1'},b.dataset.v==='1'?'已隱藏':'已恢復顯示'));
+  $('#tbody').querySelectorAll('[data-rcd]').forEach(b=>b.onclick=()=>act('teacher_dismiss_chat',{p_id:+b.dataset.rcd},'已撤銷檢舉'));
   const act=async(fn,args,msg)=>{if(await cloud.teacher(fn,args)!==undefined){toast(msg);tReports()}};
   $('#tbody').querySelectorAll('[data-hide]').forEach(b=>b.onclick=()=>act('teacher_hide_comment',{p_id:+b.dataset.hide,p_hidden:b.dataset.v==='1'},b.dataset.v==='1'?'已隱藏':'已恢復顯示'));
   $('#tbody').querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>act('teacher_dismiss_comment',{p_id:+b.dataset.dc},'已撤銷檢舉'));
