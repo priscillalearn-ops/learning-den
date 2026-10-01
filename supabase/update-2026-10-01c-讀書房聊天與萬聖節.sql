@@ -1,6 +1,6 @@
 
 -- =====================================================================
--- 讀書房聊天室、萬聖節商品（2026-10-01 第三次更新；整份重跑即可）
+-- 讀書房聊天室、萬聖節商品、小遊戲關卡（2026-10-01 第三次更新；整份重跑即可）
 -- 聊天室跟讀書房同一間（年級房 g-國三 或自由房 free），只看得到最近 24 小時。
 -- 國小只能送貼圖、國中 30 字、高中 60 字；3 秒一則、每天 100 則；被禁言不能聊；3 人檢舉自動隱藏。
 -- =====================================================================
@@ -38,7 +38,7 @@ alter table public.room_chat_reports enable row level security;
 
 create or replace function public.send_room_chat(p_room text, p_body text)
 returns void language plpgsql security definer set search_path = public as $$
-declare me public.profiles; b text := trim(coalesce(p_body, ''));
+declare me public.profiles; b text := trim(coalesce(p_body, '')); lim int;
 begin
   if auth.uid() is null then raise exception '請先登入'; end if;
   select * into me from public.profiles where id = auth.uid();
@@ -47,7 +47,8 @@ begin
   if public.is_muted(auth.uid()) then raise exception '你被老師暫停發言了'; end if;
   if b = '' then raise exception '先寫點什麼'; end if;
   if me.tier = 'kid' and b not in ('讚', '好難', '我答對', '加油', '好好玩') then raise exception '見習魔法師用貼圖聊天喔'; end if;
-  if char_length(b) > case me.tier when 'teen' then 30 else 60 end then raise exception '太長了'; end if;
+  lim := case me.tier when 'teen' then 30 else 60 end;
+  if char_length(b) > lim then raise exception '太長了'; end if;
   perform pg_advisory_xact_lock(hashtext(auth.uid()::text));
   if exists (select 1 from public.room_chat where user_id = auth.uid() and created_at > now() - interval '3 seconds') then
     raise exception '慢一點，3 秒後再送'; end if;
@@ -132,3 +133,21 @@ insert into public.shop_items (id, slot, price, unlock_cards, avail_from, avail_
   ('acc_fangs', 'acc', 100, null, '10-01', '11-07', null, null),
   ('acc_mask', 'acc', 120, null, '10-01', '11-07', null, null)
 on conflict (id) do update set slot = excluded.slot, price = excluded.price, unlock_cards = excluded.unlock_cards, avail_from = excluded.avail_from, avail_until = excluded.avail_until, gacha = excluded.gacha, bundle = excluded.bundle;
+
+-- 小遊戲關卡：每場上限 15／18／21／24（第 1～4 關），每種遊戲每天最多 40
+drop function if exists public.claim_game(text, integer);
+create or replace function public.claim_game(p_game text, p_score int, p_level int default 1)
+returns json language plpgsql security definer set search_path = public as $$
+declare got int; r int; lv int := greatest(1, least(coalesce(p_level, 1), 4));
+begin
+  if auth.uid() is null then raise exception '請先登入'; end if;
+  if p_game not in ('match', 'speed', 'granny', 'tower') then raise exception '沒有這個遊戲'; end if;
+  perform pg_advisory_xact_lock(hashtext(auth.uid()::text));
+  select coalesce(sum(amount), 0) into got from public.coin_tx
+    where user_id = auth.uid() and kind = 'game:' || p_game and day = public.taipei_today();
+  r := greatest(0, least(coalesce(p_score, 0), 15 + 3 * (lv - 1), 40 - got));
+  if r > 0 then insert into public.coin_tx (user_id, amount, kind) values (auth.uid(), r, 'game:' || p_game); end if;
+  return json_build_object('reward', r, 'wallet', public.wallet_balance(auth.uid()));
+end $$;
+revoke all on function public.claim_game(text, integer, integer) from public, anon;
+grant execute on function public.claim_game(text, integer, integer) to authenticated;

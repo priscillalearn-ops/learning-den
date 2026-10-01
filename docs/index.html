@@ -727,7 +727,7 @@ async function visitRoom(who,uid,tier){
 /* ---------- 遊戲區：單字翻牌、60 秒快答、雙倍挑戰、銀行 ----------
    線上版的金幣進出全部由資料庫函式處理（claim_game、start/submit_challenge、bank_move），
    網頁只顯示結果；單機版在瀏覽器裡用同樣的規則模擬。 */
-const GAME_CAP=30,GAME_KEYS=['match','speed','granny','tower'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
+const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
 function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
 /* 資料庫回傳錢包餘額時，用它校正本機的流水帳總和 */
 function syncWallet(w){if(typeof w==='number'){S.tx=w-(coinsEarned()-coinsSpent());save()}}
@@ -742,44 +742,77 @@ function renderGames(){
   const card=(id,sp,name,desc,note)=>`<button class="frow" data-g="${id}" style="padding:12px"><span data-s="${sp}" data-z="4"></span><span class="grow"><span style="font-size:16px">${name}</span><br><span class="small">${desc}</span></span><span class="small" style="text-align:right">${note}</span></button>`;
   $('#view').innerHTML=`${header()}<div class="bar"><h2>遊樂場</h2><button class="btn ghost" id="gcity" style="padding:5px 10px;font-size:13px">← 城市</button></div>
    <div class="flist">
-     ${card('match','card','單字翻牌','翻牌配對英文和中文',`今天 ${g.match}/${GAME_CAP}`)}
-     ${card('speed','lamp','60 秒快答','一分鐘內能答對幾題',`今天 ${g.speed}/${GAME_CAP}`)}
-     ${card('granny','granny','恐怖阿嬤（迷你版）','答題開門，逃離阿嬤的家',`今天 ${g.granny}/${GAME_CAP}`)}
-     ${card('tower','castle','單字守城','答對題目打倒來襲的怪物',`今天 ${g.tower}/${GAME_CAP}`)}
+     ${card('match','card','單字翻牌',`翻牌配對英文和中文・第 ${lvOpen('match')}／4 關`,`今天 ${g.match}/${GAME_CAP}`)}
+     ${card('speed','lamp','60 秒快答',`跟時間賽跑・第 ${lvOpen('speed')}／4 關`,`今天 ${g.speed}/${GAME_CAP}`)}
+     ${card('granny','granny','恐怖阿嬤（迷你版）',`答題開門逃出去・第 ${lvOpen('granny')}／4 關`,`今天 ${g.granny}/${GAME_CAP}`)}
+     ${card('tower','castle','單字守城',`答對打倒怪物・第 ${lvOpen('tower')}／4 關`,`今天 ${g.tower}/${GAME_CAP}`)}
      ${S.tier==='kid'?'':card('chal','fire','雙倍挑戰','押金幣答 5 題，答得好翻倍',`剩 ${Math.max(0,CHAL_PER_DAY-g.chal)} 次`)}
      ${card('gacha','capsule','魔法盲盒','抽盲盒限定的服裝、寵物和家具',gachaFree()?'今天可以免費抽':`今天抽了 ${gstate().pulls}/${GACHA_DAY}`)}
      ${card('bank','coin','金幣銀行','存起來每天生利息',`存款 ${bank.toLocaleString()}`)}
    </div>
-   <p class="demo" style="text-align:left;line-height:1.6">小遊戲每場最多 ${GAME_MAX} 金幣，每種每天最多 ${GAME_CAP}。雙倍挑戰要靠實力，不是靠運氣。</p>`;
+   <p class="demo" style="text-align:left;line-height:1.6">小遊戲每場最多 ${GAME_MAX}～${lvMax(4)} 金幣（關卡越後面越多），每種每天最多 ${GAME_CAP}。雙倍挑戰要靠實力，不是靠運氣。</p>`;
   paintSprites($('#view'));
   $('#gcity').onclick=()=>go('city');
-  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>({match:gMatch,speed:gSpeed,granny:gGranny,tower:gTower,chal:gChal,gacha:gGacha,bank:gBank})[b.dataset.g]());
+  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{chal:gChal,gacha:gGacha,bank:gBank}[b.dataset.g])());
 }
-async function claimGame(game,score){
+/* ---------- 小遊戲關卡：每種 4 關，過了才開下一關；越後面每場金幣上限越高（15／18／21／24） ---------- */
+const GLV={
+  match:['6 組翻牌','8 組翻牌','10 組翻牌','10 組・90 秒內翻完'],
+  speed:['60 秒答對 5 題','45 秒答對 8 題','30 秒答對 8 題','30 秒答對 10 題・答錯扣 3 秒'],
+  granny:['一個阿嬤','新地圖・阿嬤更快','兩個阿嬤','兩個阿嬤・停電了只看得到身邊'],
+  tower:['擋住 12 隻怪物','16 隻・怪物變快','20 隻・最後有大魔王','24 隻・城堡只剩 2 顆心']
+};
+const GNAME={match:'單字翻牌',speed:'60 秒快答',granny:'恐怖阿嬤（迷你版）',tower:'單字守城'};
+const lvMax=lv=>GAME_MAX+3*(lv-1);
+const lvOpen=g=>Math.min(4,((S.glv||{})[g])||1);
+function pickLevel(game){
+  const run={match:gMatch,speed:gSpeed,granny:gGranny,tower:gTower}[game],open=lvOpen(game);
+  const m=modal(`<h2 style="text-align:center">${GNAME[game]}</h2><p class="small" style="margin:0;text-align:center">過了才會開下一關，越難的關卡金幣越多</p>
+    <div class="flist">${GLV[game].map((d,i)=>{const lv=i+1,lock=lv>open;
+      return `<button class="frow" data-lv="${lv}" ${lock?'aria-disabled="true"':''} style="padding:10px;${lock?'opacity:.5':''}"><span style="font-size:18px;color:var(--gold);min-width:56px">第 ${lv} 關</span><span class="grow">${d}</span><span class="small">${lock?'還沒解鎖':`最多 ${lvMax(lv)} 金幣`}</span></button>`}).join('')}</div>
+    <button class="btn ghost" data-close>取消</button>`);
+  m.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{const lv=+b.dataset.lv;if(lv>open){toast(`先過第 ${lv-1} 關`);return}m.remove();run(lv)});
+}
+/* 打完一場：過關就解鎖下一關，跳結算視窗 */
+function gameOver(game,lv,win,title,detail,r,score){
+  let unlocked=false;
+  if(win&&lv<4&&lvOpen(game)===lv){S.glv=S.glv||{};S.glv[game]=lv+1;save();unlocked=true}
+  const run={match:gMatch,speed:gSpeed,granny:gGranny,tower:gTower}[game];
+  const m=modal(`<h2 style="text-align:center">${title}</h2><p style="text-align:center;margin:0">第 ${lv} 關・${detail}</p>
+    ${score?`<p style="text-align:center;margin:0;color:var(--gold)">${r?`+${r} 金幣`:'今天這個遊戲的金幣領滿了'}</p>`:''}
+    ${unlocked?`<p style="text-align:center;margin:0;color:var(--mint)">解鎖第 ${lv+1} 關！</p>`:''}
+    <div class="row"><button class="btn" id="ghub2">回遊樂場</button><button class="btn ${win&&lv<4&&lvOpen(game)>lv?'':'gold'}" id="gre">再玩一次</button></div>
+    ${win&&lv<4&&lvOpen(game)>lv?'<button class="btn gold" id="gnext">挑戰下一關</button>':''}`);
+  m.querySelector('#ghub2').onclick=()=>{m.remove();go('games')};
+  m.querySelector('#gre').onclick=()=>{m.remove();run(lv)};
+  if(m.querySelector('#gnext'))m.querySelector('#gnext').onclick=()=>{m.remove();run(lv+1)};
+}
+async function claimGame(game,score,lv=1){
   const g=gday();let r;
-  if(ONLINE){const res=await cloud.rpc('claim_game',{p_game:game,p_score:score});if(!res)return 0;r=res.reward;syncWallet(res.wallet)}
-  else{r=Math.max(0,Math.min(score,GAME_MAX,GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
+  if(ONLINE){const res=await cloud.rpc('claim_game',{p_game:game,p_score:score,p_level:lv});if(!res)return 0;r=res.reward;syncWallet(res.wallet)}
+  else{r=Math.max(0,Math.min(score,lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
   g[game]+=r;g.plays=(g.plays||0)+1;save();return r;
 }
 /* 單字翻牌：6 組英文／中文 */
-function matchPairs(){
+function matchPairs(n=6){
   const ok=q=>q.w&&q.zh&&q.w.length<=14&&q.zh.length<=8;
   const seen=new Set(),out=[];
   const mine=Object.entries(S.cards).map(([w,c])=>({w,zh:c.zh})).filter(ok);
-  if(mine.length>=6)return mine.sort(()=>Math.random()-.5).slice(0,6);
+  if(mine.length>=n)return mine.sort(()=>Math.random()-.5).slice(0,n);
   const src=[...mine,...pool(),...BANK.kid].filter(ok);
-  for(let i=0;i<400&&out.length<6;i++){const q=pick(src.slice(0,Math.max(src.length,1)));if(q&&!seen.has(q.w)){seen.add(q.w);out.push(q)}}
+  for(let i=0;i<600&&out.length<n;i++){const q=pick(src.slice(0,Math.max(src.length,1)));if(q&&!seen.has(q.w)){seen.add(q.w);out.push(q)}}
   return out;
 }
-function gMatch(){
-  const pairs=matchPairs();
+function gMatch(lv=1){
+  const N=[6,8,10,10][lv-1],LIMIT=lv===4?90:0,pairs=matchPairs(N);
+  let tick=null;const t0=Date.now();
   const cards=pairs.flatMap((q,i)=>[{i,t:q.w,en:1},{i,t:q.zh}]).sort(()=>Math.random()-.5);
   let open=[],done=new Set(),moves=0,lock=false;
-  gameShell('單字翻牌',`<p class="small" style="margin:0">把英文和中文配成一對，翻越少次分數越高。${Object.keys(S.cards).length>=6?'這局用的是你收集的單字卡！':'收集 6 張單字卡後，就會用你自己的卡來玩。'}</p>
-    <div id="mboard" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+  gameShell(`單字翻牌・第 ${lv} 關`,`${LIMIT?`<div class="timer" id="mclock" style="font-size:28px">${LIMIT}</div>`:''}<p class="small" style="margin:0">把英文和中文配成一對，翻越少次分數越高。${Object.keys(S.cards).length>=6?'這局用的是你收集的單字卡！':'收集 6 張單字卡後，就會用你自己的卡來玩。'}</p>
+    <div id="mboard" style="display:grid;grid-template-columns:repeat(${N>6?4:3},1fr);gap:${N>6?6:8}px"></div>
     <p class="small" id="mmoves" style="margin:0;text-align:center">翻了 0 次</p>`);
   const draw=()=>{$('#mboard').innerHTML=cards.map((c,k)=>{const up=open.includes(k)||done.has(c.i);
-    return `<button class="btn" data-k="${k}" style="min-height:64px;font-size:${c.en?14:15}px;background:${done.has(c.i)?'var(--mint)':up?'var(--paper)':'var(--plum)'};color:${up?'var(--night)':'var(--gold)'}">${up?esc(c.t):'?'}</button>`}).join('');
+    return `<button class="btn" data-k="${k}" style="min-height:${N>6?56:64}px;padding:4px;font-size:${N>6?(c.en?12:13):(c.en?14:15)}px;background:${done.has(c.i)?'var(--mint)':up?'var(--paper)':'var(--plum)'};color:${up?'var(--night)':'var(--gold)'}">${up?esc(c.t):'?'}</button>`}).join('');
     $('#mboard').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>flip(+b.dataset.k))};
   const flip=async k=>{
     if(lock||open.includes(k)||done.has(cards[k].i))return;
@@ -787,18 +820,21 @@ function gMatch(){
     moves++;$('#mmoves').textContent=`翻了 ${moves} 次`;
     const [a,b]=open;
     if(cards[a].i===cards[b].i&&cards[a].en!==cards[b].en){done.add(cards[a].i);open=[];draw();
-      if(done.size===pairs.length){const score=Math.max(3,GAME_MAX-(moves-pairs.length));const r=await claimGame('match',score);
-        modal(`<h2 style="text-align:center">全部配對完成！</h2><p style="text-align:center;margin:0">翻了 ${moves} 次・得分 ${score}</p><p style="text-align:center;margin:0;color:var(--gold)">${r?`+${r} 金幣`:'今天的翻牌金幣領滿了'}</p><div class="row"><button class="btn" data-close id="mhub">回遊戲區</button><button class="btn gold" data-close id="magain">再玩一次</button></div>`);
-        $('#mhub').onclick=()=>go('games');$('#magain').onclick=gMatch}}
+      if(done.size===pairs.length){clearInterval(tick);const score=Math.round(Math.max(3,GAME_MAX-(moves-pairs.length))*(1+.2*(lv-1)));const r=await claimGame('match',score,lv);
+        gameOver('match',lv,true,'全部配對完成！',`翻了 ${moves} 次${LIMIT?`・花了 ${Math.round((Date.now()-t0)/1000)} 秒`:''}`,r,score)}}
     else{lock=true;setTimeout(()=>{open=[];lock=false;draw()},800)}
   };
   draw();
+  if(LIMIT){const myB=$('#mboard');tick=setInterval(()=>{if($('#mboard')!==myB){clearInterval(tick);return}
+    const left=Math.max(0,LIMIT-Math.floor((Date.now()-t0)/1000));$('#mclock').textContent=left;
+    if(left<=0){clearInterval(tick);lock=true;gameOver('match',lv,false,'時間到了…',`配對了 ${done.size}／${N} 組`,0,0)}},250)}
 }
 /* 60 秒快答 */
-function gSpeed(){
-  const src=pool().filter(q=>q.q.length<=90);let n=0,ok=0,cur=null,end=Date.now()+60000,tick=null,last=null;
-  gameShell('60 秒快答',`<div class="timer" id="sclock" style="font-size:40px">60</div>
-    <p class="small" id="sscore" style="margin:0;text-align:center">答對 0 題</p><div id="sq"></div>`);
+function gSpeed(lv=1){
+  const SECS=[60,45,30,30][lv-1],GOAL=[5,8,8,10][lv-1],PEN=lv===4?3000:0;
+  const src=pool().filter(q=>q.q.length<=90);let n=0,ok=0,cur=null,end=Date.now()+SECS*1000,tick=null,last=null;
+  gameShell(`快答・第 ${lv} 關`,`<div class="timer" id="sclock" style="font-size:40px">${SECS}</div>
+    <p class="small" id="sscore" style="margin:0;text-align:center">答對 0／${GOAL} 題${PEN?'・答錯扣 3 秒':''}</p><div id="sq"></div>`);
   const myClock=$('#sclock'),alive=()=>$('#sclock')===myClock;
   const next=()=>{if(!alive())return;cur=pick(src.length>1&&last?src.filter(x=>x!==last):src);last=cur;
     $('#sq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px">
@@ -806,13 +842,12 @@ function gSpeed(){
       <div style="line-height:1.6">${esc(cur.q)}</div>
       ${cur.o.map((o,i)=>`<button class="btn opt" data-si="${i}" style="padding:7px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
     paintSprites($('#sq'));
-    $('#sq').querySelectorAll('[data-si]').forEach(b=>b.onclick=()=>{n++;if(+b.dataset.si===cur.a){ok++;b.classList.add('right')}else{b.classList.add('wrong');addWrong(cur)}
-      $('#sscore').textContent=`答對 ${ok} 題`;setTimeout(()=>{if(Date.now()<end)next()},250)})};
+    $('#sq').querySelectorAll('[data-si]').forEach(b=>b.onclick=()=>{n++;if(+b.dataset.si===cur.a){ok++;b.classList.add('right')}else{b.classList.add('wrong');addWrong(cur);if(PEN){end-=PEN;toast('答錯扣 3 秒！')}}
+      $('#sscore').textContent=`答對 ${ok}／${GOAL} 題`;setTimeout(()=>{if(Date.now()<end)next()},250)})};
   let done=false;
-  const finish=async()=>{clearInterval(tick);if(done||!alive())return;done=true;$('#sq').innerHTML='';const r=await claimGame('speed',ok);
-    const best=Math.max(S.speedBest||0,ok);const nb=ok>(S.speedBest||0);S.speedBest=best;save();
-    modal(`<h2 style="text-align:center">時間到！</h2><p style="text-align:center;margin:0">答了 ${n} 題，答對 ${ok} 題${nb?'・新紀錄！':`・最佳 ${best} 題`}</p><p style="text-align:center;margin:0;color:var(--gold)">${r?`+${r} 金幣`:'今天的快答金幣領滿了'}</p><div class="row"><button class="btn" data-close id="shub">回遊戲區</button><button class="btn gold" data-close id="sagain">再玩一次</button></div>`);
-    $('#shub').onclick=()=>go('games');$('#sagain').onclick=gSpeed};
+  const finish=async()=>{clearInterval(tick);if(done||!alive())return;done=true;$('#sq').innerHTML='';const win=ok>=GOAL,score=Math.round(ok*(1+.2*(lv-1))),r=await claimGame('speed',score,lv);
+    const bk='speedBest'+(lv>1?lv:''),best=Math.max(S[bk]||0,ok),nb=ok>(S[bk]||0);S[bk]=best;save();
+    gameOver('speed',lv,win,win?'過關了！':'時間到！',`答了 ${n} 題，答對 ${ok} 題（目標 ${GOAL}）${nb?'・新紀錄！':`・最佳 ${best} 題`}`,r,score)};
   tick=setInterval(()=>{const left=Math.max(0,Math.ceil((end-Date.now())/1000));if(!alive()){clearInterval(tick);return}$('#sclock').textContent=left;if(left<=0)finish()},200);
   next();
 }
@@ -1289,12 +1324,13 @@ function renderHome(){
 /* ---------- 遊樂場：恐怖阿嬤（迷你版） ----------
    四個房間用上鎖的門隔開，答對題目才能開門；答錯阿嬤會變快。走到出口 E 就逃出去了。 */
 const GRANNY_MAP=['#################','#P..#...#...#..E#','#.#.#.#.#.#.#.#.#','#.#.D.#.#.#.#.#.#','#...#.#.D.#.#...#','#.#.#.#.#.#.D.#.#','#.#.#...#...#.#.#','#G..#...#...#...#','#################'];
+const GRANNY_MAPS={1:GRANNY_MAP,2:['#################','#P..D...#...#..E#','#.###.#.#.#.#.#.#','#...#.#...#.D.#.#','###.#.#####.###.#','#...D...#...#...#','#.#####.#.#.#.###','#G......#.#.D..H#','#################'],3:['###################','#P.#.....#.....#..#','#..D.###.#.###.D..#','##.#.#...D...#.##.#','#..#.#.#####.#..#.#','#.##.#...H...##.#.#','#....###.#.###..D.#','#G.#.....D......#E#','###################'],4:['###################','#P..#...D...#....E#','#.#.#.###.#.#.###.#','#.#.D.#...#.D.#...#','#.#####D###.###.###','#.....#.#H#.....#.#','###.#.D.#.#.###.D.#','#G..#...#.....#...#','###################']};
 const GRANNY_TAUNT=['You can’t escape!','阿嬤來了～','單字背了沒？','Come back here!','不要跑！'];
-function gGranny(){
-  const M=GRANNY_MAP.map(r=>[...r]),GW=M[0].length,GH=M.length,TL=20;
-  let P,G,E;M.forEach((r,y)=>r.forEach((c,x)=>{if(c==='P'){P=[x,y];r[x]='.'}if(c==='G'){G=[x,y];r[x]='.'}if(c==='E')E=[x,y]}));
-  let speed=S.tier==='kid'?1100:850,wrong=0,q=null,door=null,over=false,t0=Date.now(),last=Date.now()+2500,bubble=null,loopId=0;
-  gameShell('恐怖阿嬤（迷你版）',`<p class="small" style="margin:0">走到門口答對題目才能開門，快逃到綠色出口！答錯阿嬤會變快。</p>
+function gGranny(lv=1){
+  const TWO=lv>=3,DARK=lv===4,M=GRANNY_MAPS[lv].map(r=>[...r]),GW=M[0].length,GH=M.length,TL=20;
+  let P,G,H=null,E;M.forEach((r,y)=>r.forEach((c,x)=>{if(c==='P'){P=[x,y];r[x]='.'}if(c==='G'){G=[x,y];r[x]='.'}if(c==='H'){if(TWO)H=[x,y];r[x]='.'}if(c==='E')E=[x,y]}));
+  let speed=Math.round((S.tier==='kid'?1100:850)*[1,.8,1,.85][lv-1]),wrong=0,q=null,door=null,over=false,t0=Date.now(),last=Date.now()+2500,bubble=null,loopId=0;
+  gameShell(`恐怖阿嬤・第 ${lv} 關`,`<p class="small" style="margin:0">走到門口答對題目才能開門，快逃到綠色出口！答錯阿嬤會變快。${TWO?'這關有兩個阿嬤！':''}${DARK?'停電了，只看得到身邊。':''}</p>
     <canvas id="gcv" width="${GW*TL*2}" height="${GH*TL*2}" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);display:block"></canvas>
     <div id="gq"></div>
     <div style="display:grid;grid-template-columns:repeat(3,64px);gap:6px;justify-content:center" id="gpad">
@@ -1317,16 +1353,15 @@ function gGranny(){
       last=Date.now();
     });
   };
-  const chase=()=>{/* 阿嬤往玩家走一步（只能走地板和打開的門） */
+  const step=G=>{/* 阿嬤往玩家走一步（只能走地板和打開的門） */
     const k=(x,y)=>y*GW+x,prev=new Map([[k(...G),null]]),qq=[G];
     while(qq.length){const [x,y]=qq.shift();if(x===P[0]&&y===P[1])break;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(walk(nx,ny,true)&&!prev.has(k(nx,ny))){prev.set(k(nx,ny),[x,y]);qq.push([nx,ny])}}}
-    if(!prev.has(k(...P)))return;let c=P;while(prev.get(k(...c))&&(prev.get(k(...c))[0]!==G[0]||prev.get(k(...c))[1]!==G[1]))c=prev.get(k(...c));G=c;
-    if(Math.random()<.08)bubble={t:pick(GRANNY_TAUNT),until:Date.now()+1400};
+    if(!prev.has(k(...P)))return G;let c=P;while(prev.get(k(...c))&&(prev.get(k(...c))[0]!==G[0]||prev.get(k(...c))[1]!==G[1]))c=prev.get(k(...c));return c;
   };
+  const chase=()=>{G=step(G);if(H)H=step(H);if(Math.random()<.08)bubble={t:pick(GRANNY_TAUNT),until:Date.now()+1400}};
   const end=async win=>{over=true;cancelAnimationFrame(loopId);
-    const secs=Math.round((Date.now()-t0)/1000),score=win?Math.max(5,15-wrong*2-Math.floor(secs/30)):0,r=win?await claimGame('granny',score):0;
-    modal(`<h2 style="text-align:center">${win?'逃出來了！':'被阿嬤抓到了…'}</h2><p style="text-align:center;margin:0">${win?`花了 ${secs} 秒・答錯 ${wrong} 題`:'再試一次，先背熟題目！'}</p>${win?`<p style="text-align:center;margin:0;color:var(--gold)">${r?`+${r} 金幣`:'今天的阿嬤金幣領滿了'}</p>`:''}<div class="row"><button class="btn" data-close id="ghub">回遊樂場</button><button class="btn gold" data-close id="gagain">再玩一次</button></div>`);
-    $('#ghub').onclick=()=>go('games');$('#gagain').onclick=gGranny};
+    const secs=Math.round((Date.now()-t0)/1000),score=win?Math.round(Math.max(5,15-wrong*2-Math.floor(secs/30))*(1+.2*(lv-1))):0,r=win?await claimGame('granny',score,lv):0;
+    gameOver('granny',lv,win,win?'逃出來了！':'被阿嬤抓到了…',win?`花了 ${secs} 秒・答錯 ${wrong} 題`:'再試一次，先背熟題目！',r,score)};
   $('#gpad').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const [dx,dy]=b.dataset.d.split(',').map(Number);move(dx,dy)});
   const key=e=>{if(!alive()){document.removeEventListener('keydown',key);return}const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(d){e.preventDefault();move(...d)}};
   document.addEventListener('keydown',key);
@@ -1339,42 +1374,43 @@ function gGranny(){
       if(ch==='D'){c.fillStyle='#5a3d2b';c.fillRect(X+2,Y+1,TL-4,TL-2);c.fillStyle='#ffd166';c.fillRect(X+8,Y+8,4,5);c.fillRect(X+9,Y+6,2,2)}
       if(ch==='E'){c.fillStyle='#3f8f5a';c.fillRect(X+2,Y+1,TL-4,TL-2);c.fillStyle='#f4ecd8';c.fillRect(X+12,Y+10,2,2)}}));
     const spr=(g,pal,x,y)=>g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){c.fillStyle=pal[ch];c.fillRect(x*TL+2+xx*2,y*TL+2+yy*2,2,2)}}));
-    spr(me.g,me.pal,P[0],P[1]);spr(SPR.granny,PAL,G[0],G[1]);
+    spr(me.g,me.pal,P[0],P[1]);spr(SPR.granny,PAL,G[0],G[1]);if(H)spr(SPR.granny,PAL,H[0],H[1]);
+    if(DARK){const cx=P[0]*TL+TL/2,cy=P[1]*TL+TL/2,R=TL*2.6;c.save();c.fillStyle='rgba(8,5,16,.93)';c.beginPath();c.rect(0,0,GW*TL,GH*TL);c.arc(cx,cy,R,0,Math.PI*2,true);c.fill('evenodd');c.restore();
+      c.fillStyle='#3f8f5a';c.fillRect(E[0]*TL+6,E[1]*TL+6,TL-12,TL-12)}
     if(bubble&&bubble.until>Date.now()){c.font='8px "DotGothic16",sans-serif';const w=c.measureText(bubble.t).width+6,bx=Math.min(GW*TL-w-2,Math.max(2,G[0]*TL+10-w/2));c.fillStyle='#f4ecd8';c.fillRect(bx,G[1]*TL-12,w,11);c.fillStyle='#1a1026';c.fillText(bubble.t,bx+3,G[1]*TL-3)}
   };
-  const tick=()=>{if(!alive())return;if(!q&&Date.now()-last>speed){last=Date.now();chase();if(G[0]===P[0]&&G[1]===P[1]){draw();end(false);return}}draw();loopId=requestAnimationFrame(tick)};
+  const tick=()=>{if(!alive())return;if(!q&&Date.now()-last>speed){last=Date.now();chase();if(G[0]===P[0]&&G[1]===P[1]||H&&H[0]===P[0]&&H[1]===P[1]){draw();end(false);return}}draw();loopId=requestAnimationFrame(tick)};
   bubble={t:'阿嬤三秒後出發！',until:Date.now()+2400};tick();
 }
 
 /* ---------- 遊樂場：單字守城 ----------
    怪物從右邊走向城堡，答對最前面那隻的題目就發射魔法消滅牠；有 3 隻碰到城堡就輸了。 */
-function gTower(){
-  const src=pool().filter(z=>z.q.length<=90),TOTAL=12,LEN=320;
-  let mons=[],spawned=0,killed=0,hp=3,cur=null,over=false,lastSpawn=0,t0=performance.now(),bolts=[],loopId=0;
-  const spd=S.tier==='kid'?9:13;
-  gameShell('單字守城',`<div class="bar"><span id="thp"></span><span class="small" id="tcount"></span></div>
+function gTower(lv=1){
+  const src=pool().filter(z=>z.q.length<=90),TOTAL=[12,16,20,24][lv-1],LEN=320,BOSS=lv>=3;
+  let mons=[],spawned=0,killed=0,hp=lv===4?2:3,cur=null,over=false,lastSpawn=0,t0=performance.now(),bolts=[],loopId=0;
+  const spd=(S.tier==='kid'?9:13)*[1,1.25,1.4,1.6][lv-1];
+  gameShell(`單字守城・第 ${lv} 關`,`<div class="bar"><span id="thp"></span><span class="small" id="tcount"></span></div>
     <canvas id="tcv" width="${LEN*2}" height="180" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);display:block"></canvas>
     <div id="tq"></div>`);
   const myCv=$('#tcv'),alive=()=>!over&&$('#tcv')===myCv;
   const kinds=['slime','bat','ghost'];
-  const spawn=()=>{mons.push({x:LEN-22,k:kinds[spawned%3],q:pick(src),y:[28,50,72][spawned%3]});spawned++};
+  const spawn=()=>{const boss=BOSS&&spawned===TOTAL-1;mons.push({x:LEN-22,k:boss?'granny':kinds[spawned%3],q:pick(src),y:boss?44:[28,50,72][spawned%3],boss,life:boss?3:1});spawned++};
   const front=()=>mons.slice().sort((a,b)=>a.x-b.x)[0];
   const showQ=()=>{const m=front();if(!m){$('#tq').innerHTML='<p class="small" style="text-align:center">下一波怪物來了…</p>';cur=null;return}
     if(cur===m)return;cur=m;const q=m.q;
-    $('#tq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">答對就能打倒最前面的怪物</p>
+    $('#tq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">${m.boss?`大魔王！還要答對 ${m.life} 題`:'答對就能打倒最前面的怪物'}</p>
       ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div style="line-height:1.5">${esc(q.q)}</div>
       <div class="chips">${q.o.map((o,i)=>`<button class="chip" data-ti="${i}" style="font-size:14px;padding:8px 12px">${esc(o)}</button>`).join('')}</div></div>`;
     paintSprites($('#tq'));
     $('#tq').querySelectorAll('[data-ti]').forEach(b=>b.onclick=()=>{
       if(!alive()||cur!==m)return;
-      if(+b.dataset.ti===q.a){bolts.push({x:40,y:m.y+8,m});mons=mons.filter(z=>z!==m);killed++;cur=null;hud();showQ()}
+      if(+b.dataset.ti===q.a){bolts.push({x:40,y:m.y+8,m});m.life--;if(m.life>0){m.q=pick(src.filter(z=>z!==m.q));m.x=Math.min(LEN-22,m.x+30);cur=null;toast('打中大魔王了！');showQ();return}mons=mons.filter(z=>z!==m);killed++;cur=null;hud();showQ()}
       else{addWrong(q);b.style.background='var(--coral)';b.style.color='var(--night)';m.x-=18;toast('答錯了，怪物衝過來了！')}
     });
   };
   const hud=()=>{$('#thp').innerHTML=`城堡 ${'<span data-s="heart" data-z="2" style="display:inline-block;vertical-align:middle"></span>'.repeat(hp)}`;paintSprites($('#thp'));$('#tcount').textContent=`打倒 ${killed}／${TOTAL}`};
-  const end=async win=>{over=true;cancelAnimationFrame(loopId);const score=killed+hp,r=await claimGame('tower',score);
-    modal(`<h2 style="text-align:center">${win?'守住城堡了！':'城堡被攻破了…'}</h2><p style="text-align:center;margin:0">打倒 ${killed} 隻怪物・城堡剩 ${hp} 顆心</p><p style="text-align:center;margin:0;color:var(--gold)">${r?`+${r} 金幣`:score?'今天的守城金幣領滿了':''}</p><div class="row"><button class="btn" data-close id="thub">回遊樂場</button><button class="btn gold" data-close id="tagain">再玩一次</button></div>`);
-    $('#thub').onclick=()=>go('games');$('#tagain').onclick=gTower};
+  const end=async win=>{over=true;cancelAnimationFrame(loopId);const score=Math.round((killed+hp)*(1+.2*(lv-1))),r=await claimGame('tower',score,lv);
+    gameOver('tower',lv,win,win?'守住城堡了！':'城堡被攻破了…',`打倒 ${killed} 隻怪物・城堡剩 ${hp} 顆心`,r,score)};
   const draw=()=>{const cv=$('#tcv');if(!cv)return;const c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);c.imageSmoothingEnabled=false;
     c.fillStyle='#1d2a5c';c.fillRect(0,0,LEN,90);c.fillStyle='#3f8f5a';c.fillRect(0,40,LEN,50);c.fillStyle='#c9b98f';c.fillRect(30,44,LEN,40);
     for(let i=0;i<14;i++){c.fillStyle='#ffd166';c.fillRect((i*47)%LEN,(i*13)%34,1,1)}
@@ -1382,12 +1418,12 @@ function gTower(){
     c.fillStyle='#9aa3b5';c.fillRect(2,18,34,70);for(let i=0;i<4;i++)c.fillRect(2+i*9,12,6,6);c.fillStyle='#5a3d2b';c.fillRect(13,62,12,26);c.fillStyle='#7a3f9e';c.fillRect(18,2,2,10);c.fillRect(20,2,8,5);
     const spr=(g,pal,x,y,z)=>g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){c.fillStyle=pal[ch];c.fillRect(x+xx*z,y+yy*z,z,z)}}));
     const me=avatarGrid(myLook().outfit);spr(me.g,me.pal,38,58,2);
-    mons.forEach(m=>{spr(SPR[m.k],PAL,Math.round(m.x),m.y+Math.round(Math.sin(performance.now()/200+m.y)*2),2);if(m===cur){c.fillStyle='#ffd166';c.fillRect(Math.round(m.x)+6,m.y-6,4,4)}});
+    mons.forEach(m=>{spr(SPR[m.k],PAL,Math.round(m.x),m.y+Math.round(Math.sin(performance.now()/200+m.y)*2),m.boss?4:2);if(m===cur){c.fillStyle='#ffd166';c.fillRect(Math.round(m.x)+6,m.y-6,4,4)}});
     bolts.forEach(b=>{c.fillStyle='#9fe1cb';c.fillRect(b.x,b.y,6,3);c.fillStyle='#f4ecd8';c.fillRect(b.x+4,b.y,2,3)});
   };
   let prev=performance.now();
   const tick=t=>{if(!alive())return;const dt=Math.min(.05,(t-prev)/1000);prev=t;
-    if(spawned<TOTAL&&(t-lastSpawn>(S.tier==='kid'?6000:4500)||!mons.length)&&t-t0>800){spawn();lastSpawn=t;showQ()}
+    if(spawned<TOTAL&&(t-lastSpawn>(S.tier==='kid'?6000:4500)*[1,.9,.85,.8][lv-1]||!mons.length)&&t-t0>800){spawn();lastSpawn=t;showQ()}
     mons.forEach(m=>m.x-=spd*dt);
     mons.filter(m=>m.x<36).forEach(m=>{hp--;mons=mons.filter(z=>z!==m);if(cur===m){cur=null}toast('怪物打到城堡了！');hud();showQ()});
     bolts.forEach(b=>b.x+=260*dt);bolts=bolts.filter(b=>b.x<LEN);
