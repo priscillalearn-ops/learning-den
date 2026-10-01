@@ -1534,7 +1534,9 @@ const cloud={
   async run(f,msg){if(!ONLINE)return null;try{const {data,error}=await f();if(error)throw error;return data}catch(e){console.warn(e);if(msg)toast(msg===true?(e.message&&/[\u4e00-\u9fff]/.test(e.message)?e.message:'連線有問題，再試一次'):msg);return undefined}},
   /* 遊戲、挑戰、銀行：資料庫擋下時直接顯示它的中文原因（例如「金幣不夠」） */
   rpc(fn,args){return this.run(()=>sb.rpc(fn,args||{}),true)},
-  saveProfile(){return this.run(()=>sb.from('profiles').upsert({id:ME,name:S.name,tier:S.tier,class_code:S.cls||null,grade:gradeOK(S.tier,S.grade)?S.grade:null}),'存檔失敗，檢查一下網路')},
+  saveProfile(){const row={id:ME,name:S.name,tier:S.tier,class_code:S.cls||null,grade:gradeOK(S.tier,S.grade)?S.grade:null};
+    /* 資料庫還沒加 grade 欄位時，先不存年級（只存在這台裝置），不要卡住學生 */
+    return this.run(async()=>{const r=await sb.from('profiles').upsert(row);if(r.error&&/grade/.test(r.error.message||'')){const {grade,...rest}=row;return sb.from('profiles').upsert(rest)}return r},'存檔失敗，檢查一下網路')},
   answer(q,c,ok){return this.run(()=>sb.from('answers').insert({user_id:ME,day:today(),tier:S.tier,qid:q.id,choice:c,correct:ok}),'作答沒存到雲端，檢查一下網路')},
   mistake(qid,n){return this.run(()=>sb.from('mistakes').upsert({user_id:ME,qid,n}))},
   unmistake(qid){return this.run(()=>sb.from('mistakes').delete().eq('user_id',ME).eq('qid',qid))},
@@ -1577,7 +1579,7 @@ const cloud={
   /* 登入後把雲端紀錄載回來；回傳 false 代表連不上 */
   async hydrate(){
     const [p,a,f,c,b,w,pu,lk,wl,ml]=await Promise.all([
-      this.run(()=>sb.from('profiles').select('name,tier,class_code,grade,created_at').eq('id',ME).maybeSingle()),
+      this.run(()=>sb.from('profiles').select('*').eq('id',ME).maybeSingle()),
       this.run(()=>sb.from('answers').select('day,tier,qid,choice,correct').eq('user_id',ME)),
       this.run(()=>sb.from('focus_sessions').select('day,minutes').eq('user_id',ME)),
       this.run(()=>sb.from('cards').select('word,zh,n').eq('user_id',ME)),
@@ -1594,7 +1596,7 @@ const cloud={
     if(lk!==undefined)S.look=lk?{room:lk.room,outfit:lk.outfit}:{};
     if(wl)S.tx=wl.tx||0;
     if(ml){S.meals={};ml.forEach(r=>S.meals[r.day]=r.food)}
-    if(p){S.name=p.name;S.tier=p.tier;S.cls=p.class_code||'';S.grade=p.grade||'';S.joined=keyOf(new Date(p.created_at))}else{S.name='';S.tier='';S.joined=today()}
+    if(p){S.name=p.name;S.tier=p.tier;S.cls=p.class_code||'';S.grade=p.grade||S.grade||'';S.joined=keyOf(new Date(p.created_at))}else{S.name='';S.tier='';S.joined=today()}
     S.days={};S.minutes={};S.answers={};S.cards={};
     a.forEach(r=>{S.days[r.day]=true;S.answers[r.day+':'+r.tier]={c:r.choice,ok:r.correct,qid:r.qid}});
     f.forEach(r=>{S.days[r.day]=true;S.minutes[r.day]=(S.minutes[r.day]||0)+r.minutes});
