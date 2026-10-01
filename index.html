@@ -218,6 +218,8 @@ const TAG={v:'單字',g:'文法',c:'克漏字'};
 const GRADES={kid:['國小'],teen:['國一','國二','國三'],sage:['高一','高二','高三']};
 const gradeOK=(tier,g)=>!!(GRADES[tier]&&GRADES[tier].includes(g));
 const roomKey=()=>gradeOK(S.tier,S.grade)?'g-'+S.grade:'t-'+S.tier;
+/* 自由房：不分年級、不分等級，誰都可以進來一起讀 */
+const roomLabel=()=>S.freeRoom?'自由房':gradeOK(S.tier,S.grade)?S.grade+' 讀書房':'公開讀書房・'+T().stage;
 const BOT_TALK={
  kid:['讚','好簡單','我答對了','加油','布丁好好吃'],
  teen:['我差點選錯','這題老師有教過','私中考題好刁','第一次全對','易錯題耶','香蕉也要讀書'],
@@ -1662,7 +1664,7 @@ let chan=null,chanName='',peers=[];
 const myMins=()=>(S.minutes[today()]||0)+(tm.mode==='focus'?Math.floor((tm.len-tm.left)/60):0);
 function joinRoom(){
   if(!ONLINE||!ME||!S.tier)return;
-  const name='room-'+roomKey();if(chan&&chanName===name)return;
+  const name='room-'+(S.freeRoom?'free':roomKey());if(chan&&chanName===name)return;
   leaveRoom();chanName=name;
   chan=sb.channel(name,{config:{presence:{key:ME}}});
   chan.on('presence',{event:'sync'},()=>{
@@ -1874,11 +1876,16 @@ async function checkCardRewards(){
 let tm={mode:'idle',end:0,len:0,left:0,speed:1,tick:null,wake:null};
 const botMin={};
 function roomBots(){dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,5).forEach((b,i)=>{if(botMin[b[0]]==null)botMin[b[0]]=5+hash(b[0]+today())%70});return dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,5)}
+/* 自由房的 NPC：三個等級各抽幾位，混在一起 */
+function freeBots(){const seed=today()+'free'+(S.name||'');
+  const all=Object.entries(BOT_POOL).flatMap(([t,ns])=>ns.map(n=>[n,t])).filter(b=>!S.blocked.includes(b[0]));
+  const out=all.sort((a,b)=>hash(seed+a[0])-hash(seed+b[0])).slice(0,5);
+  out.forEach(b=>{if(botMin[b[0]]==null)botMin[b[0]]=5+hash(b[0]+today())%70});return out}
 function fmt(s){s=Math.max(0,Math.ceil(s));return `${pad(Math.floor(s/60))}:${pad(s%60)}`}
 /* 座位：自己＋線上真人＋NPC 補滿六個位子 */
 function drawSeats(){
   const box=$('#seats');if(!box)return;
-  const real=peers.slice(0,11),bots=roomBots().slice(0,Math.max(0,5-real.length));
+  const real=peers.slice(0,11),bots=(S.freeRoom?freeBots():roomBots()).slice(0,Math.max(0,5-real.length));
   const seat=(fig,label,cls,attrs)=>`<button class="seat" ${attrs}>${fig}<span class="desk"></span><span${cls?` style="color:${cls}"`:''}>${label}</span></button>`;
   box.innerHTML=seat(avatarSVG(myLook().outfit,4),`你 ${myMins()}m`,'var(--gold)','data-mine="1" aria-label="我的房間"')
     +real.map(p=>seat(avatarSVG(lookOf({outfit:p.outfit},p.tier).outfit,4),`${esc(p.name)} ${p.mins||0}m`,p.focus?'var(--mint)':'var(--dim)',`data-vu="${esc(p.uid)}" data-vn="${esc(p.name)}" data-vt="${esc(p.tier)}" aria-label="看 ${esc(p.name)} 的房間"`)).join('')
@@ -1891,7 +1898,10 @@ function drawSeats(){
 function renderRoom(){
   const t=T(),len=S.timerLen||t.focus;
   $('#view').innerHTML=`${header()}${tm.mode==='idle'?remindBar():''}
-   <div class="bar"><span>${gradeOK(S.tier,S.grade)?esc(S.grade)+' 讀書房':'公開讀書房・'+t.stage}</span><span style="color:var(--mint)" id="cnt"></span></div>
+   <div class="chips" style="justify-content:center">
+     <button class="chip" data-rm="grade" aria-pressed="${!S.freeRoom}" style="${S.freeRoom?'':'background:var(--gold);color:var(--night)'}">${gradeOK(S.tier,S.grade)?esc(S.grade)+' 讀書房':'年級讀書房'}</button>
+     <button class="chip" data-rm="free" aria-pressed="${!!S.freeRoom}" style="${S.freeRoom?'background:var(--gold);color:var(--night)':''}">自由房（不分年級）</button></div>
+   <div class="bar"><span>${esc(roomLabel())}</span><span style="color:var(--mint)" id="cnt"></span></div>
    <div class="box room" id="seats"></div>
    <div class="timer" id="clock" aria-live="off">${fmt(tm.mode==='idle'?len*60:tm.left)}</div>
    <p class="small" id="mlabel" style="text-align:center;margin:0">${tm.mode==='break'?'休息時間・來一題快問快答':tm.mode==='idle'?'選好時間，按開始':'專注中…'}</p>
@@ -1903,6 +1913,8 @@ function renderRoom(){
    ${ONLINE?'':`<button class="chip" id="spd" style="align-self:center" aria-pressed="${tm.speed>1}">快轉 ×60</button>
    <p class="demo">單機版才有快轉，方便試玩。</p>`}`;
   drawSeats();paintSprites($('#view'));
+  $('#view').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const f=b.dataset.rm==='free';if(!!S.freeRoom===f)return;
+    S.freeRoom=f;save();if(ONLINE){leaveRoom();joinRoom()}renderRoom();toast(`換到${roomLabel()}`)});
   $('#view').querySelectorAll('[data-len]').forEach(b=>b.onclick=()=>{if(tm.mode!=='idle'){toast('專注中不能換時間');return}S.timerLen=+b.dataset.len;save();renderRoom()});
   if($('#spd'))$('#spd').onclick=()=>{tm.speed=tm.speed>1?1:60;if(tm.mode!=='idle'&&!tm.paused)tm.end=Date.now()+tm.left*1000/tm.speed;renderRoom()};
   const ctl=$('#ctl');
