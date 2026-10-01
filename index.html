@@ -997,38 +997,82 @@ function drawBank(){
 }
 
 /* ---------- 魔法城市 ----------
-   20×14 格的城市地圖，點地面或用方向鍵走路，走到建築門口就進去。
-   線上版同班（或同等級）的同學會即時出現在城市裡；NPC 同學會自己閒逛。 */
-const CW=20,CH=14,TS=16,CSC=2;
-const BUILDINGS=[
- {id:'study',name:'讀書房',x:1,y:0,w:5,h:3,door:[3,3],roof:'#7a3f9e',wall:'#e8dcc4',open:()=>go('room')},
- {id:'academy',name:'魔法學院',x:7,y:0,w:6,h:3,door:[10,3],roof:'#2f6fb0',wall:'#f4ecd8',open:()=>go('daily')},
- {id:'bank',name:'金幣銀行',x:14,y:0,w:5,h:3,door:[16,3],roof:'#c98a3a',wall:'#fff6c9',open:()=>gBank()},
- {id:'food',name:'魔法餐廳',x:1,y:4,w:4,h:3,door:[2,7],roof:'#ff8a5c',wall:'#fff6c9',open:()=>renderFood()},
- {id:'post',name:'郵局',x:15,y:5,w:4,h:3,door:[16,8],roof:'#d94f4f',wall:'#f4ecd8',open:()=>go('friends')},
- {id:'arcade',name:'遊樂場',x:1,y:9,w:5,h:3,door:[3,12],roof:'#3f8f5a',wall:'#f4ecd8',open:()=>go('games')},
- {id:'home',name:'我的家',x:7,y:9,w:5,h:3,door:[9,12],roof:'#f4a6c6',wall:'#fbe3ec',open:()=>renderHome()},
- {id:'store',name:'百貨公司',x:14,y:9,w:5,h:3,door:[16,12],roof:'#5dcaa5',wall:'#e1f5ee',open:()=>renderShop('room','city')}
+   34×26 格的大地圖，畫面只顯示身邊 20×14 格，鏡頭跟著人走；按「全圖」可以看整張地圖、點哪裡走去哪裡。
+   地圖字元：. 草地  = 路  , 花  T 樹  w 湖  b 橋  s 沙灘  ~ 噴水池  B 建築  D 門  N 布告欄  Q 任務板
+            L 路燈  f 柵欄  g 柵門  c 長椅  p 灌木（萬聖節期間變南瓜）
+   線上版同年級的同學會即時出現在城市裡；NPC 同學會自己閒逛，寵物公園裡也有小動物。 */
+const CITY_MAP=[
+ 'TBBBBBTBBBBBBTT.BBBBBTBBBBTTBBBBTT',
+ 'TBBBBB.BBBBBB...BBBBB.BBBB..BBBB.T',
+ 'TBBBBB.BBBBBBT..BBBBB.BBBBT.BBBB.T',
+ '===D======D=======D=====D=====D===',
+ '=.....=........=...........=.....=',
+ '=BBBBB=TL.....L=L....LBBBB.=fffff=',
+ '=BBBBB=.==============BBBB,=f...f=',
+ '=BBBBB=,=N==========Q=BBBB.=f...f=',
+ '=..D..=.======~~~=====..D..=f...f=',
+ '=BBBBB=.======~~~=====..=..=f...f=',
+ '=BBBBB=.==============.,=..=ffgff=',
+ '=..D..=.L....,.=....,L..=..=....p=',
+ '==================================',
+ '=.,..T=T.......=........c..=.,c..=',
+ '=BBBBB=.BBBBB..=BBBBB..wwwwwwwww.=',
+ '=BBBBB=.BBBBB..=BBBBB..wwwwwwwww.=',
+ '=BBBBB=.BBBBB..=BBBBB..bbbbbbbbb.=',
+ '=..D..=...D....=..D....wwwwwwwww.=',
+ '=..=..=...=....=..=....wwwwwwwww.=',
+ '=..=,.=T.,=..T.=..=..T.sssssssss.=',
+ '=.p=..=L..=...L=,.=...Lsssssssss.=',
+ '==========D=======================',
+ 'T....Lp.BBBBBp...........,..L..,.T',
+ '..,.....BBBBB......,..............',
+ '....T...BBBBB.T.p.....T...T...T...',
+ 'T...................p............T'
 ];
-const FOUNTAIN=[[9,5],[10,5],[9,6],[10,6]],NOTICE=[7,5],QUEST=[12,5];
-const TREES=[[0,4],[5,5],[19,4],[0,13],[6,13],[12,13],[19,13],[18,7]];
-const FLOWERS=[[2,4],[4,6],[6,7],[12,7],[14,8],[18,4],[3,13],[9,13],[15,13],[11,4],[8,7]];
+const CW=CITY_MAP[0].length,CH=CITY_MAP.length,TS=16,CSC=2,VW=20,VH=14,CITY_V=2;
+const BUILDINGS=[
+ {id:'study',name:'讀書房',x:1,y:0,w:5,h:3,door:[3,3],roof:'#7a3f9e',wall:'#e8dcc4',open:()=>{S.freeRoom=false;save();go('room')}},
+ {id:'academy',name:'魔法學院',x:7,y:0,w:6,h:3,door:[10,3],roof:'#2f6fb0',wall:'#f4ecd8',open:()=>go('daily')},
+ {id:'library',name:'圖書館',x:16,y:0,w:5,h:3,door:[18,3],roof:'#5a3d2b',wall:'#f2e2c4',open:()=>openLibrary()},
+ {id:'bank',name:'金幣銀行',short:'銀行',x:22,y:0,w:4,h:3,door:[24,3],roof:'#c98a3a',wall:'#fff6c9',open:()=>gBank()},
+ {id:'tower',name:'大魔法師之塔',short:'魔法塔',x:28,y:0,w:4,h:3,door:[30,3],roof:'#26215c',wall:'#c7b8e8',open:()=>openTower()},
+ {id:'free',name:'自由讀書館',short:'自由館',x:1,y:5,w:5,h:3,door:[3,8],roof:'#3a7bd5',wall:'#e6f1fb',open:()=>{S.freeRoom=true;save();go('room')}},
+ {id:'food',name:'魔法餐廳',x:1,y:9,w:5,h:2,door:[3,11],roof:'#ff8a5c',wall:'#fff6c9',open:()=>renderFood()},
+ {id:'post',name:'郵局',x:22,y:5,w:4,h:3,door:[24,8],roof:'#d94f4f',wall:'#f4ecd8',open:()=>go('friends')},
+ {id:'arcade',name:'遊樂場',x:1,y:14,w:5,h:3,door:[3,17],roof:'#3f8f5a',wall:'#f4ecd8',open:()=>go('games')},
+ {id:'home',name:'我的家',x:8,y:14,w:5,h:3,door:[10,17],roof:'#f4a6c6',wall:'#fbe3ec',open:()=>renderHome()},
+ {id:'store',name:'百貨公司',x:16,y:14,w:5,h:3,door:[18,17],roof:'#5dcaa5',wall:'#e1f5ee',open:()=>renderShop('room','city')},
+ {id:'guild',name:'任務公會',x:8,y:22,w:5,h:3,door:[10,21],roof:'#8b5e3c',wall:'#f4ecd8',open:()=>renderQuests()}
+];
+const NOTICE=[9,7],QUEST=[20,7],PARK=[29,6,3,4];
 let CITY=null,cityLoop=0,city=null;
-function buildCity(){
-  const g=[...Array(CH)].map(()=>Array(CW).fill('.'));
-  for(let x=0;x<CW;x++){g[3][x]='=';g[12][x]='=';g[8][x]='='}
-  for(let y=3;y<=12;y++){g[y][6]='=';g[y][13]='='}
-  for(let y=4;y<=7;y++)for(let x=8;x<=11;x++)g[y][x]='=';
-  FLOWERS.forEach(([x,y])=>{if(g[y][x]==='.')g[y][x]=','});
-  TREES.forEach(([x,y])=>g[y][x]='T');
-  FOUNTAIN.forEach(([x,y])=>g[y][x]='w');
-  g[NOTICE[1]][NOTICE[0]]='N';g[QUEST[1]][QUEST[0]]='Q';
-  BUILDINGS.forEach(b=>{for(let y=b.y;y<b.y+b.h;y++)for(let x=b.x;x<b.x+b.w;x++)g[y][x]='B';g[b.door[1]][b.door[0]]='D'});
-  return g;
-}
-const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQ'.includes(CITY[y][x]);
+const halloween=()=>{const d=new Date(),m=d.getMonth()+1;return m===10||(m===11&&d.getDate()<=7)};
+function buildCity(){return CITY_MAP.map(r=>[...r])}
+const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x]);
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 const doorAt=(x,y)=>BUILDINGS.find(b=>b.door[0]===x&&b.door[1]===y);
+/* 圖書館：錯題本、單字卡 */
+function openLibrary(){
+  const n=wrongs().length,done=!!S.answers[dkey()];
+  const m=modal(`<div style="display:flex;justify-content:center"><span data-s="book" data-z="7"></span></div><h2 style="text-align:center">圖書館</h2>
+    <p class="small" style="margin:0;text-align:center;line-height:1.6">安靜的角落，適合複習。錯題本有 <b style="color:var(--gold)">${n}</b> 題，單字卡收集了 <b style="color:var(--gold)">${Object.keys(S.cards).length}</b> 張。</p>
+    <button class="btn gold" id="lrev">複習錯題（${n}）</button><button class="btn" id="lmore">多練幾題</button><button class="btn mint" id="lcard">看我的單字卡</button>
+    <button class="btn ghost" data-close>離開</button>`);
+  const toDaily=id=>{m.remove();if(!done){toast('先答今日一題，才能開始練習');go('daily');return}go('daily');setTimeout(()=>{const b=$(id);if(b)b.click()},120)};
+  m.querySelector('#lrev').onclick=()=>{if(!n){toast('錯題本是空的，很棒！');return}toDaily('#rev')};
+  m.querySelector('#lmore').onclick=()=>toDaily('#more');
+  m.querySelector('#lcard').onclick=()=>{m.remove();go('me')};
+}
+/* 大魔法師之塔：老師的公告和信箱 */
+function openTower(){
+  const m=modal(`<div style="display:flex;justify-content:center"><span data-s="master" data-z="7"></span></div><h2 style="text-align:center">大魔法師之塔</h2>
+    <p class="small" style="margin:0;text-align:center;line-height:1.6">宇宙超年輕大魔法師（Priscilla 老師）住在這裡。<br>公告會貼在這裡，想跟老師說話就寫信吧！</p>
+    <button class="btn gold" id="tann">看老師的公告</button><button class="btn" id="tmail">寫信給老師</button><button class="btn mint" id="tquest">老師出的任務</button>
+    <button class="btn ghost" data-close>離開</button>`);
+  m.querySelector('#tann').onclick=()=>{m.remove();openNotice('ann')};
+  m.querySelector('#tmail').onclick=()=>{m.remove();go('friends')};
+  m.querySelector('#tquest').onclick=()=>{m.remove();renderQuests()};
+}
 function bfs(sx,sy,tx,ty){
   if(!walk(tx,ty))return null;
   const prev=new Map(),k=(x,y)=>y*CW+x,q=[[sx,sy]];prev.set(k(sx,sy),null);
@@ -1048,32 +1092,57 @@ function stepWalker(w,dt,speed){
 function renderCity(){
   if(!CITY)CITY=buildCity();
   curTab='city';
-  const spawn=S.citySpawn||[10,8];
+  if(S.cityV!==CITY_V){S.cityV=CITY_V;S.citySpawn=null;save()}
+  let spawn=S.citySpawn||[15,12];if(!walk(spawn[0],spawn[1])&&!doorAt(spawn[0],spawn[1]))spawn=[15,12];
   if(!city||!city.me){
-    city={me:mkWalker(spawn[0],spawn[1],{armed:!doorAt(spawn[0],spawn[1])}),npcs:[],bubbles:[],keys:new Set(),peers:{},sent:0};
-    dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,4).forEach((b,i)=>{
-      const spots=[[4,4],[15,4],[5,10],[12,8]];city.npcs.push(mkWalker(spots[i][0],spots[i][1],{name:b[0],tier:b[1],wait:1+i}));
-    });
+    city={me:mkWalker(spawn[0],spawn[1],{armed:!doorAt(spawn[0],spawn[1])}),npcs:[],bubbles:[],keys:new Set(),peers:{},sent:0,animals:[]};
+    const spots=[[4,4],[12,12],[20,11],[3,13],[25,12],[18,21],[30,20]];
+    dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,5).forEach((b,i)=>city.npcs.push(mkWalker(spots[i][0],spots[i][1],{name:b[0],tier:b[1],wait:1+i})));
+    /* 自由房的 NPC 也來城裡逛 */
+    freeBots().filter(b=>b[1]!==S.tier).slice(0,2).forEach((b,i)=>city.npcs.push(mkWalker(spots[5+i][0],spots[5+i][1],{name:b[0],tier:b[1],wait:2+i})));
+    /* 寵物公園的小動物：每天換一批 */
+    const ps=PETS.filter(i=>!i.bundle).sort((a,b)=>hash(today()+a.id)-hash(today()+b.id)).slice(0,4);
+    ps.forEach((it,i)=>city.animals.push({id:it.id,px:(PARK[0]+i%3)*TS+8,py:(PARK[1]+(i>>1))*TS+8,tx:0,ty:0,wait:Math.random()*2,face:1}));
   }
   const tasks=[['吃飯',!!S.meals[today()]],['答今日一題',!!S.answers[dkey()]],['專注一次',(S.minutes[today()]||0)>0],['玩一個小遊戲',GAME_KEYS.some(k=>gday()[k]>0)]];
   $('#view').innerHTML=`${header()}
    ${fainted()?`<div class="box" style="background:var(--coral);color:var(--night);outline-color:var(--night);padding:10px 12px">你餓倒了，變成小幽靈！快去魔法餐廳復活。</div>`:hearts()===1&&!S.meals[today()]?`<div class="box" style="background:var(--gold);color:var(--night);outline-color:var(--night);padding:10px 12px">肚子好餓…今天再不去餐廳吃飯就會餓倒！</div>`:''}
    <div class="chips" id="ctasks" style="cursor:pointer" title="打開任務板">${tasks.map(([n,d])=>`<span class="chip" style="${d?'background:var(--mint);color:var(--night)':''}">${d?'✓ ':''}${n}</span>`).join('')}</div>
-   <div id="cwrap" style="position:relative;width:100%;aspect-ratio:${CW}/${CH};border:3px solid var(--ink);touch-action:manipulation">
-     <canvas id="ccv" width="${CW*TS*CSC}" height="${CH*TS*CSC}" style="width:100%;height:100%;display:block;image-rendering:pixelated;cursor:pointer" aria-label="魔法城市地圖，點地面走路，點建築走進去"></canvas>
-     ${BUILDINGS.map(b=>`<span class="clabel" style="left:${(b.x+b.w/2)/CW*100}%;top:${(b.y+.9)/CH*100}%">${b.name}</span>`).join('')}
+   <div id="cwrap" style="position:relative;width:100%;aspect-ratio:${VW}/${VH};border:3px solid var(--ink);touch-action:manipulation">
+     <canvas id="ccv" width="${VW*TS*CSC}" height="${VH*TS*CSC}" style="width:100%;height:100%;display:block;image-rendering:pixelated;cursor:pointer" aria-label="魔法城市地圖，點地面走路，點建築走進去"></canvas>
+     <button class="chip" id="cmap" style="position:absolute;right:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--gold)">全圖</button>
    </div>
-   <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。點布告欄看本週排行。</p>
+   <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。</p>
    <div class="chips">${BUILDINGS.map(b=>`<button class="chip" data-b="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-b="notice">布告欄</button><button class="chip" data-b="quest">任務板</button></div>`;
   paintSprites($('#view'));
   $('#ctasks').onclick=()=>renderQuests();loadAnn();loadQuests();
   const cv=$('#ccv');
-  cv.onclick=e=>{const r=cv.getBoundingClientRect(),tx=Math.floor((e.clientX-r.left)/r.width*CW),ty=Math.floor((e.clientY-r.top)/r.height*CH);cityTap(tx,ty)};
+  cv.onclick=e=>{const r=cv.getBoundingClientRect(),[cx,cy]=cityCam(),tx=Math.floor(((e.clientX-r.left)/r.width*VW*TS+cx)/TS),ty=Math.floor(((e.clientY-r.top)/r.height*VH*TS+cy)/TS);cityTap(tx,ty)};
+  $('#cmap').onclick=openCityMap;
   $('#view').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{if(b.dataset.b==='notice')openNotice();else if(b.dataset.b==='quest')renderQuests();else{const x=BUILDINGS.find(y=>y.id===b.dataset.b);enterBuilding(x)}});
   joinCity();
   cancelAnimationFrame(cityLoop);let last=performance.now();
   const frame=t=>{if(curTab!=='city'||!$('#ccv'))return;const dt=Math.min(.05,(t-last)/1000);last=t;cityTick(dt);cityDraw();cityLoop=requestAnimationFrame(frame)};
   cityLoop=requestAnimationFrame(frame);
+}
+/* 鏡頭：以自己為中心，碰到地圖邊緣就停 */
+function cityCam(){const me=city.me;return [Math.round(Math.max(0,Math.min(CW*TS-VW*TS,me.px-VW*TS/2))),Math.round(Math.max(0,Math.min(CH*TS-VH*TS,me.py-VH*TS/2)))]}
+/* 全圖：整張城市縮小畫，點哪裡就走過去 */
+function openCityMap(){
+  const Z=4,m=modal(`<h2 style="text-align:center">魔法城市全圖</h2><canvas id="mmap" width="${CW*Z*2}" height="${CH*Z*2}" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);cursor:pointer"></canvas>
+    <p class="small" style="margin:0;text-align:center">點地圖上的地方就會走過去・黃點是你</p>
+    <div class="chips" style="justify-content:center">${BUILDINGS.map(b=>`<button class="chip" data-mb="${b.id}">${b.name}</button>`).join('')}</div>
+    <button class="btn ghost" data-close>關閉</button>`);
+  const cv=m.querySelector('#mmap'),c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);
+  const col={'=':'#c9b98f',D:'#c9b98f',w:'#3a7bd5','~':'#8fc6f5',b:'#8b5e3c',s:'#e8d39a',T:'#2f7045',f:'#8b5e3c',g:'#8b5e3c',L:'#c9b98f',c:'#c9b98f',p:'#2f7045',N:'#c98a3a',Q:'#c98a3a'};
+  CITY.forEach((r,y)=>r.forEach((ch,x)=>{c.fillStyle=col[ch]||((x+y)%2?'#3f8f5a':'#43965e');c.fillRect(x*Z,y*Z,Z,Z)}));
+  BUILDINGS.forEach(b=>{c.fillStyle=b.roof;c.fillRect(b.x*Z,b.y*Z,b.w*Z,b.h*Z)});
+  c.font='5px "DotGothic16",sans-serif';c.textAlign='center';
+  BUILDINGS.forEach(b=>{const n=b.short||b.name,w=c.measureText(n).width+3,X=(b.x+b.w/2)*Z,Y=(b.y+b.h/2)*Z;c.fillStyle='rgba(15,10,26,.75)';c.fillRect(X-w/2,Y-3.5,w,6);c.fillStyle='#f4ecd8';c.fillText(n,X,Y+1.5)});
+  Object.values(city.peers).forEach(p=>{c.fillStyle='#9fe1cb';c.fillRect(p.px/TS*Z-1.5,p.py/TS*Z-1.5,3,3)});
+  c.fillStyle='#ffd166';c.fillRect(city.me.px/TS*Z-2,city.me.py/TS*Z-2,4,4);c.strokeStyle='#1a1026';c.lineWidth=.6;c.strokeRect(city.me.px/TS*Z-2,city.me.py/TS*Z-2,4,4);
+  cv.onclick=e=>{const r=cv.getBoundingClientRect(),tx=Math.floor((e.clientX-r.left)/r.width*CW),ty=Math.floor((e.clientY-r.top)/r.height*CH);m.remove();cityTap(tx,ty)};
+  m.querySelectorAll('[data-mb]').forEach(b=>b.onclick=()=>{const x=BUILDINGS.find(y=>y.id===b.dataset.mb);m.remove();cityTap(x.door[0],x.door[1])});
 }
 function cityTap(tx,ty){
   const me=city.me;
@@ -1109,6 +1178,11 @@ function cityTick(dt){
   Object.values(city.peers).forEach(p=>{const ox=p.px;p.px+=(p.tx-p.px)*Math.min(1,dt*6);p.py+=(p.ty-p.py)*Math.min(1,dt*6);if(Math.abs(p.px-ox)>.05)p.face=p.px>ox?1:-1});
   /* 寵物跟在主人後面走 */
   [city.me,...city.npcs,...Object.values(city.peers)].forEach(o=>followPet(o,dt));
+  /* 寵物公園的小動物在圍欄裡亂跑 */
+  (city.animals||[]).forEach(a=>{if(a.wait>0){a.wait-=dt;return}
+    if(!a.tx){a.tx=(PARK[0]+Math.random()*PARK[2])*TS+4;a.ty=(PARK[1]+Math.random()*PARK[3])*TS+6}
+    const dx=a.tx-a.px,dy=a.ty-a.py,d=Math.hypot(dx,dy);if(d<1){a.tx=0;a.wait=1+Math.random()*3;return}
+    const mv=Math.min(d,22*dt);a.px+=dx/d*mv;a.py+=dy/d*mv;if(Math.abs(dx)>.5)a.face=dx<0?-1:1});
   const now=performance.now();city.bubbles=city.bubbles.filter(b=>b.until>now);
   /* 省即時訊息額度：只有城市裡有別的同學時才傳位置，最多 1 秒一次，停下來再補傳最後位置 */
   const moved=me.px!==city.lastX||me.py!==city.lastY,someone=Object.keys(city.peers).length>0;
@@ -1201,9 +1275,11 @@ function openNotice(tab){
 /* 畫面：草地、路、樹、噴水池、建築、人物 */
 function cityDraw(){
   const cv=$('#ccv');if(!cv)return;const c=cv.getContext('2d');c.imageSmoothingEnabled=false;
-  c.setTransform(CSC,0,0,CSC,0,0);
-  const t=performance.now()/1000;
-  for(let y=0;y<CH;y++)for(let x=0;x<CW;x++){
+  const [camX,camY]=cityCam();
+  c.setTransform(CSC,0,0,CSC,-camX*CSC,-camY*CSC);
+  const t=performance.now()/1000,hw=halloween();
+  const x0=Math.floor(camX/TS),y0=Math.floor(camY/TS);
+  for(let y=y0;y<Math.min(CH,y0+VH+1);y++)for(let x=x0;x<Math.min(CW,x0+VW+1);x++){
     const ch=CITY[y][x],X=x*TS,Y=y*TS;
     c.fillStyle=(x+y)%2?'#3f8f5a':'#43965e';c.fillRect(X,Y,TS,TS);
     if(ch==='='||ch==='D'){c.fillStyle='#c9b98f';c.fillRect(X,Y,TS,TS);c.fillStyle='#b3a37a';c.fillRect(X+((y%2)*8),Y+7,6,2);c.fillRect(X+2,Y+14,5,1)}
@@ -1211,20 +1287,33 @@ function cityDraw(){
     else if(ch==='.'&&(x*3+y*5)%7===0){c.fillStyle='#2f7045';c.fillRect(X+6,Y+8,1,2);c.fillRect(X+8,Y+7,1,3)}
     if(ch==='T'){c.fillStyle='#8b5e3c';c.fillRect(X+6,Y+10,4,6);c.fillStyle='#2f7045';c.fillRect(X+2,Y+1,12,10);c.fillStyle='#4caf50';c.fillRect(X+4,Y+2,6,5)}
     if(ch==='w'){c.fillStyle='#9aa3b5';c.fillRect(X,Y,TS,TS);c.fillStyle='#3a7bd5';c.fillRect(X+1,Y+1,TS-2,TS-2);c.fillStyle='#8fc6f5';c.fillRect(X+3+Math.round(Math.sin(t*2+x)*2),Y+4+((y*5)%6),4,1)}
+    if(ch==='~'){c.fillStyle='#9aa3b5';c.fillRect(X,Y,TS,TS);c.fillStyle='#8fc6f5';c.fillRect(X+1,Y+1,TS-2,TS-2);c.fillStyle='#f4ecd8';c.fillRect(X+3+Math.round(Math.sin(t*3+x+y)*2),Y+6,3,1)}
+    if(ch==='b'){c.fillStyle='#3a7bd5';c.fillRect(X,Y,TS,TS);c.fillStyle='#8b5e3c';c.fillRect(X,Y+2,TS,12);c.fillStyle='#6e472b';for(let i=0;i<TS;i+=4)c.fillRect(X+i,Y+2,1,12);c.fillStyle='#5a3d2b';c.fillRect(X,Y+2,TS,1);c.fillRect(X,Y+13,TS,1)}
+    if(ch==='s'){c.fillStyle='#e8d39a';c.fillRect(X,Y,TS,TS);c.fillStyle='#d9c084';c.fillRect(X+((x*5+y*3)%11),Y+((x*7+y)%12),2,1);if((x*7+y*3)%13===0){c.fillStyle='#f4a6c6';c.fillRect(X+7,Y+8,3,2)}}
+    if(ch==='L'){c.fillStyle='#2b2b33';c.fillRect(X+7,Y+3,2,13);c.fillRect(X+5,Y+14,6,2);c.fillStyle='#ffd166';c.fillRect(X+5,Y,6,4);c.fillStyle='rgba(255,209,102,.18)';c.fillRect(X+2,Y-2,12,8)}
+    if(ch==='f'||ch==='g'){c.fillStyle=ch==='g'?'#43965e':'#8b5e3c';if(ch==='f'){c.fillRect(X+1,Y+4,2,11);c.fillRect(X+13,Y+4,2,11);c.fillRect(X,Y+6,TS,2);c.fillRect(X,Y+11,TS,2)}else{c.fillStyle='#8b5e3c';c.fillRect(X,Y+2,2,13);c.fillRect(X+14,Y+2,2,13);c.fillRect(X,Y+2,TS,2)}}
+    if(ch==='c'){c.fillStyle='#8b5e3c';c.fillRect(X+1,Y+6,14,3);c.fillRect(X+1,Y+3,14,2);c.fillStyle='#5a3d2b';c.fillRect(X+2,Y+9,2,5);c.fillRect(X+12,Y+9,2,5)}
+    if(ch==='p'){if(hw){c.fillStyle='#ff8a5c';c.fillRect(X+3,Y+6,10,8);c.fillRect(X+2,Y+8,12,4);c.fillStyle='#c25a1c';c.fillRect(X+7,Y+6,2,8);c.fillStyle='#4caf50';c.fillRect(X+7,Y+3,2,3);c.fillStyle='#1a1026';c.fillRect(X+4,Y+8,2,2);c.fillRect(X+10,Y+8,2,2);c.fillRect(X+5,Y+11,6,1)}
+      else{c.fillStyle='#2f7045';c.fillRect(X+2,Y+5,12,10);c.fillStyle='#4caf50';c.fillRect(X+4,Y+6,5,4);c.fillStyle='#d94f4f';c.fillRect(X+10,Y+8,2,2)}}
     if(ch==='Q'){c.fillStyle='#5a3d2b';c.fillRect(X+7,Y+10,2,6);c.fillStyle='#c98a3a';c.fillRect(X+1,Y+1,14,2);c.fillRect(X+1,Y+10,14,2);c.fillStyle='#f4ecd8';c.fillRect(X+2,Y+3,12,7);c.fillStyle='#d94f4f';c.fillRect(X+4,Y+5,8,1);c.fillRect(X+4,Y+7,5,1)}
     if(ch==='N'){c.fillStyle='#5a3d2b';c.fillRect(X+3,Y+10,2,6);c.fillRect(X+11,Y+10,2,6);c.fillStyle='#c98a3a';c.fillRect(X+1,Y+2,14,9);c.fillStyle='#f4ecd8';c.fillRect(X+3,Y+4,4,2);c.fillRect(X+9,Y+4,4,2);c.fillRect(X+3,Y+7,10,1)}
   }
   /* 噴水 */
-  c.fillStyle='#f4ecd8';const jh=6+Math.round(Math.sin(t*4)*2);c.fillRect(10*TS-1,6*TS-jh,2,jh);
+  c.fillStyle='#f4ecd8';const jh=8+Math.round(Math.sin(t*4)*2);c.fillRect(15*TS+7,9*TS-jh,2,jh);c.fillRect(15*TS+5,9*TS-jh,6,1);
   BUILDINGS.forEach(b=>{
     const X=b.x*TS,Y=b.y*TS,W=b.w*TS,H=b.h*TS;
     c.fillStyle=b.wall;c.fillRect(X,Y+10,W,H-10);
     c.fillStyle=b.roof;c.fillRect(X-1,Y,W+2,14);
     c.fillStyle='rgba(0,0,0,.18)';for(let i=0;i<W;i+=6)c.fillRect(X+i,Y,2,14);
     c.fillStyle='#8fc6f5';for(let i=X+6;i<X+W-8;i+=14){if(Math.abs(i+4-(b.door[0]*TS+8))>10){c.fillRect(i,Y+22,8,7);c.fillStyle='#f4ecd8';c.fillRect(i+3,Y+22,1,7);c.fillStyle='#8fc6f5'}}
-    c.fillStyle='#5a3d2b';c.fillRect(b.door[0]*TS+4,Y+H-12,8,12);c.fillStyle='#ffd166';c.fillRect(b.door[0]*TS+10,Y+H-6,1,1);
+    const top=b.door[1]<b.y,dy=top?Y+14:Y+H-12;if(!top){c.fillStyle='#5a3d2b';c.fillRect(b.door[0]*TS+4,dy,8,12);c.fillStyle='#ffd166';c.fillRect(b.door[0]*TS+10,dy+6,1,1)}
+    else{c.fillStyle='#5a3d2b';c.fillRect(b.door[0]*TS+4,Y-2,8,4)}
     c.fillStyle='#1a1026';c.fillRect(X,Y+H-1,W,1);
   });
+  c.font='7px "DotGothic16", sans-serif';c.textAlign='center';
+  BUILDINGS.forEach(b=>{const X=(b.x+b.w/2)*TS,Y=b.y*TS+(b.door[1]<b.y?b.h*TS-6:20),w=c.measureText(b.name).width+6;c.fillStyle='rgba(15,10,26,.8)';c.fillRect(X-w/2,Y-7,w,10);c.fillStyle='#f4ecd8';c.fillText(b.name,X,Y)});
+  /* 寵物公園的小動物 */
+  (city.animals||[]).forEach(a=>drawPet(c,a.id,a.px,a.py,a.face,a.wait>0?0:Math.abs(Math.sin(t*9+a.px))*2));
   /* 有新公告、可以領的任務：板子上方跳驚嘆號 */
   const bang=(x,y)=>{const by=y*TS-9+Math.round(Math.sin(t*5)*2);c.fillStyle='#ffd166';c.fillRect(x*TS+5,by,6,8);c.fillStyle='#1a1026';c.fillRect(x*TS+7,by+1,2,4);c.fillRect(x*TS+7,by+6,2,1)};
   if(annNew())bang(NOTICE[0],NOTICE[1]);if(questReady())bang(QUEST[0],QUEST[1]);
