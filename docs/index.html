@@ -317,7 +317,7 @@ function bindScope(sc,after){
   const cur=scope(),{P}=SRCS[S.tier];
   const pi=P.findIndex(p=>p.ids.length===cur.length&&p.ids.every(i=>cur.includes(i)));
   sc.value=!cur.length?'':pi>=0?'p'+pi:cur.length===1?'u'+cur[0]:'';
-  sc.onchange=()=>{const v=sc.value;S.scopes[S.tier]=!v?[]:v[0]==='p'?P[+v.slice(1)].ids.slice():[v.slice(1)];save();toast(`範圍：${scopeName()}`);after()};
+  sc.onchange=()=>{const v=sc.value;S.scopeTipDone=true;S.scopes[S.tier]=!v?[]:v[0]==='p'?P[+v.slice(1)].ids.slice():[v.slice(1)];save();toast(`範圍：${scopeName()}`);after()};
 }
 function scopeName(){
   const sc=scope();if(!sc.length)return '全部題庫';const {U,P}=SRCS[S.tier];
@@ -1679,14 +1679,45 @@ function renderFood(){
 const TOUR=[
  ['me','歡迎來到 Learning Den！','這是一座魔法城市。每天來這裡學一點英文，跟同學一起讀書、賺金幣、布置自己的房間。'],
  ['castle','在城市裡走一走','點地面，角色就會走過去；點建築會自動走到門口進去。地圖下面也有每棟建築的快速按鈕。'],
- ['book','魔法學院：今日一題','每天一題，答題 +10 金幣、答對再 +5，還能收集單字卡。題目上方可以選自己的練習範圍，答錯的題目會放進錯題本。'],
+ ['book','魔法學院：今日一題','每天一題，答題 +10 金幣、答對再 +5，還能收集單字卡。答錯的題目會放進錯題本，可以到圖書館複習。'],
+ ['scroll','先選你的題目範圍','SCOPE'],
  ['bento','魔法餐廳：每天吃一餐','每天去餐廳吃一次飯就算打卡。頁面上方有三顆飽足度愛心，每少吃一天少一顆，連續三天沒吃會餓倒變成小幽靈！'],
- ['lamp','讀書房：一起專注','選 15、25 或 50 分鐘，跟同學一起專注，每分鐘 +1 金幣。同班同學會出現在座位上，點座位還能參觀他們的房間。'],
+ ['lamp','讀書房：一起專注','選 15、25 或 50 分鐘，跟同學一起專注，每分鐘 +1 金幣。同年級的同學會出現在座位上，點座位還能參觀他們的房間；讀書房裡也能聊天打氣。'],
  ['coin','金幣怎麼用？','到百貨公司買家具、服裝、寵物，布置「我的家」。遊樂場有小遊戲和雙倍挑戰；銀行存錢每天會生利息。'],
  ['scroll','任務板和布告欄','噴水池旁的任務板有每日、每週和老師出的任務，完成就能領金幣。布告欄可以看老師的公告和本週排行。'],
  ['chat','好友與老師信箱',`連續打卡 ${DM_NEED} 天，就能加同學好友、互傳私訊和送禮物。老師傳來的訊息會出現在「好友」頁的老師信箱，也可以回覆老師。`],
  ['feast','準備好了嗎？','第一步：先去魔法餐廳吃第一餐，再到魔法學院答今日一題。有問題隨時到「我的」按「玩法說明」再看一次。']
 ];
+/* 依年級推薦一個範圍（找名字有對到的組合包），回傳 scope 下拉選單的值 */
+function recommendScope(){
+  const src=SRCS[S.tier];if(!src)return '';
+  const key={國一:['國一'],國二:['國二'],國三:['國三','會考'],高一:['高一'],高二:['高二第一次段考總複習','高二'],高三:['高三','學測總複習']}[S.grade]||[];
+  for(const k of key){const i=src.P.findIndex(p=>p.name.includes(k));if(i>=0)return 'p'+i}
+  return '';
+}
+/* 選範圍的說明＋下拉選單（新手導覽和第一次進今日一題都用這個） */
+function scopeGuideHTML(){
+  const rec=recommendScope(),src=SRCS[S.tier];
+  return `<p style="margin:0;line-height:1.8">今日一題、多練幾題、小遊戲都會<b style="color:var(--gold)">從你選的範圍出題</b>。選跟學校進度一樣的，練習最有用！</p>
+    ${src?scopeSelect():'<p class="small">題庫載入中…</p>'}
+    ${rec?`<p class="small" style="margin:0;color:var(--mint)">推薦 ${esc(S.grade)}：${esc(src.P[+rec.slice(1)].name)}（已經幫你選好，可以自己改）</p>`:''}
+    <div class="box" style="background:var(--deep);padding:8px 10px;font-size:13px;line-height:1.7">之後想換範圍：<br>・<b>今日一題</b>頁最上面的「更改範圍」<br>・<b>我的</b>頁的「題目範圍」</div>`;
+}
+function bindScopeGuide(root){
+  const sc=root.querySelector('#scope');if(!sc)return null;
+  const cur=scope(),rec=recommendScope();
+  if(!cur.length&&rec)sc.value=rec;else{const {P}=SRCS[S.tier],pi=P.findIndex(p=>p.ids.length===cur.length&&p.ids.every(i=>cur.includes(i)));sc.value=!cur.length?'':pi>=0?'p'+pi:cur.length===1?'u'+cur[0]:''}
+  return ()=>{const v=sc.value,{P}=SRCS[S.tier];S.scopes[S.tier]=!v?[]:v[0]==='p'?P[+v.slice(1)].ids.slice():[v.slice(1)];S.scopeTipDone=true;save()};
+}
+/* 還沒選過範圍的人（舊玩家、或導覽按了略過）：第一次進今日一題時請他選一次 */
+function scopeTip(after){
+  if(S.scopeTipDone||!SRCS[S.tier]){after&&after();return false}
+  const m=modal(`<div style="display:flex;justify-content:center"><span data-s="scroll" data-z="7"></span></div><h2 style="text-align:center;color:var(--gold)">先選你的題目範圍</h2>${scopeGuideHTML()}
+    <button class="btn gold" id="stok">用這個範圍</button>`);
+  m.onclick=null;const apply=bindScopeGuide(m);
+  m.querySelector('#stok').onclick=()=>{apply&&apply();m.remove();toast(`範圍：${scopeName()}`);after&&after()};
+  return true;
+}
 function showTutorial(){
   let i=0;
   const m=modal('<div id="tour"></div>');
@@ -1694,16 +1725,16 @@ function showTutorial(){
   const draw=()=>{const [sp,title,body]=TOUR[i],last=i===TOUR.length-1;
     m.querySelector('#tour').innerHTML=`<div style="display:flex;justify-content:center;padding:6px 0">${sp==='me'?avatarSVG(myLook().outfit,9):`<span data-s="${sp}" data-z="9"></span>`}</div>
       <h2 style="text-align:center;color:var(--gold)">${title}</h2>
-      <p style="margin:0;line-height:1.8">${body}</p>
+      ${body==='SCOPE'?scopeGuideHTML():`<p style="margin:0;line-height:1.8">${body}</p>`}
       <div style="display:flex;justify-content:center;gap:6px;margin:4px 0" aria-label="第 ${i+1} 頁，共 ${TOUR.length} 頁">${TOUR.map((_,k)=>`<span style="width:10px;height:10px;background:${k===i?'var(--gold)':'#4a3f66'};border:2px solid var(--ink)"></span>`).join('')}</div>
       <div class="row">${i?'<button class="btn" id="tprev">上一步</button>':'<button class="btn ghost" id="tskip">略過</button>'}
-      ${last?'<button class="btn gold" id="tfood">去餐廳吃飯</button>':'<button class="btn gold" id="tnext">下一步</button>'}</div>
+      ${last?'<button class="btn gold" id="tfood">去餐廳吃飯</button>':`<button class="btn gold" id="tnext">${body==='SCOPE'?'用這個範圍':'下一步'}</button>`}</div>
       ${last?'<button class="btn ghost" id="tfree">自己逛逛</button>':''}`;
     paintSprites(m);
     const done=()=>{S.tutorialDone=true;S.lastGreet=today();save();m.remove();setTimeout(showStarter,300)};
-    const b=id=>m.querySelector(id);
+    const b=id=>m.querySelector(id),applyScope=body==='SCOPE'?bindScopeGuide(m):null;
     if(b('#tprev'))b('#tprev').onclick=()=>{i--;draw()};
-    if(b('#tnext'))b('#tnext').onclick=()=>{i++;draw()};
+    if(b('#tnext'))b('#tnext').onclick=()=>{if(applyScope){applyScope();toast(`範圍：${scopeName()}`)}i++;draw()};
     if(b('#tskip'))b('#tskip').onclick=done;
     if(b('#tfree'))b('#tfree').onclick=done;
     if(b('#tfood'))b('#tfood').onclick=()=>{done();renderFood()};
@@ -2107,6 +2138,7 @@ function renderOnboard(){
 /* ---------- 今日一題 ---------- */
 function header(){return `<div class="bar"><span style="color:var(--gold)">${T().name}・${esc(S.name)}</span><span style="display:flex;align-items:center;gap:10px">${heartChip()}${coinChip()}<span style="display:flex;align-items:center;gap:4px;color:var(--coral)"><span data-s="fire" data-z="2"></span>連續 ${streak()} 天</span></span></div>`}
 function renderDaily(){
+  if(!S.scopeTipDone&&!S.answers[dkey()]&&SRCS[S.tier]&&!document.querySelector('.modal')){scopeTip(()=>renderDaily())}
   const ans=S.answers[dkey()],q=(ans&&(ans.q||QID[ans.qid]))||todayQ(),t=T();
   if(ans&&ans.ok&&!ans.card&&(!q.t||q.t==='v'))ans.card={w:q.w,zh:q.zh};
   const d=new Date();
