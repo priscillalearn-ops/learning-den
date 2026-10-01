@@ -1,6 +1,6 @@
 # 宣傳影片
 
-1. 做一份帶示範資料的 app.html（index.html 的單機版＋種子資料，場景用網址 #city、#daily… 切換），放在這個資料夾。
+1. `python3 make_demo.py`：從目前的 index.html 產生示範頁 `learning-den/_promo.html`（單機版＋示範資料，網址 #city、#hw、#room… 切換場景）。字型 DotGothic16.ttf 複製成 `learning-den/_promo_font.ttf`。截完圖兩個檔案都刪掉。
 2. `python3 shoot.py city daily room home shop games kid me`：用 Chrome headless 截圖到 shots/。
 3. 下載字型 Cubic_11.ttf（俐方體 11 號，SIL OFL 1.1：https://github.com/ACh-K/Cubic-11）到這個資料夾。
 4. `python3 make_video.py`：產生 1080×1920、32 秒、配原創 8-bit 音樂的 MP4（需要 `pip install imageio-ffmpeg qrcode`）。

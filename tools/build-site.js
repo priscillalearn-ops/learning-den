@@ -12,8 +12,11 @@ fs.writeFileSync(path.join(out, 'index.html'),
   '<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">\n<link rel="icon" href="icons/icon-192.png">\n' +
   '<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="Learning Den">\n' +
   '<meta name="apple-mobile-web-app-status-bar-style" content="black">\n' +
-  src.replace(/<\/style>\n/, '</style>\n</head>\n<body>\n') + '\n</body>\n</html>\n');
-for (const f of ['privacy.html', 'about.html', 'manifest.webmanifest']) fs.copyFileSync(path.join(__dirname, '..', f), path.join(out, f));
+  src.replace(/<\/style>\n/, '</style>\n</head>\n<body>\n') +
+  // 離線快取（只有網站版；Artifact 裡不註冊）
+  "\n<script>if('serviceWorker' in navigator&&window.top===window)navigator.serviceWorker.register('sw.js').catch(()=>{})</script>" +
+  '\n</body>\n</html>\n');
+for (const f of ['privacy.html', 'about.html', 'manifest.webmanifest', 'sw.js']) fs.copyFileSync(path.join(__dirname, '..', f), path.join(out, f));
 fs.cpSync(path.join(__dirname, '../icons'), path.join(out, 'icons'), { recursive: true });
 fs.cpSync(path.join(__dirname, '../banks'), path.join(out, 'banks'), { recursive: true });
 // 每日打卡提醒：給 iPhone／其他行事曆用的 .ics（每天重複，時間到跳通知）

@@ -249,7 +249,7 @@ const BOT_POOL={
 };
 function dayBots(){
   const tier=S.tier||'teen',seed=today()+tier+(S.name||'');
-  return BOT_POOL[tier].slice().sort((a,b)=>hash(seed+a)-hash(seed+b)).slice(0,5).map(n=>[n,tier]);
+  return BOT_POOL[tier].slice().sort((a,b)=>mix(seed+a)-mix(seed+b)).slice(0,5).map(n=>[n,tier]);
 }
 /* NPC 的造型：用名字決定，同一位 NPC 走到哪裡都穿一樣 */
 function botOutfit(name){
@@ -275,6 +275,8 @@ const keyOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const today=()=>keyOf(new Date());
 const dayNum=()=>{const d=new Date();return Math.floor(new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()/864e5)};
 function hash(s){let h=7;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;return h}
+/* 洗牌用：hash 只差最後一個字時結果也只差一點，排序會幾乎不動；再攪拌一次才真的打散 */
+function mix(s){let h=hash(s);h^=h>>>16;h=Math.imul(h,0x85ebca6b);h^=h>>>13;h=Math.imul(h,0xc2b2ae35);h^=h>>>16;return h>>>0}
 function streak(){let d=new Date(),n=0;if(!S.days[keyOf(d)])d.setDate(d.getDate()-1);while(S.days[keyOf(d)]){n++;d.setDate(d.getDate()-1)}return n}
 /* 曾經最長連續打卡幾天（好友與私訊的解鎖條件，跟資料庫的 best_streak 同一套算法） */
 const DM_NEED=7;
@@ -727,8 +729,8 @@ async function visitRoom(who,uid,tier){
 /* ---------- 遊戲區：單字翻牌、60 秒快答、雙倍挑戰、銀行 ----------
    線上版的金幣進出全部由資料庫函式處理（claim_game、start/submit_challenge、bank_move），
    網頁只顯示結果；單機版在瀏覽器裡用同樣的規則模擬。 */
-const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
-function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
+const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower','halloween'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
+function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
 /* 資料庫回傳錢包餘額時，用它校正本機的流水帳總和 */
 function syncWallet(w){if(typeof w==='number'){S.tx=w-(coinsEarned()-coinsSpent());save()}}
 function gameShell(title,body,back){
@@ -790,7 +792,7 @@ function gameOver(game,lv,win,title,detail,r,score){
 async function claimGame(game,score,lv=1){
   const g=gday();let r;
   if(ONLINE){const res=await cloud.rpc('claim_game',{p_game:game,p_score:score,p_level:lv});if(!res)return 0;r=res.reward;syncWallet(res.wallet)}
-  else{r=Math.max(0,Math.min(score,lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
+  else{r=Math.max(0,Math.min(score,game==='halloween'?HW_MAX:lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
   g[game]+=r;g.plays=(g.plays||0)+1;save();return r;
 }
 /* 單字翻牌：6 組英文／中文 */
@@ -1061,7 +1063,7 @@ const NOTICE=[9,7],QUEST=[20,7],PARK=[29,6,3,4];
 let CITY=null,cityLoop=0,city=null;
 const halloween=()=>{const d=new Date(),m=d.getMonth()+1;return m===10||(m===11&&d.getDate()<=7)};
 function buildCity(){return CITY_MAP.map(r=>[...r])}
-const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x]);
+const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(halloween()&&x===HW_STAND[0]&&y===HW_STAND[1]);
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 const doorAt=(x,y)=>BUILDINGS.find(b=>b.door[0]===x&&b.door[1]===y);
 /* 圖書館：錯題本、單字卡 */
@@ -1114,7 +1116,7 @@ function renderCity(){
     /* 自由房的 NPC 也來城裡逛 */
     freeBots().filter(b=>b[1]!==S.tier).slice(0,2).forEach((b,i)=>city.npcs.push(mkWalker(spots[5+i][0],spots[5+i][1],{name:b[0],tier:b[1],wait:2+i})));
     /* 寵物公園的小動物：每天換一批 */
-    const ps=PETS.filter(i=>!i.bundle).sort((a,b)=>hash(today()+a.id)-hash(today()+b.id)).slice(0,4);
+    const ps=PETS.filter(i=>!i.bundle).sort((a,b)=>mix(today()+a.id)-mix(today()+b.id)).slice(0,4);
     ps.forEach((it,i)=>city.animals.push({id:it.id,px:(PARK[0]+i%3)*TS+8,py:(PARK[1]+(i>>1))*TS+8,tx:0,ty:0,wait:Math.random()*2,face:1}));
   }
   const tasks=[['吃飯',!!S.meals[today()]],['答今日一題',!!S.answers[dkey()]],['專注一次',(S.minutes[today()]||0)>0],['玩一個小遊戲',GAME_KEYS.some(k=>gday()[k]>0)]];
@@ -1125,18 +1127,82 @@ function renderCity(){
      <canvas id="ccv" width="${VW*TS*CSC}" height="${VH*TS*CSC}" style="width:100%;height:100%;display:block;image-rendering:pixelated;cursor:pointer" aria-label="魔法城市地圖，點地面走路，點建築走進去"></canvas>
      <button class="chip" id="cmap" style="position:absolute;right:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--gold)">全圖</button>
    </div>
-   <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。</p>
+   <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。<span style="color:var(--gold)">今天城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
+   ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
    <div class="chips">${BUILDINGS.map(b=>`<button class="chip" data-b="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-b="notice">布告欄</button><button class="chip" data-b="quest">任務板</button></div>`;
   paintSprites($('#view'));
   $('#ctasks').onclick=()=>renderQuests();loadAnn();loadQuests();
   const cv=$('#ccv');
   cv.onclick=e=>{const r=cv.getBoundingClientRect(),[cx,cy]=cityCam(),tx=Math.floor(((e.clientX-r.left)/r.width*VW*TS+cx)/TS),ty=Math.floor(((e.clientY-r.top)/r.height*VH*TS+cy)/TS);cityTap(tx,ty)};
   $('#cmap').onclick=openCityMap;
+  if($('#hwbtn'))$('#hwbtn').onclick=()=>{if(city.hw)return;cityTap(HW_STAND[0],HW_STAND[1])};
   $('#view').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{if(b.dataset.b==='notice')openNotice();else if(b.dataset.b==='quest')renderQuests();else{const x=BUILDINGS.find(y=>y.id===b.dataset.b);enterBuilding(x)}});
   joinCity();
   cancelAnimationFrame(cityLoop);let last=performance.now();
   const frame=t=>{if(curTab!=='city'||!$('#ccv'))return;const dt=Math.min(.05,(t-last)/1000);last=t;cityTick(dt);cityDraw();cityLoop=requestAnimationFrame(frame)};
   cityLoop=requestAnimationFrame(frame);
+}
+/* ---------- 地圖上的隨機金幣 ----------
+   每天 8 枚，藏在城市各處（每個人位置不一樣）；走過去就撿起來，一枚 2～5 金幣，由資料庫決定。 */
+const MAP_COINS=8;
+let coinSpots=null,coinDay='';
+function mapCoins(){
+  if(coinDay!==today()||!coinSpots){coinDay=today();
+    const seed=today()+(ME||S.name),cells=[];
+    CITY.forEach((r,y)=>r.forEach((ch,x)=>{if('.,=sb'.includes(ch)&&!doorAt(x,y)&&!(x===HW_STAND[0]&&y===HW_STAND[1])&&!(x>=PARK[0]-1&&x<=PARK[0]+PARK[2]&&y>=PARK[1]-1&&y<=PARK[1]+PARK[3]))cells.push([x,y])}));
+    coinSpots=cells.sort((a,b)=>mix(seed+a)-mix(seed+b)).slice(0,MAP_COINS)}
+  const got=(S.mapCoins&&S.mapCoins.d===today())?S.mapCoins.got:[];
+  return coinSpots.map((c,i)=>({i,x:c[0],y:c[1],got:got.includes(i)}));
+}
+async function pickCoin(i){
+  if(!S.mapCoins||S.mapCoins.d!==today())S.mapCoins={d:today(),got:[]};
+  if(S.mapCoins.got.includes(i))return;S.mapCoins.got.push(i);save();
+  let amt;
+  if(ONLINE){const r=await cloud.run(()=>sb.rpc('claim_map_coin',{p_idx:i}));if(!r){return}amt=r.amount;syncWallet(r.wallet)}
+  else{amt=2+hash(today()+S.name+i)%4;S.tx=(S.tx||0)+amt;save()}
+  if(amt>0){toast(`撿到 ${amt} 金幣！今天還有 ${mapCoins().filter(c=>!c.got).length} 枚藏在城裡`);if(city)city.bubbles.push({who:city.me,txt:`+${amt}`,until:performance.now()+1200})}
+}
+/* ---------- 萬聖節糖果大作戰（10/1～11/7，不考英文） ----------
+   在廣場的南瓜攤開始：90 秒內在城裡撿糖果，小幽靈會飄過牆追你，被碰到會掉 2 顆糖、暈 1.5 秒。
+   糖果換金幣，每場最多 20，每天最多 40。 */
+const HW_STAND=[12,10],HW_MAX=20,HW_SECS=90;
+function hwStart(){
+  const me=city.me,cells=[];
+  CITY.forEach((r,y)=>r.forEach((ch,x)=>{if('.,=sb'.includes(ch)&&!doorAt(x,y)&&!(x===HW_STAND[0]&&y===HW_STAND[1])&&Math.abs(x-me.x)+Math.abs(y-me.y)>2&&Math.abs(x-HW_STAND[0])<=12&&Math.abs(y-HW_STAND[1])<=9)cells.push([x,y])}));
+  const candies=cells.sort(()=>Math.random()-.5).slice(0,24).map(([x,y],i)=>({x,y,k:i%3}));
+  /* 幽靈從離你最遠的角落出發，前 3 秒不會動 */
+  const far=[[-11,-8],[11,-8],[-11,8],[11,8],[0,-9],[0,9]].map(([dx,dy])=>[HW_STAND[0]+dx,HW_STAND[1]+dy]).sort((a,b)=>Math.hypot(b[0]-me.x,b[1]-me.y)-Math.hypot(a[0]-me.x,a[1]-me.y)).slice(0,3);
+  const ghosts=far.map(([x,y])=>({px:x*TS+8,py:y*TS+8,face:1,cool:3}));
+  city.hw={end:performance.now()+HW_SECS*1000,candies,ghosts,got:0,stun:0,hits:0};
+  me.path=[];me.goal=null;toast('開始！撿糖果、躲幽靈！');
+}
+function hwTick(dt){
+  const h=city.hw,me=city.me,now=performance.now();if(!h)return;
+  if(now>=h.end){hwEnd();return}
+  const left=(h.end-now)/1000,spd=26+(HW_SECS-left)*.25;
+  h.candies=h.candies.filter(c=>{if(c.x===me.x&&c.y===me.y&&Math.hypot(me.px-(c.x*TS+8),me.py-(c.y*TS+8))<8){h.got++;return false}return true});
+  if(!h.candies.length){h.end=now;return}
+  h.ghosts.forEach(g=>{const dx=me.px-g.px,dy=me.py-g.py,d=Math.hypot(dx,dy)||1;
+    if(g.cool>0){g.cool-=dt;if(g.hit){g.px-=dx/d*spd*dt*.6;g.py-=dy/d*spd*dt*.6}return}
+    g.px+=dx/d*spd*dt;g.py+=dy/d*spd*dt;if(Math.abs(dx)>1)g.face=dx<0?-1:1;
+    if(d<9&&now>h.stun){h.got=Math.max(0,h.got-2);h.hits++;h.stun=now+1500;me.path=[];g.cool=2.5;g.hit=1;city.bubbles.push({who:me,txt:'嚇！掉了 2 顆糖',until:now+1400})}});
+}
+async function hwEnd(){
+  const h=city.hw;if(!h||h.done)return;h.done=true;city.hw=null;
+  const score=Math.min(HW_MAX,h.got),r=score?await claimGame('halloween',score,1):0;
+  const best=Math.max(S.hwBest||0,h.got),nb=h.got>(S.hwBest||0);S.hwBest=best;save();
+  const m=modal(`<div style="display:flex;justify-content:center"><span data-s="ghost" data-z="7"></span></div><h2 style="text-align:center">${h.candies.length?'時間到！':'糖果全部撿光了！'}</h2>
+    <p style="text-align:center;margin:0">撿到 ${h.got} 顆糖・被幽靈嚇到 ${h.hits} 次${nb?'・新紀錄！':`・最佳 ${best} 顆`}</p>
+    <p style="text-align:center;margin:0;color:var(--gold)">${score?(r?`+${r} 金幣`:'今天的萬聖節金幣領滿了'):'一顆都沒撿到，再試一次！'}</p>
+    <div class="row"><button class="btn" data-close>回城市</button><button class="btn gold" id="hwagain">再玩一次</button></div>`);
+  m.querySelector('#hwagain').onclick=()=>{m.remove();hwStart()};
+}
+function hwOpen(){
+  modal(`<div style="display:flex;justify-content:center;gap:8px"><span data-s="ghost" data-z="6"></span><span data-s="bat" data-z="6"></span></div>
+    <h2 style="text-align:center">萬聖節糖果大作戰</h2>
+    <p style="margin:0;line-height:1.7">${HW_SECS} 秒內在城裡撿糖果，<b style="color:var(--gold)">一顆糖 1 金幣</b>（每場最多 ${HW_MAX}）。<br>小幽靈會穿牆追你，被碰到會掉 2 顆糖、嚇到不能動一下！<br>不用考英文，純玩！只到 11/7。</p>
+    <p class="small" style="margin:0">今天領了 ${gday().halloween||0}／${GAME_CAP} 金幣・最佳紀錄 ${S.hwBest||0} 顆</p>
+    <div class="row"><button class="btn" data-close>等等再玩</button><button class="btn gold" id="hwgo">開始！</button></div>`).querySelector('#hwgo').onclick=e=>{e.target.closest('.modal').remove();hwStart()};
 }
 /* 鏡頭：以自己為中心，碰到地圖邊緣就停 */
 function cityCam(){const me=city.me;return [Math.round(Math.max(0,Math.min(CW*TS-VW*TS,me.px-VW*TS/2))),Math.round(Math.max(0,Math.min(CH*TS-VH*TS,me.py-VH*TS/2)))]}
@@ -1159,6 +1225,8 @@ function openCityMap(){
 }
 function cityTap(tx,ty){
   const me=city.me;
+  if(city.hw){if(performance.now()<city.hw.stun)return;const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal=null}return}
+  if(halloween()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='hw';if(!p.length){me.goal=null;hwOpen()}}return}
   const npc=city.npcs.find(n=>n.x===tx&&n.y===ty);
   if(npc){const talk=BOT_TALK[S.tier];city.bubbles.push({who:npc,txt:['嗨！','今天打卡了嗎？',talk[hash(npc.name+Date.now())%talk.length],'一起去讀書房吧'][Math.floor(Math.random()*4)],until:performance.now()+2500});return}
   const peer=Object.values(city.peers).find(p=>Math.round((p.px-8)/TS)===tx&&Math.round((p.py-8)/TS)===ty);
@@ -1175,14 +1243,19 @@ function cityTick(dt){
     const k=[...city.keys].pop(),d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[k];
     if(d&&walk(me.x+d[0],me.y+d[1])){me.path=[[me.x+d[0],me.y+d[1]]];me.goal=null}
   }
+  if(city.hw&&performance.now()<city.hw.stun)me.path=[];
   if(stepWalker(me,dt,72)){
-    const door=doorAt(me.x,me.y);
+    mapCoins().forEach(c=>{if(!c.got&&c.x===me.x&&c.y===me.y)pickCoin(c.i)});
+    if(city.hw)me.armed=false;
+    else if(!me.path.length&&me.goal==='hw'){me.goal=null;hwOpen()}
+    else{const door=doorAt(me.x,me.y);
     if(door&&me.armed&&(!me.path.length)){enterBuilding(door);return}
     if(!door)me.armed=true;
     if(!me.path.length&&me.goal==='notice'){me.goal=null;openNotice()}
     if(!me.path.length&&me.goal==='quest'){me.goal=null;renderQuests();return}
-    if(!me.path.length&&me.goal){const b=BUILDINGS.find(x=>x.id===me.goal);me.goal=null;if(b&&doorAt(me.x,me.y)===b)enterBuilding(b)}
+    if(!me.path.length&&me.goal){const b=BUILDINGS.find(x=>x.id===me.goal);me.goal=null;if(b&&doorAt(me.x,me.y)===b)enterBuilding(b)}}
   }
+  hwTick(dt);
   city.npcs.forEach(n=>{
     if(!n.path.length){n.wait-=dt;if(n.wait<=0){n.wait=2+Math.random()*4;
       for(let i=0;i<8;i++){const tx=n.x+Math.round(Math.random()*6-3),ty=n.y+Math.round(Math.random()*6-3);if(walk(tx,ty)&&!doorAt(tx,ty)){const p=bfs(n.x,n.y,tx,ty);if(p&&p.length<8){n.path=p;break}}}}}
@@ -1238,7 +1311,7 @@ async function loadQuests(force){
     const cl=S.qclaims||{},per=(g,k)=>g==='daily'?today():g==='weekly'?'W'+weekStart():'m';
     /* 每個等級抽一個：跟資料庫一樣，每個人每天／每週不一樣 */
     const picks=[];['daily','weekly'].forEach(g=>[1,2,3].forEach(l=>{const c=QPOOL.filter(q=>q[1]===g&&q[2]===l&&(q[7]||S.tier!=='kid'));if(!c.length)return;
-      const seed=S.name+(g==='daily'?today():weekStart());picks.push(c.slice().sort((a,b)=>hash(seed+a[0])-hash(seed+b[0]))[0])}));
+      const seed=S.name+(g==='daily'?today():weekStart());picks.push(c.slice().sort((a,b)=>mix(seed+a[0])-mix(seed+b[0]))[0])}));
     questCache=picks.map(([key,grp,lvl,title,kind,target,reward])=>({key,grp,lvl,title,kind,target,reward,progress:localProgress(kind,grp==='daily'?today():weekStart()),claimed:cl[key]===per(grp)}))
       .concat([{...DEMO_MISSION,progress:localProgress('answer_days',weekStart()),claimed:cl.m0==='m'}]);
     return questCache;
@@ -1325,6 +1398,16 @@ function cityDraw(){
   });
   c.font='7px "DotGothic16", sans-serif';c.textAlign='center';
   BUILDINGS.forEach(b=>{const X=(b.x+b.w/2)*TS,Y=b.y*TS+(b.door[1]<b.y?b.h*TS-6:20),w=c.measureText(b.name).width+6;c.fillStyle='rgba(15,10,26,.8)';c.fillRect(X-w/2,Y-7,w,10);c.fillStyle='#f4ecd8';c.fillText(b.name,X,Y)});
+  /* 地圖金幣：轉來轉去 */
+  mapCoins().forEach(cn=>{if(cn.got)return;const X=cn.x*TS+8,Y=cn.y*TS+8+Math.round(Math.sin(t*3+cn.i)*1.5),w=Math.max(1,Math.round(Math.abs(Math.cos(t*3+cn.i))*5));
+    c.fillStyle='rgba(0,0,0,.2)';c.fillRect(X-4,cn.y*TS+13,8,2);c.fillStyle='#c98a3a';c.fillRect(X-w-1,Y-5,w*2+2,10);c.fillStyle='#ffd166';c.fillRect(X-w,Y-4,w*2,8);if(w>2){c.fillStyle='#fff6c9';c.fillRect(X-1,Y-3,1,3)}});
+  /* 萬聖節南瓜攤 */
+  if(hw){const X=HW_STAND[0]*TS,Y=HW_STAND[1]*TS;c.fillStyle='#5a3d2b';c.fillRect(X+1,Y+6,14,10);c.fillStyle='#7a3f9e';c.fillRect(X,Y,16,5);c.fillStyle='#ff8a5c';c.fillRect(X+3,Y+8,10,6);c.fillStyle='#1a1026';c.fillRect(X+5,Y+10,2,1);c.fillRect(X+9,Y+10,2,1);
+    if(!city.hw){const by=Y-10+Math.round(Math.sin(t*5)*2);c.fillStyle='#ff8a5c';c.fillRect(X+5,by,6,8);c.fillStyle='#1a1026';c.fillRect(X+7,by+1,2,4);c.fillRect(X+7,by+6,2,1)}}
+  if(city.hw){const h=city.hw;
+    h.candies.forEach(cd=>{const X=cd.x*TS+8,Y=cd.y*TS+9+Math.round(Math.sin(t*4+cd.x)*1);c.fillStyle=['#f4a6c6','#9fe1cb','#ffd166'][cd.k];c.fillRect(X-3,Y-2,6,4);c.fillStyle='#f4ecd8';c.fillRect(X-6,Y-1,3,2);c.fillRect(X+3,Y-1,3,2);c.fillRect(X-1,Y-2,1,1)});
+    h.ghosts.forEach(g=>{c.globalAlpha=.75+Math.sin(t*4+g.px)*.15;const G=SPR.ghost,X=Math.round(g.px-8),Y=Math.round(g.py-12+Math.sin(t*3+g.py)*2);
+      G.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=PAL[ch];if(col&&ch!=='.'){c.fillStyle=col;const fx=g.face<0?7-xx:xx;c.fillRect(X+fx*2,Y+yy*2,2,2)}}));c.globalAlpha=1});}
   /* 寵物公園的小動物 */
   (city.animals||[]).forEach(a=>drawPet(c,a.id,a.px,a.py,a.face,a.wait>0?0:Math.abs(Math.sin(t*9+a.px))*2));
   /* 有新公告、可以領的任務：板子上方跳驚嘆號 */
@@ -1346,6 +1429,7 @@ function cityDraw(){
     if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle='rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle='#f4ecd8';c.fillText(p.name,p.px,Y-3)}
   });
   c.font='7px "DotGothic16", sans-serif';
+  if(city.hw){const h=city.hw;c.save();c.setTransform(CSC,0,0,CSC,0,0);const left=Math.max(0,Math.ceil((h.end-performance.now())/1000));c.fillStyle='rgba(15,10,26,.82)';c.fillRect(4,4,118,14);c.fillStyle='#ffd166';c.font='9px "DotGothic16",sans-serif';c.textAlign='left';c.fillText(`糖果 ${h.got}・剩 ${left} 秒・還有 ${h.candies.length} 顆`,8,14);c.restore();c.font='7px "DotGothic16", sans-serif'}
   city.bubbles.forEach(b=>{const w=c.measureText(b.txt).width+8,X=b.who.px-w/2,Y=b.who.py-34;c.fillStyle='#f4ecd8';c.fillRect(X,Y,w,12);c.fillStyle='#1a1026';c.textAlign='center';c.fillText(b.txt,b.who.px,Y+9)});
 }
 /* 寵物：跟在主人身後半格，走路時會一跳一跳 */
@@ -2139,7 +2223,7 @@ function roomBots(){dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,5).fo
 /* 自由房的 NPC：三個等級各抽幾位，混在一起 */
 function freeBots(){const seed=today()+'free'+(S.name||'');
   const all=Object.entries(BOT_POOL).flatMap(([t,ns])=>ns.map(n=>[n,t])).filter(b=>!S.blocked.includes(b[0]));
-  const out=all.sort((a,b)=>hash(seed+a[0])-hash(seed+b[0])).slice(0,5);
+  const out=all.sort((a,b)=>mix(seed+a[0])-mix(seed+b[0])).slice(0,5);
   out.forEach(b=>{if(botMin[b[0]]==null)botMin[b[0]]=5+hash(b[0]+today())%70});return out}
 function fmt(s){s=Math.max(0,Math.ceil(s));return `${pad(Math.floor(s/60))}:${pad(s%60)}`}
 /* 座位：自己＋線上真人＋NPC 補滿六個位子 */
@@ -2725,8 +2809,18 @@ function go(tab){
 }
 $('#nav').querySelectorAll('button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
 paintSprites($('#nav'));
+/* 即時連線省額度：app 放到背景 1 分鐘就斷線，回來再自動連上（Supabase 免費方案同時在線有上限） */
+let idleT=null,napping=false;
+document.addEventListener('visibilitychange',()=>{
+  if(!ONLINE||!ME)return;
+  if(document.hidden){clearTimeout(idleT);idleT=setTimeout(()=>{napping=true;leaveRoom();leaveCity();
+    if(dmChan){sb.removeChannel(dmChan);dmChan=null}if(rchat.chan){sb.removeChannel(rchat.chan);rchat.chan=null;rchat.room=''}},60000)}
+  else{clearTimeout(idleT);if(!napping)return;napping=false;
+    joinRoom();listenDM();if(curTab==='city')joinCity();if(curTab==='room')openRoomChat()}
+});
 boot();
 </script>
 
+<script>if('serviceWorker' in navigator&&window.top===window)navigator.serviceWorker.register('sw.js').catch(()=>{})</script>
 </body>
 </html>
