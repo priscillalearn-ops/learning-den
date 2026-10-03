@@ -1835,6 +1835,35 @@ async function showStarter(){
   m.querySelector('#sgacha').onclick=()=>{m.remove();gGacha()};
   return true;
 }
+/* ---------- 連續登入獎勵：7 天一輪，第 7 天最多；斷掉就從第 1 天重來 ----------
+   線上版由資料庫 claim_login() 判斷今天領過沒、連續幾天；單機版記在 S.logins。 */
+const LOGIN_REWARD=[10,15,20,25,30,40,50],LOGIN_TICKET_DAY=7;
+async function showLoginReward(){
+  let r;
+  if(ONLINE){r=await cloud.run(()=>sb.rpc('claim_login'));if(!r){S.loginDay=today();save();return}syncWallet(r.wallet);if(r.tickets!=null)gstate().tickets=r.tickets}
+  else{
+    S.logins=S.logins||[];const y=new Date();y.setDate(y.getDate()-1);
+    const prev=S.logins.includes(keyOf(y))?(S.loginStreak||0):0;
+    const st=prev+1,day=(st-1)%7+1,coins=LOGIN_REWARD[day-1];
+    S.logins=[...S.logins.filter(k=>k>keyOf(new Date(Date.now()-40*864e5))),today()];S.loginStreak=st;S.tx=(S.tx||0)+coins;
+    if(day===LOGIN_TICKET_DAY)gstate().tickets++;
+    r={claimed:true,day,streak:st,coins,ticket:day===LOGIN_TICKET_DAY};
+  }
+  S.loginDay=today();save();
+  if(!r.claimed)return;
+  await new Promise(done=>{
+    const m=modal(`<h2 style="text-align:center;color:var(--gold)">連續登入第 ${r.streak} 天！</h2>
+      <p class="small" style="text-align:center;margin:0">每天打開就能領，連續 7 天拿大獎；中斷會從第 1 天重來</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">${LOGIN_REWARD.map((c,i)=>{const d=i+1,got=d<r.day,now=d===r.day,big=d===LOGIN_TICKET_DAY;
+        return `<div style="${big?'grid-column:span 2;':''}border:3px solid var(--ink);padding:6px 2px;text-align:center;background:${now?'var(--gold)':got?'var(--mint)':'var(--deep)'};color:${now||got?'var(--night)':'var(--paper)'}">
+          <div style="font-size:12px">第 ${d} 天</div><div style="display:flex;justify-content:center;gap:4px;margin:3px 0"><span data-s="coin" data-z="3"></span>${big?'<span data-s="capsule" data-z="3"></span>':''}</div>
+          <div style="font-size:13px">${c}${big?'＋盲盒券':''}</div>${got?'<div style="font-size:11px">✓ 領過</div>':now?'<div style="font-size:11px">今天</div>':''}</div>`}).join('')}</div>
+      <p style="text-align:center;margin:0;color:var(--gold)">今天領到 ${r.coins} 金幣${r.ticket?'＋盲盒券 1 張！':''}</p>
+      ${r.day<7?`<p class="small" style="text-align:center;margin:0">明天再來領 ${LOGIN_REWARD[r.day]} 金幣${r.day===6?'＋盲盒券':''}</p>`:'<p class="small" style="text-align:center;margin:0">完成一輪了！明天開始新的一輪</p>'}
+      <button class="btn gold" id="lgok">收下</button>`);
+    m.onclick=null;m.querySelector('#lgok').onclick=()=>{m.remove();done()};
+  });
+}
 /* ---------- 每天第一次打開：打招呼＋提醒＋冷笑話 ---------- */
 const JOKES=[
  ['什麼東西越洗越髒？','水。'],
@@ -1872,6 +1901,7 @@ function dailyGreet(force){
   if(!S.tier||!S.name||document.querySelector('.modal'))return;
   if(!S.tutorialDone){showTutorial();return}
   if(!S.starterDone){showStarter().then(shown=>{if(!shown)dailyGreet(force)});return}
+  if(S.loginDay!==today()){showLoginReward().then(()=>dailyGreet(force));return}
   if(!force&&S.lastGreet===today())return;
   S.lastGreet=today();save();
   const h=new Date().getHours(),hi=h<11?'早安':h<18?'午安':'晚安';
