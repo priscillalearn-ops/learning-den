@@ -760,7 +760,7 @@ function renderGames(){
 }
 /* ---------- 小遊戲關卡：每種 4 關，過了才開下一關；越後面每場金幣上限越高（15／18／21／24） ---------- */
 const GLV={
-  match:['6 組翻牌','8 組翻牌','10 組翻牌','10 組・90 秒內翻完'],
+  match:['10 組翻牌','12 組翻牌','14 組翻牌','16 組・150 秒內翻完'],
   speed:['60 秒答對 5 題','45 秒答對 8 題','30 秒答對 8 題','30 秒答對 10 題・答錯扣 3 秒'],
   granny:['一個阿嬤','新地圖・阿嬤更快','兩個阿嬤','兩個阿嬤・停電了只看得到身邊'],
   tower:['擋住 12 隻怪物','16 隻・怪物變快','20 隻・最後有大魔王','24 隻・城堡只剩 2 顆心']
@@ -807,11 +807,11 @@ function matchPairs(n=6){
   return out;
 }
 function gMatch(lv=1){
-  const N=[6,8,10,10][lv-1],LIMIT=lv===4?90:0,pairs=matchPairs(N);
+  const N=[10,12,14,16][lv-1],LIMIT=lv===4?150:0,pairs=matchPairs(N);
   let tick=null;const t0=Date.now();
   const cards=pairs.flatMap((q,i)=>[{i,t:q.w,en:1},{i,t:q.zh}]).sort(()=>Math.random()-.5);
   let open=[],done=new Set(),moves=0,lock=false;
-  gameShell(`單字翻牌・第 ${lv} 關`,`${LIMIT?`<div class="timer" id="mclock" style="font-size:28px">${LIMIT}</div>`:''}<p class="small" style="margin:0">把英文和中文配成一對，翻越少次分數越高。${Object.keys(S.cards).length>=6?'這局用的是你收集的單字卡！':'收集 6 張單字卡後，就會用你自己的卡來玩。'}</p>
+  gameShell(`單字翻牌・第 ${lv} 關`,`${LIMIT?`<div class="timer" id="mclock" style="font-size:28px">${LIMIT}</div>`:''}<p class="small" style="margin:0">把英文和中文配成一對，翻越少次分數越高。${Object.keys(S.cards).length>=N?'這局用的是你收集的單字卡！':`收集 ${N} 張單字卡後，就會用你自己的卡來玩。`}</p>
     <div id="mboard" style="display:grid;grid-template-columns:repeat(${N>6?4:3},1fr);gap:${N>6?6:8}px"></div>
     <p class="small" id="mmoves" style="margin:0;text-align:center">翻了 0 次</p>`);
   const draw=()=>{$('#mboard').innerHTML=cards.map((c,k)=>{const up=open.includes(k)||done.has(c.i);
@@ -823,7 +823,7 @@ function gMatch(lv=1){
     moves++;$('#mmoves').textContent=`翻了 ${moves} 次`;
     const [a,b]=open;
     if(cards[a].i===cards[b].i&&cards[a].en!==cards[b].en){done.add(cards[a].i);open=[];draw();
-      if(done.size===pairs.length){clearInterval(tick);const score=Math.round(Math.max(3,GAME_MAX-(moves-pairs.length))*(1+.2*(lv-1)));const r=await claimGame('match',score,lv);
+      if(done.size===pairs.length){clearInterval(tick);const score=Math.round(Math.max(3,GAME_MAX-Math.floor(Math.max(0,moves-pairs.length*1.5)/2))*(1+.2*(lv-1)));const r=await claimGame('match',score,lv);
         gameOver('match',lv,true,'全部配對完成！',`翻了 ${moves} 次${LIMIT?`・花了 ${Math.round((Date.now()-t0)/1000)} 秒`:''}`,r,score)}}
     else{lock=true;setTimeout(()=>{open=[];lock=false;draw()},800)}
   };
