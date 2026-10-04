@@ -1670,7 +1670,7 @@ const TOUR=[
  ['book','魔法學院：今日一題','每天一題，答題 +10 金幣、答對再 +5，還能收集單字卡。答錯的題目會放進錯題本，可以到圖書館複習。'],
  ['scroll','先選你的題目範圍','SCOPE'],
  ['bento','魔法餐廳：每天吃一餐','每天去餐廳吃一次飯就算打卡。頁面上方有三顆飽足度愛心，每少吃一天少一顆，連續三天沒吃會餓倒變成小幽靈！'],
- ['lamp','讀書房：一起專注','選 15、25 或 50 分鐘，跟同學一起專注，每分鐘 +1 金幣。同年級的同學會出現在座位上，點座位還能參觀他們的房間；讀書房裡也能聊天打氣。'],
+ ['lamp','讀書房：一起專注','選 15、25、50 分鐘或 2 小時，跟同學一起專注，每分鐘 +1 金幣。同年級的同學會出現在座位上，點座位還能參觀他們的房間；讀書房裡也能聊天打氣。'],
  ['coin','金幣怎麼用？','到百貨公司買家具、服裝、寵物，布置「我的家」。遊樂場有小遊戲和雙倍挑戰；銀行存錢每天會生利息。'],
  ['scroll','任務板和布告欄','噴水池旁的任務板有每日、每週和老師出的任務，完成就能領金幣。布告欄可以看老師的公告和本週排行。'],
  ['chat','好友與老師信箱',`連續打卡 ${DM_NEED} 天，就能加同學好友、互傳私訊和送禮物。老師傳來的訊息會出現在「好友」頁的老師信箱，也可以回覆老師。`],
@@ -2303,7 +2303,7 @@ function freeBots(){const seed=today()+'free'+(S.name||'');
   const all=Object.entries(BOT_POOL).flatMap(([t,ns])=>ns.map(n=>[n,t])).filter(b=>!S.blocked.includes(b[0]));
   const out=all.sort((a,b)=>mix(seed+a[0])-mix(seed+b[0])).slice(0,5);
   out.forEach(b=>{if(botMin[b[0]]==null)botMin[b[0]]=5+hash(b[0]+today())%70});return out}
-function fmt(s){s=Math.max(0,Math.ceil(s));return `${pad(Math.floor(s/60))}:${pad(s%60)}`}
+function fmt(s){s=Math.max(0,Math.ceil(s));return s>=3600?`${Math.floor(s/3600)}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`:`${pad(Math.floor(s/60))}:${pad(s%60)}`}
 /* 座位：自己＋線上真人＋NPC 補滿六個位子 */
 function drawSeats(){
   const box=$('#seats');if(!box)return;
@@ -2328,7 +2328,7 @@ function renderRoom(){
    <div class="timer" id="clock" aria-live="off">${fmt(tm.mode==='idle'?len*60:tm.left)}</div>
    <p class="small" id="mlabel" style="text-align:center;margin:0">${tm.mode==='break'?'休息時間・來一題快問快答':tm.mode==='idle'?'選好時間，按開始':'專注中…'}</p>
    <div class="prog"><i id="bar"></i></div>
-   <div class="chips" style="justify-content:center">${[15,25,50].map(m=>`<button class="chip" data-len="${m}" aria-pressed="${len===m}" ${tm.mode!=='idle'?'aria-disabled="true"':''}>${m} 分鐘</button>`).join('')}</div>
+   <div class="chips" style="justify-content:center">${[15,25,50,120].map(m=>`<button class="chip" data-len="${m}" aria-pressed="${len===m}" ${tm.mode!=='idle'?'aria-disabled="true"':''}>${m===120?'2 小時':m+' 分鐘'}</button>`).join('')}</div>
    <div class="row" id="ctl"></div>
    <div id="quiz"></div>
    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px" id="rchat"></div>
