@@ -591,11 +591,26 @@ function itemThumb(it){
 /* ---------- 金幣 ----------
    跟資料庫的 coins_earned() 同一套算法；線上版買東西時由資料庫再算一次，改網頁也灌不了金幣。 */
 const MILESTONES=[[3,20],[7,50],[15,100],[30,200],[60,400],[100,800]];
+/* 活動週（段考週加成）：線上版從資料庫 app_events 讀；單機版用這份。期間內答題、專注、任務金幣 × mult，答題／專注還會隨機掉盲盒券 */
+let EVENTS=[{name:'段考週加成',start:'2026-10-05',end:'2026-10-11',mult:2,drop:.4}];
+const evMult=day=>EVENTS.reduce((m,e)=>day>=e.start&&day<=e.end?Math.max(m,e.mult):m,1);
+const curEvent=()=>EVENTS.filter(e=>today()>=e.start&&today()<=e.end).sort((a,b)=>b.mult-a.mult)[0]||null;
+async function eventRoll(kind){
+  const ev=curEvent();if(!ev)return;
+  let won=false;
+  if(ONLINE){const r=await cloud.run(()=>sb.rpc('event_roll',{p_kind:kind}));if(!r)return;won=r.won;if(r.tickets!=null)gstate().tickets=r.tickets}
+  else{S.evDrops=S.evDrops||{};const k=today()+kind;if(S.evDrops[k]!=null)return;won=Math.random()<ev.drop;S.evDrops[k]=won;if(won)gstate().tickets++}
+  save();
+  if(won)setTimeout(()=>modal(`<div style="display:flex;justify-content:center"><span data-s="capsule" data-z="8"></span></div><h2 style="text-align:center;color:var(--gold)">${esc(ev.name)}驚喜！</h2>
+    <p style="text-align:center;margin:0">${kind==='answer'?'認真答題':'專注讀書'}的獎勵：<b style="color:var(--gold)">盲盒券 1 張</b><br><span class="small">到遊樂場的魔法盲盒免費抽</span></p><button class="btn gold" data-close>太好了</button>`),600);
+}
+function eventBar(){const e=curEvent();if(!e)return '';const [,m,d]=e.end.split('-');
+  return `<div class="box" style="background:linear-gradient(90deg,var(--gold),var(--coral));color:var(--night);padding:8px 12px;outline-color:var(--night);font-size:14px;line-height:1.5"><b>${esc(e.name)} ×${e.mult}</b>・答題、專注、任務金幣翻倍，還會隨機掉盲盒券！（到 ${+m}/${+d}）</div>`}
 const FOCUS_CAP=150;
 function coinsEarned(){
   let e=50;
-  Object.values(S.answers).forEach(a=>e+=10+(a.ok?5:0));
-  Object.values(S.minutes).forEach(m=>e+=Math.min(m,FOCUS_CAP));
+  Object.entries(S.answers).forEach(([k,a])=>e+=(10+(a.ok?5:0))*evMult(k.slice(0,10)));
+  Object.entries(S.minutes).forEach(([d,m])=>e+=Math.min(m,FOCUS_CAP)*evMult(d));
   const b=bestStreak();MILESTONES.forEach(([d,c])=>{if(b>=d)e+=c});
   return e;
 }
@@ -1317,22 +1332,23 @@ const questReady=()=>!!(questCache&&questCache.some(q=>!q.claimed&&q.progress>=q
 async function renderQuests(){
   curTab='quest';$('#app').classList.remove('wide');
   $('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab==='city'?'page':'false'));
-  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="qback" style="padding:5px 10px;font-size:13px">← 城市</button><span>任務板</span>${coinChip()}</div><div id="qbody"><p class="small">載入中…</p></div>`;
+  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="qback" style="padding:5px 10px;font-size:13px">← 城市</button><span>任務板</span>${coinChip()}</div>${eventBar()}<div id="qbody"><p class="small">載入中…</p></div>`;
   paintSprites($('#view'));$('#qback').onclick=()=>go('city');
   const list=await loadQuests(true);if(curTab!=='quest')return;
   const row=q=>{const done=q.progress>=q.target,pct=Math.min(100,Math.round(100*q.progress/q.target));
     return `<div class="titem"><div class="bar"><span>${q.lvl&&LVL[q.lvl]?`<span class="pill" style="background:${LVL[q.lvl][1]};color:var(--night);margin-right:6px">${LVL[q.lvl][0]}</span>`:''}${esc(q.title)}</span><span style="display:inline-flex;align-items:center;gap:3px;color:var(--gold)"><span data-s="coin" data-z="2"></span>${q.reward}</span></div>
       ${q.author?`<div class="small" style="display:flex;align-items:center;gap:6px"><span data-s="master" data-z="2"></span>${esc(q.author)}${q.end_day?'・到 '+tday(q.end_day):''}</div>`:''}
       <div class="bar" style="gap:10px"><div class="lock" style="flex:1;height:14px"><i style="width:${pct}%;background:${done?'var(--mint)':'var(--coral)'}"></i></div><span class="small" style="min-width:64px;text-align:right">${Math.min(q.progress,q.target)}／${q.target}</span></div>
-      <div class="acts">${q.claimed?'<span class="pill ok">已領取</span>':done?`<button class="btn gold" data-qc="${q.key}">領取 ${q.reward} 金幣</button>`:'<span class="small">還沒完成</span>'}</div></div>`};
+      <div class="acts">${q.claimed?'<span class="pill ok">已領取</span>':done?`<button class="btn gold" data-qc="${q.key}">領取 ${q.reward*evMult(today())}${evMult(today())>1?'（×'+evMult(today())+'）':''} 金幣</button>`:'<span class="small">還沒完成</span>'}</div></div>`};
   const sec=(g,name,sub)=>{const l=list.filter(q=>q.grp===g);return l.length?`<h2>${name}</h2><p class="small" style="margin:0 0 6px">${sub}</p><div class="flist">${l.map(row).join('')}</div>`:''};
   $('#qbody').innerHTML=sec('teacher','老師任務','老師出的特別任務，期限內完成就能領獎。')+sec('daily','每日任務','每天半夜 12 點換新任務，簡單、普通、困難各一個。')+sec('weekly','每週任務','每週一換新任務，簡單、普通、困難各一個。');
   paintSprites($('#qbody'));
   $('#qbody').querySelectorAll('[data-qc]').forEach(b=>b.onclick=async()=>{
     const q=list.find(x=>x.key===b.dataset.qc);b.disabled=true;
-    if(ONLINE){const r=await cloud.rpc('claim_quest',{p_key:q.key});if(!r){b.disabled=false;return}syncWallet(r.wallet)}
-    else{S.qclaims=S.qclaims||{};S.qclaims[q.key]=q.grp==='daily'?today():q.grp==='weekly'?'W'+weekStart():'m';S.tx=(S.tx||0)+q.reward;save()}
-    toast(`領到 ${q.reward} 金幣！`);renderQuests()});
+    let got=q.reward*evMult(today());
+    if(ONLINE){const r=await cloud.rpc('claim_quest',{p_key:q.key});if(!r){b.disabled=false;return}syncWallet(r.wallet);if(r.reward)got=r.reward}
+    else{S.qclaims=S.qclaims||{};S.qclaims[q.key]=q.grp==='daily'?today():q.grp==='weekly'?'W'+weekStart():'m';S.tx=(S.tx||0)+got;save()}
+    toast(`領到 ${got} 金幣！`);renderQuests()});
 }
 /* 布告欄：老師公告＋本週排行。單機版放一則示範公告 */
 const DEMO_ANN=[{id:1,title:'歡迎來到 Learning Den！',body:'每天記得去魔法餐廳吃飯、答今日一題。\n這週大家一起挑戰任務板上的「本週打卡 5 天」！',author:'宇宙超年輕大魔法師（Priscilla 老師）',class_code:null,created_at:new Date().toISOString()}];
@@ -1992,6 +2008,7 @@ const cloud={
     if([p,a,f,c,b].includes(undefined))return false;
     /* 錯題本載不到不影響登入（例如資料庫還沒建 mistakes 表） */
     if(w){S.wrong={};w.forEach(r=>S.wrong[r.qid]=r.n)}
+    const ev=await this.run(()=>sb.from('app_events').select('name,start_day,end_day,mult,drop_rate'));if(ev)EVENTS=ev.map(e=>({name:e.name,start:e.start_day,end:e.end_day,mult:e.mult,drop:+e.drop_rate}));
     if(pu){S.owned={};pu.forEach(r=>S.owned[r.item_id]=r.price)}
     if(lk!==undefined)S.look=lk?{room:lk.room,outfit:lk.outfit}:{};
     if(wl)S.tx=wl.tx||0;
@@ -2155,7 +2172,7 @@ function renderOnboard(){
 }
 
 /* ---------- 今日一題 ---------- */
-function header(){return `<div class="bar"><span style="color:var(--gold)">${T().name}・${esc(S.name)}</span><span style="display:flex;align-items:center;gap:10px">${heartChip()}${coinChip()}<span style="display:flex;align-items:center;gap:4px;color:var(--coral)"><span data-s="fire" data-z="2"></span>連續 ${streak()} 天</span></span></div>`}
+function header(){return `<div class="bar"><span style="color:var(--gold)">${T().name}・${esc(S.name)}</span><span style="display:flex;align-items:center;gap:10px">${heartChip()}${coinChip()}<span style="display:flex;align-items:center;gap:4px;color:var(--coral)"><span data-s="fire" data-z="2"></span>連續 ${streak()} 天</span></span></div>`+eventBar()}
 function renderDaily(){
   if(!S.scopeTipDone&&!S.answers[dkey()]&&SRCS[S.tier]&&!document.querySelector('.modal')){scopeTip(()=>renderDaily())}
   const ans=S.answers[dkey()],q=(ans&&(ans.q||QID[ans.qid]))||todayQ(),t=T();
@@ -2182,7 +2199,7 @@ function renderDaily(){
       S.answers[dkey()]={c,ok,qid:q.id,card:ok?{w:k.w,zh:k.zh}:null};markDay();
       cloud.answer(q,c,ok);
       if(ok){giveCard(k.w,k.zh,true);cloud.card(k.w)}else addWrong(q);
-      renderDaily();toast(`+${ok?15:10} 金幣`);milestoneCheck(before);
+      renderDaily();toast(`+${(ok?15:10)*evMult(today())} 金幣${evMult(today())>1?'（加成中）':''}`);milestoneCheck(before);eventRoll('answer');
     });
     $('#after').innerHTML=`<p class="small" style="text-align:center">答完才能看到大家的答案和留言（答題 +10 金幣，答對再 +5）</p>`;
     return;
@@ -2455,7 +2472,7 @@ const GUILD_DEMO=[['g_focus','大家一起專注','分鐘',60,50],['g_answer','�
 async function renderGuild(){
   curTab='guild';$('#app').classList.remove('wide');
   $('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab==='city'?'page':'false'));
-  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="gdback" style="padding:5px 10px;font-size:13px">← 城市</button><span>任務公會</span>${coinChip()}</div><div id="gdbody"><p class="small">載入中…</p></div>
+  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="gdback" style="padding:5px 10px;font-size:13px">← 城市</button><span>任務公會</span>${coinChip()}</div>${eventBar()}<div id="gdbody"><p class="small">載入中…</p></div>
     <button class="btn" id="gdquest">我的個人任務板</button>`;
   paintSprites($('#view'));$('#gdback').onclick=()=>go('city');$('#gdquest').onclick=()=>renderQuests();
   const body=$('#gdbody');
@@ -2484,7 +2501,7 @@ async function renderGuild(){
     <div class="flist">${g.missions.map(m=>{const done=m.progress>=m.target,pct=Math.min(100,Math.round(100*m.progress/Math.max(1,m.target)));
       return `<div class="titem"><div class="bar"><span>${esc(m.title)}</span><span style="display:inline-flex;align-items:center;gap:4px;color:var(--gold)"><span data-s="coin" data-z="2"></span>${m.reward}</span></div>
         <div class="bar" style="gap:10px"><div class="lock" style="flex:1;height:14px"><i style="width:${pct}%;background:${done?'var(--mint)':'var(--coral)'}"></i></div><span class="small" style="min-width:80px;text-align:right">${Math.min(m.progress,m.target)}／${m.target} ${m.unit}</span></div>
-        <div class="acts">${m.claimed?'<span class="pill ok">已領取</span>':done?`<button class="btn gold" data-gc="${m.key}">領取 ${m.reward} 金幣</button>`:'<span class="small">還沒達成</span>'}</div></div>`}).join('')}</div>
+        <div class="acts">${m.claimed?'<span class="pill ok">已領取</span>':done?`<button class="btn gold" data-gc="${m.key}">領取 ${m.reward*evMult(today())} 金幣${evMult(today())>1?'（×'+evMult(today())+'）':''}</button>`:'<span class="small">還沒達成</span>'}</div></div>`}).join('')}</div>
     <h2>成員（本週專注）</h2>
     <div class="flist">${g.members.map((r,i)=>`<div class="frow" style="padding:6px 10px;${r.is_me?'outline:2px solid var(--gold);outline-offset:-5px':''}">
       <span style="width:22px;color:${i<3?'var(--gold)':'var(--dim)'}">${i+1}</span>
@@ -2493,9 +2510,10 @@ async function renderGuild(){
       <span class="small">答題 ${r.answers}</span><span style="min-width:44px;text-align:right">${hrs(r.week_minutes)}h</span></div>`).join('')}</div>`;
   paintSprites(body);
   body.querySelectorAll('[data-gc]').forEach(b=>b.onclick=async()=>{const m=g.missions.find(x=>x.key===b.dataset.gc);b.disabled=true;
-    if(ONLINE){const r=await cloud.rpc('claim_guild',{p_key:m.key});if(!r){b.disabled=false;return}syncWallet(r.wallet)}
-    else{const w=weekStart();S.gclaims=S.gclaims||{};S.gclaims[w]=[...(S.gclaims[w]||[]),m.key];S.tx=(S.tx||0)+m.reward;save()}
-    toast(`讀書會任務完成！+${m.reward} 金幣`);renderGuild()});
+    let got=m.reward*evMult(today());
+    if(ONLINE){const r=await cloud.rpc('claim_guild',{p_key:m.key});if(!r){b.disabled=false;return}syncWallet(r.wallet);if(r.reward)got=r.reward}
+    else{const w=weekStart();S.gclaims=S.gclaims||{};S.gclaims[w]=[...(S.gclaims[w]||[]),m.key];S.tx=(S.tx||0)+got;save()}
+    toast(`讀書會任務完成！+${got} 金幣`);renderGuild()});
 }
 function startFocus(len){
   tm={...tm,mode:'focus',len:len*60,left:len*60,end:Date.now()+len*60*1000/tm.speed,paused:false};
@@ -2528,7 +2546,7 @@ function drawClock(){
 function finishFocus(){
   const mins=Math.round(tm.len/60),m0=S.minutes[today()]||0,before=bestStreak();
   S.minutes[today()]=m0+mins;markDay();cloud.focus(mins);
-  const gain=Math.min(m0+mins,FOCUS_CAP)-Math.min(m0,FOCUS_CAP);
+  const gain=(Math.min(m0+mins,FOCUS_CAP)-Math.min(m0,FOCUS_CAP))*evMult(today());
   const q=pick(cardPool());
   const had=giveCard(q.w,q.zh);cloud.card(q.w);
   tm={...tm,mode:'break',len:300,left:300,end:Date.now()+300*1000/tm.speed,paused:false,quiz:null};
@@ -2536,9 +2554,9 @@ function finishFocus(){
   modal(`<div style="display:flex;justify-content:center"><span data-s="card" data-z="8"></span></div>
     <h2 style="text-align:center">專注 ${mins} 分鐘完成！</h2>
     <p style="text-align:center;margin:0">獲得單字卡 <span style="color:var(--gold)">${esc(q.w)}</span>${had?`（第 ${S.cards[q.w].n} 張）`:''}<br><span class="small">${esc(q.zh)}</span></p>
-    <p style="text-align:center;margin:0;color:var(--gold)">${gain?`+${gain} 金幣`:`今天的專注金幣已經領滿 ${FOCUS_CAP} 了`}</p>
+    <p style="text-align:center;margin:0;color:var(--gold)">${gain?`+${gain} 金幣${evMult(today())>1?'（加成中）':''}`:`今天的專注金幣已經領滿了`}</p>
     <button class="btn gold" data-close>休息一下</button>`);
-  milestoneCheck(before);
+  milestoneCheck(before);if(mins>=25)eventRoll('focus');
 }
 function renderQuiz(){
   if(!tm.quiz){tm.quiz={q:pick(pool()),t0:Date.now(),done:null,rival:dayBots()[Math.floor(Math.random()*3)][0],rt:(2+Math.random()*4).toFixed(1)}}
