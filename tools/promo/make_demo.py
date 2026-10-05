@@ -15,7 +15,7 @@ SCENES = r"""
 /* 題庫是另外載入的，等載完再擺場景 */
 loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
  const sc=location.hash.slice(1)||'city';
- S=fresh();S.tutorialDone=true;S.starterDone=true;S.scopeTipDone=true;S.loginDay=today();EVENTS=[];/* 宣傳影片不放有日期的活動橫幅，才不會過期 */S.lastGreet=today();S.name='小明';S.tier=sc.startsWith('kid')?'kid':'sage';S.grade=sc.startsWith('kid')?'國小':'高二';S.cls='702';S.remind='2000';S.cityV=CITY_V;
+ S=fresh();S.tutorialDone=true;S.starterDone=true;S.scopeTipDone=true;S.loginDay=today();EVENTS=[];/* 宣傳影片不放有日期的活動橫幅，才不會過期 */S.lastGreet=today();S.name='小明';S.tier=sc.startsWith('kid')?'kid':'sage';S.grade=sc.startsWith('kid')?'國小':'高二';S.cls='167';S.remind='2000';S.cityV=CITY_V;
  const d=new Date();
  for(let i=0;i<12;i++){const x=new Date(d);x.setDate(d.getDate()-i);S.days[keyOf(x)]=true;S.minutes[keyOf(x)]=60}
  ['serene','deliberate','fasten','reduce','interpret','overwhelmed','memorable','recall','skim','discover','curious','journey'].forEach((w,i)=>S.cards[w]={zh:['寧靜的','深思熟慮的','繫緊','降低','詮釋','不知所措的','難忘的','回想起','略讀','發現','好奇的','旅程'][i],n:1+(i%3===0)});
@@ -41,7 +41,7 @@ loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
      const v=$('#view');v.scrollTop=$('#rchat').offsetTop-260}}
  if(sc==='home')renderHome();
  if(sc==='login'){const y=new Date();y.setDate(y.getDate()-1);S.logins=[keyOf(y)];S.loginStreak=4;S.loginDay='';save();go('city');showLoginReward()}
- if(sc==='guild'){S.cls='702';save();renderGuild()}
+ if(sc==='guild'){S.cls='167';save();renderGuild()}
  if(sc==='board'){go('room');boardTab='all';drawBoard();const v=$('#view');v.scrollTop=$('#board').offsetTop-120}
  if(sc==='mistakes'){const p=pool();[0,3,5,8].forEach((i,k)=>{for(let j=0;j<=k%3;j++)addWrong(p[i])});S.wrongOk={[p[0].id]:2,[p[3].id]:1};save();renderMistakes();const dd=document.querySelector('#view details');if(dd)dd.open=true}
  if(sc==='shop'){renderShop('room','city');setTimeout(()=>{const v=$('#view'),it=v.querySelector('[data-it=bed_coffin],[data-id=bed_coffin]');if(it)v.scrollTop=it.offsetTop-200},300)}
