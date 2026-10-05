@@ -1,6 +1,6 @@
 
 -- =====================================================================
--- 活動週（段考週加成）（2026-10-05 第二次更新；整份重跑即可）
+-- 活動週（段考預備週加成）（2026-10-05 第二次更新；整份重跑即可）
 -- app_events 放活動期間：期間內 答今日一題、專注、個人任務、讀書會任務 的金幣 × mult；
 -- 答完今日一題、專注滿 25 分鐘各有一次機會（drop_rate）抽到盲盒券，每天最多 2 張。
 -- 以後段考週只要新增一列，例如：
@@ -18,8 +18,10 @@ create table if not exists public.app_events (
 alter table public.app_events enable row level security;
 drop policy if exists "大家看得到活動" on public.app_events;
 create policy "大家看得到活動" on public.app_events for select to authenticated using (true);
+-- 10/5 這週是段考預備週（段考在下週）；如果之前已經用「段考週加成」建好，就改名
+update public.app_events set name = '段考預備週加成' where name = '段考週加成' and start_day = '2026-10-05';
 insert into public.app_events (name, start_day, end_day, mult, drop_rate)
-  values ('段考週加成', '2026-10-05', '2026-10-11', 2, 0.4) on conflict (name, start_day) do nothing;
+  values ('段考預備週加成', '2026-10-05', '2026-10-11', 2, 0.4) on conflict (name, start_day) do nothing;
 
 create or replace function public.event_mult(d date)
 returns int language sql stable security definer set search_path = public as $$

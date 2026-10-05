@@ -33,6 +33,9 @@ h2{font-size:17px;font-weight:400;margin:0}
 .tier{display:flex;gap:12px;align-items:center;text-align:left;width:100%;border:3px solid var(--ink);padding:12px;color:var(--paper)}
 .tier[aria-pressed="true"]{outline:3px solid var(--gold);outline-offset:-7px}
 .opt{width:100%;text-align:left}
+/* 題目、選項、解析用清楚的字體（像素字留給介面），英文長句才看得清楚 */
+.qtext,.opt,.qopt{font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',-apple-system,'Segoe UI',Arial,sans-serif!important;-webkit-font-smoothing:antialiased;letter-spacing:.01em}
+.qtext{font-size:17px;line-height:1.65!important}.opt,.qopt{font-size:16px}
 .opt.right{background:var(--mint)}.opt.wrong{background:var(--coral)}
 .nav{display:grid;grid-template-columns:repeat(5,1fr);border-top:4px solid var(--ink);background:var(--deep);padding-bottom:env(safe-area-inset-bottom,0px)}
 .nav button{background:none;border:0;padding:10px 4px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px}
@@ -592,7 +595,7 @@ function itemThumb(it){
    跟資料庫的 coins_earned() 同一套算法；線上版買東西時由資料庫再算一次，改網頁也灌不了金幣。 */
 const MILESTONES=[[3,20],[7,50],[15,100],[30,200],[60,400],[100,800]];
 /* 活動週（段考週加成）：線上版從資料庫 app_events 讀；單機版用這份。期間內答題、專注、任務金幣 × mult，答題／專注還會隨機掉盲盒券 */
-let EVENTS=[{name:'段考週加成',start:'2026-10-05',end:'2026-10-11',mult:2,drop:.4}];
+let EVENTS=[{name:'段考預備週加成',start:'2026-10-05',end:'2026-10-11',mult:2,drop:.4}];
 const evMult=day=>EVENTS.reduce((m,e)=>day>=e.start&&day<=e.end?Math.max(m,e.mult):m,1);
 const curEvent=()=>EVENTS.filter(e=>today()>=e.start&&today()<=e.end).sort((a,b)=>b.mult-a.mult)[0]||null;
 async function eventRoll(kind){
@@ -844,7 +847,7 @@ function gSpeed(lv=1){
   const next=()=>{if(!alive())return;cur=pick(src.length>1&&last?src.filter(x=>x!==last):src);last=cur;
     $('#sq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px">
       ${cur.pic?`<div style="display:flex;justify-content:center"><span data-s="${cur.pic}" data-z="6"></span></div>`:''}
-      <div style="line-height:1.6">${esc(cur.q)}</div>
+      <div class="qtext" style="line-height:1.6">${esc(cur.q)}</div>
       ${cur.o.map((o,i)=>`<button class="btn opt" data-si="${i}" style="padding:7px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
     paintSprites($('#sq'));
     $('#sq').querySelectorAll('[data-si]').forEach(b=>b.onclick=()=>{n++;if(+b.dataset.si===cur.a){ok++;b.classList.add('right')}else{b.classList.add('wrong');addWrong(cur);if(PEN){end-=PEN;toast('答錯扣 3 秒！')}}
@@ -883,7 +886,7 @@ function playChal(id,st,qs){
   const show=()=>{const q=qs[i];
     gameShell('雙倍挑戰',`<div class="bar"><span>第 ${i+1}／5 題・押 ${st} 金幣</span><span class="timer" id="cclock" style="font-size:20px">5:00</span></div>
       <div class="box paper" style="display:flex;flex-direction:column;gap:8px">${q.src?`<p class="lbl" style="margin:0">${esc(q.src)} ${q.tag||TAG[q.t]}</p>`:''}
-      ${qPic(q)}<div style="line-height:1.6">${esc(q.q)}</div>
+      ${qPic(q)}<div class="qtext" style="line-height:1.6">${esc(q.q)}</div>
       ${q.o.map((o,k)=>`<button class="btn opt" data-ci="${k}" style="padding:7px 10px">${'ABCD'[k]}. ${esc(o)}</button>`).join('')}</div>`);
     $('#gback').onclick=()=>{const m=modal(`<h2>離開挑戰？</h2><p class="small">押的金幣不會退，沒答的題目算錯。</p><div class="row"><button class="btn" data-close>繼續答題</button><button class="btn coral" id="yes">離開</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();while(ans.length<5)ans.push(-1);submit()}};
     paintSprites($('#view'));
@@ -897,7 +900,7 @@ function playChal(id,st,qs){
     if(pay>st){S.chalWins=S.chalWins||{};S.chalWins[weekStart()]=(S.chalWins[weekStart()]||0)+1;save()}
     gameShell('挑戰結果',`<div class="box" style="background:${pay>st?'var(--kid)':pay===st?'var(--deep)':'#5a2a3a'};text-align:center">
         <h2>答對 ${n}／5 題</h2><p style="margin:6px 0 0;font-size:18px;color:var(--gold)">${pay>st?`贏了 +${pay-st} 金幣（拿回 ${pay}）`:pay===st?`打平，拿回 ${st} 金幣`:`押的 ${st} 金幣沒收了`}</p></div>
-      ${qs.map((q,k)=>`<div class="titem"><div style="line-height:1.5;display:flex;gap:8px;align-items:center">${k+1}. ${q.pic?`<span data-s="${q.pic}" data-z="3"></span>`:''}${esc(q.q)}</div>
+      ${qs.map((q,k)=>`<div class="titem"><div style="line-height:1.5;display:flex;gap:8px;align-items:center">${k+1}. ${q.pic?`<span data-s="${q.pic}" data-z="3"></span>`:''}<span class="qtext" style="font-size:15px">${esc(q.q)}</span></div>
         <div class="small">正解：${esc(q.o[keys[k]])}${ans[k]!==keys[k]?`・你選：${ans[k]>=0?esc(q.o[ans[k]]):'沒作答'}`:'・答對'}</div></div>`).join('')}
       <p class="small" style="margin:0">答錯的題目已經放進錯題本。</p>
       <button class="btn gold" id="cagain">再挑戰一次</button>`);
@@ -1527,7 +1530,7 @@ function gGranny(lv=1){
     if(walk(x,y)){P=[x,y];if(x===E[0]&&y===E[1])end(true)}};
   const ask=()=>{q=pick(pool().filter(z=>z.q.length<=110));
     $('#gq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">上鎖的門：答對才能打開</p>
-      ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div style="line-height:1.5">${esc(q.q)}</div>
+      ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div class="qtext" style="line-height:1.5">${esc(q.q)}</div>
       ${q.o.map((o,i)=>`<button class="btn opt" data-gi="${i}" style="padding:6px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
     paintSprites($('#gq'));
     $('#gq').querySelectorAll('[data-gi]').forEach(b=>b.onclick=()=>{
@@ -1582,8 +1585,8 @@ function gTower(lv=1){
   const showQ=()=>{const m=front();if(!m){$('#tq').innerHTML='<p class="small" style="text-align:center">下一波怪物來了…</p>';cur=null;return}
     if(cur===m)return;cur=m;const q=m.q;
     $('#tq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">${m.boss?`大魔王！還要答對 ${m.life} 題`:'答對就能打倒最前面的怪物'}</p>
-      ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div style="line-height:1.5">${esc(q.q)}</div>
-      <div class="chips">${q.o.map((o,i)=>`<button class="chip" data-ti="${i}" style="font-size:14px;padding:8px 12px">${esc(o)}</button>`).join('')}</div></div>`;
+      ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div class="qtext" style="line-height:1.5">${esc(q.q)}</div>
+      <div class="chips">${q.o.map((o,i)=>`<button class="chip qopt" data-ti="${i}" style="font-size:14px;padding:8px 12px">${esc(o)}</button>`).join('')}</div></div>`;
     paintSprites($('#tq'));
     $('#tq').querySelectorAll('[data-ti]').forEach(b=>b.onclick=()=>{
       if(!alive()||cur!==m)return;
@@ -1661,7 +1664,7 @@ function renderFood(){
     $('#rpay').onclick=async()=>{if(await eat('revive_pay')){toast('復活了！以後記得每天來吃飯');renderFood()}};
     $('#rquiz').onclick=()=>{let ok=0;const ask=()=>{const q=pick(pool().filter(z=>z.q.length<=110));
       $('#rq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">復活挑戰：答對 ${ok}／${REVIVE_NEED}</p>
-        ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div style="line-height:1.5">${esc(q.q)}</div>
+        ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div class="qtext" style="line-height:1.5">${esc(q.q)}</div>
         ${q.o.map((o,i)=>`<button class="btn opt" data-ri="${i}" style="padding:6px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
       paintSprites($('#rq'));$('#rq').scrollIntoView({block:'nearest'});
       $('#rq').querySelectorAll('[data-ri]').forEach(b=>b.onclick=async()=>{
@@ -1705,7 +1708,7 @@ function scopeGuideHTML(){
   return `<p style="margin:0;line-height:1.8">今日一題、多練幾題、小遊戲都會<b style="color:var(--gold)">從你選的範圍出題</b>。選跟學校進度一樣的，練習最有用！</p>
     ${src?scopeSelect():'<p class="small">題庫載入中…</p>'}
     ${rec?`<p class="small" style="margin:0;color:var(--mint)">推薦 ${esc(S.grade)}：${esc(src.P[+rec.slice(1)].name)}（已經幫你選好，可以自己改）</p>`:''}
-    <div class="box" style="background:var(--deep);padding:8px 10px;font-size:13px;line-height:1.7">之後想換範圍：<br>・<b>今日一題</b>頁最上面的「更改範圍」<br>・<b>我的</b>頁的「題目範圍」</div>`;
+    <div class="box" style="background:var(--deep);padding:8px 10px;font-size:13px;line-height:1.7"><div>之後想換範圍：<br>・<b>今日一題</b>頁最上面的「更改範圍」<br>・<b>我的</b>頁的「題目範圍」</div></div>`;
 }
 function bindScopeGuide(root){
   const sc=root.querySelector('#scope');if(!sc)return null;
@@ -2185,7 +2188,7 @@ function renderDaily(){
    <div class="box paper">
      <p class="lbl">今日一題・${d.getMonth()+1}/${d.getDate()}${q.src?`・${esc(q.src)} ${q.tag||TAG[q.t]}`:''}</p>
      ${q.pic?`<div style="display:flex;justify-content:center;gap:14px;align-items:center;margin:4px 0 8px"><span data-s="${q.pic}" data-z="10"></span><button class="btn gold" id="say" aria-label="聽發音">聽發音</button></div>`:''}
-     <div style="font-size:${q.q.length>90?15:17}px;line-height:1.6">${esc(q.q)}</div>
+     <div class="qtext" style="font-size:${q.q.length>90?16:18}px">${esc(q.q)}</div>
    </div>
    ${opts}
    <div id="after"></div>`;
@@ -2207,7 +2210,7 @@ function renderDaily(){
   $('#after').innerHTML=`
    <div class="box" style="background:${ans.ok?'var(--kid)':'var(--deep)'}">
      <h2>${ans.ok?`答對了！${ans.card?`獲得單字卡 ${esc(ans.card.w)}`:''}`:'差一點！'}</h2>
-     <p style="margin:6px 0 0;line-height:1.6">${q.ex?esc(q.ex):`${esc(q.w)}：${esc(q.zh)}`}</p>
+     <p style="margin:6px 0 0;line-height:1.6"><span class="qtext" style="font-size:15px">${q.ex?esc(q.ex):`${esc(q.w)}：${esc(q.zh)}`}</span></p>
    </div>
    <div class="box" style="background:var(--deep)">
      <p class="small" id="stat" style="margin:0 0 8px">&nbsp;</p>
@@ -2242,8 +2245,8 @@ function renderMistakes(){
     <div id="prac"></div>
     <div class="flist">${list.length?list.map(q=>`<details class="titem"><summary style="cursor:pointer;line-height:1.6;list-style:none">
         <div class="bar"><span class="small">${esc(q.src||'')} ${q.tag||TAG[q.t]||''}</span><span class="small" style="color:var(--coral)">錯 ${S.wrong[q.id]} 次${ok[q.id]?`・<span style="color:var(--mint)">複習答對 ${ok[q.id]} 次</span>`:''}</span></div>
-        ${qPic(q,4)}<div>${esc(q.q)}</div></summary>
-        <div style="margin-top:6px;line-height:1.7"><span style="color:var(--mint)">答案：${'ABCD'[q.a]}. ${esc(q.o[q.a])}</span>${q.ex?`<br><span class="small">${esc(q.ex)}</span>`:''}</div>
+        ${qPic(q,4)}<div class="qtext">${esc(q.q)}</div></summary>
+        <div class="qtext" style="margin-top:6px;font-size:15px"><span style="color:var(--mint)">答案：${'ABCD'[q.a]}. ${esc(q.o[q.a])}</span>${q.ex?`<br><span class="small">${esc(q.ex)}</span>`:''}</div>
         <div class="acts"><button class="btn ghost" data-mwdel="${esc(q.id)}" style="font-size:13px">我會了，移出錯題本</button></div></details>`).join('')
       :'<p class="small" style="margin:0">目前沒有錯題，太厲害了！答錯的題目會自動收進來。</p>'}</div>`;
   paintSprites($('#view'));
@@ -2263,9 +2266,9 @@ function practice(){
   const q=pr.q,done=pr.c!=null;
   $('#prac').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px">
     <p class="lbl" style="margin:0">${pr.review?`複習錯題・錯題本 ${wrongs().length} 題`:`多練幾題・${esc(scopeName())}`}・這輪 ${pr.ok}/${pr.n}${q.src?`<br>${esc(q.src)} ${q.tag||TAG[q.t]}`:''}</p>
-    ${qPic(q)}<div style="line-height:1.6">${esc(q.q)}</div>
+    ${qPic(q)}<div class="qtext" style="line-height:1.6">${esc(q.q)}</div>
     ${q.o.map((o,i)=>`<button class="btn opt ${done?(i===q.a?'right':i===pr.c?'wrong':''):''}" data-pi="${i}" style="padding:7px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}
-    ${done?`<p style="margin:0;line-height:1.6">${q.ex?esc(q.ex):`${esc(q.w)}：${esc(q.zh)}`}</p><div class="row"><button class="btn ghost" id="pend" style="color:var(--night);border-color:var(--night)">休息</button><button class="btn gold" id="pnext">下一題</button></div>`:''}
+    ${done?`<p style="margin:0;line-height:1.6"><span class="qtext" style="font-size:15px">${q.ex?esc(q.ex):`${esc(q.w)}：${esc(q.zh)}`}</span></p><div class="row"><button class="btn ghost" id="pend" style="color:var(--night);border-color:var(--night)">休息</button><button class="btn gold" id="pnext">下一題</button></div>`:''}
   </div>`;
   paintSprites($('#prac'));
   if(!done)$('#prac').querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>{pr.c=+b.dataset.pi;pr.n++;if(pr.c===q.a){pr.ok++;if(pr.review)reviewedOk(q)}else addWrong(q);practice()});
@@ -2563,8 +2566,8 @@ function renderQuiz(){
   const z=tm.quiz,q=z.q;
   $('#quiz').innerHTML=`<div class="box paper"><p class="lbl">快問快答・跟 ${esc(z.rival)} 比速度</p>
    ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="6"></span></div>`:''}
-   <div style="margin-bottom:8px;line-height:1.6">${esc(q.q)}</div>
-   <div class="chips">${q.o.map((o,i)=>`<button class="chip" data-qi="${i}" style="${z.done?(i===q.a?'background:var(--mint);color:var(--night)':''):''}">${esc(o)}</button>`).join('')}</div>
+   <div class="qtext" style="margin-bottom:8px;line-height:1.6">${esc(q.q)}</div>
+   <div class="chips">${q.o.map((o,i)=>`<button class="chip qopt" data-qi="${i}" style="${z.done?(i===q.a?'background:var(--mint);color:var(--night)':''):''}">${esc(o)}</button>`).join('')}</div>
    ${z.done?`<p style="margin:10px 0 0">${z.done.ok?`答對！你用 ${z.done.t} 秒，${esc(z.rival)} 用 ${z.rt} 秒，${+z.done.t<+z.rt?'你贏了':'對方贏了'}`:`答錯了，答案是 ${esc(q.o[q.a])}`}${q.ex?`<br><span style="font-size:13px">${esc(q.ex)}</span>`:''}</p>`:''}</div>`;
   paintSprites($('#quiz'));
   if(!z.done)$('#quiz').querySelectorAll('[data-qi]').forEach(b=>b.onclick=()=>{z.done={ok:+b.dataset.qi===q.a,t:((Date.now()-z.t0)/1000).toFixed(1)};if(!z.done.ok)addWrong(q);renderQuiz()});

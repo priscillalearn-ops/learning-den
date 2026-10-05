@@ -15,7 +15,7 @@ SCENES = r"""
 /* 題庫是另外載入的，等載完再擺場景 */
 loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
  const sc=location.hash.slice(1)||'city';
- S=fresh();S.tutorialDone=true;S.starterDone=true;S.lastGreet=today();S.name='小明';S.tier=sc.startsWith('kid')?'kid':'sage';S.grade=sc.startsWith('kid')?'國小':'高二';S.cls='702';S.remind='2000';S.cityV=CITY_V;
+ S=fresh();S.tutorialDone=true;S.starterDone=true;S.scopeTipDone=true;S.loginDay=today();S.lastGreet=today();S.name='小明';S.tier=sc.startsWith('kid')?'kid':'sage';S.grade=sc.startsWith('kid')?'國小':'高二';S.cls='702';S.remind='2000';S.cityV=CITY_V;
  const d=new Date();
  for(let i=0;i<12;i++){const x=new Date(d);x.setDate(d.getDate()-i);S.days[keyOf(x)]=true;S.minutes[keyOf(x)]=60}
  ['serene','deliberate','fasten','reduce','interpret','overwhelmed','memorable','recall','skim','discover','curious','journey'].forEach((w,i)=>S.cards[w]={zh:['寧靜的','深思熟慮的','繫緊','降低','詮釋','不知所措的','難忘的','回想起','略讀','發現','好奇的','旅程'][i],n:1+(i%3===0)});
