@@ -1458,7 +1458,7 @@ function drawPet(c,id,x,y,face,hop){
 let cityChan=null,cityChanName='';
 function joinCity(){
   if(!ONLINE||!ME||!S.tier)return;
-  const name='city-'+roomKey();if(cityChan&&cityChanName===name)return;
+  const name='city-all';if(cityChan&&cityChanName===name)return;
   if(cityChan)sb.removeChannel(cityChan);cityChanName=name;
   cityChan=sb.channel(name,{config:{presence:{key:ME}}});
   cityChan.on('presence',{event:'sync'},()=>{
@@ -1953,6 +1953,7 @@ const cloud={
   unmistake(qid){return this.run(()=>sb.from('mistakes').delete().eq('user_id',ME).eq('qid',qid))},
   board(){return this.run(()=>sb.rpc('class_board'))},
   gradeBoard(){return this.run(()=>sb.rpc('grade_board'))},
+  allBoard(){return this.run(()=>sb.rpc('all_board'))},
   buy(id){return this.run(()=>sb.rpc('buy_item',{p_item:id}),true)},
   saveLook(room,outfit){return this.run(()=>sb.rpc('save_look',{p_room:room,p_outfit:outfit}),'房間佈置沒存到雲端')},
   look(uid){return this.run(()=>sb.from('looks').select('room,outfit').eq('user_id',uid).maybeSingle(),'房間載不到')},
@@ -2432,28 +2433,28 @@ function drawRoomChat(){
 }
 /* 本週專注排行：線上版是同班代碼的真實同學；單機版拿 NPC 陪你比 */
 /* 本週專注排行：年級排行（同年級一起比）／讀書會排行（同班級代碼）。單機版拿 NPC 陪你比 */
-let boardTab='grade';
+let boardTab='all';
 async function drawBoard(){
   const box=$('#board');if(!box)return;
   const gname=gradeOK(S.tier,S.grade)?S.grade:T().stage;
-  const tabs=`<div class="chips" style="margin-bottom:8px"><button class="chip" data-bt="grade" aria-pressed="${boardTab==='grade'}">${esc(gname)} 排行</button><button class="chip" data-bt="guild" aria-pressed="${boardTab==='guild'}">讀書會排行</button></div>`;
+  const tabs=`<div class="chips" style="margin-bottom:8px"><button class="chip" data-bt="all" aria-pressed="${boardTab==='all'}">全部</button><button class="chip" data-bt="grade" aria-pressed="${boardTab==='grade'}">${esc(gname)}</button><button class="chip" data-bt="guild" aria-pressed="${boardTab==='guild'}">讀書會</button></div>`;
   const bind=()=>box.querySelectorAll('[data-bt]').forEach(b=>b.onclick=()=>{boardTab=b.dataset.bt;drawBoard()});
   let rows;
   if(boardTab==='guild'&&!S.cls){box.innerHTML=tabs+'<p class="small" style="margin:0;line-height:1.6">填一樣班級代碼的同學就是同一個讀書會。到「我的 → 換等級／改名字」填班級代碼，或去城市的「任務公會」加入。</p>';bind();return}
   if(!ONLINE){
-    const bots=(boardTab==='guild'?freeBots():roomBots()).slice(0,6);
+    const bots=(boardTab==='grade'?roomBots():freeBots()).slice(0,6);
     rows=[{name:S.name,tier:S.tier,week_minutes:weekMinutes(),streak:streak(),is_me:true}]
       .concat(bots.map(b=>({name:b[0],tier:b[1],week_minutes:(botMin[b[0]]||5+hash(b[0])%70)*4,streak:3+hash(b[0])%9,bot:1})));
     rows.sort((a,b)=>b.week_minutes-a.week_minutes);
   }else{
     box.innerHTML=tabs+'<p class="small" style="margin:0">載入排行中…</p>';bind();
-    rows=await (boardTab==='guild'?cloud.board():cloud.gradeBoard());if(!$('#board'))return;
+    rows=await (boardTab==='guild'?cloud.board():boardTab==='all'?cloud.allBoard():cloud.gradeBoard());if(!$('#board'))return;
     if(!rows){box.innerHTML=tabs+'<p class="small" style="margin:0">排行暫時載不到</p>';bind();return}
   }
   const hrs=m=>(m/60).toFixed(1);
-  box.innerHTML=tabs+`<p class="small" style="margin:0 0 8px">${boardTab==='guild'?esc(S.cls)+' 讀書會':esc(gname)}・最近 7 天專注排行</p>
-    <div class="flist">${rows.slice(0,10).map((r,i)=>`<div class="frow" style="padding:6px 10px;${r.is_me?'outline:2px solid var(--gold);outline-offset:-5px':''}">
-      <span style="width:22px;color:${i<3?'var(--gold)':'var(--dim)'};font-variant-numeric:tabular-nums">${i+1}</span>
+  box.innerHTML=tabs+`<p class="small" style="margin:0 0 8px">${boardTab==='guild'?esc(S.cls)+' 讀書會':boardTab==='all'?'全部同學':esc(gname)}・最近 7 天專注排行</p>
+    <div class="flist">${(()=>{const top=rows.slice(0,boardTab==='all'?20:10),me=rows.findIndex(r=>r.is_me);return me>=top.length?[...top,{...rows[me],rank:me+1}]:top})().map((r,i)=>`<div class="frow" style="padding:6px 10px;${r.is_me?'outline:2px solid var(--gold);outline-offset:-5px':''}">
+      <span style="width:22px;color:${(r.rank||i+1)<=3?'var(--gold)':'var(--dim)'};font-variant-numeric:tabular-nums">${r.rank||i+1}</span>
       ${r.bot?avatarSVG(lookOf({outfit:botOutfit(r.name)},r.tier).outfit,3):r.is_me?avatarSVG(myLook().outfit,3):`<span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="3"></span>`}
       <span class="grow" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}${r.is_me?'（你）':''}</span>
       <span style="font-variant-numeric:tabular-nums">${hrs(r.week_minutes)}h</span>
