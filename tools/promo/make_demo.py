@@ -15,7 +15,7 @@ SCENES = r"""
 /* 題庫是另外載入的，等載完再擺場景 */
 loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
  const sc=location.hash.slice(1)||'city';
- S=fresh();S.tutorialDone=true;S.starterDone=true;S.scopeTipDone=true;S.loginDay=today();S.lastGreet=today();S.name='小明';S.tier=sc.startsWith('kid')?'kid':'sage';S.grade=sc.startsWith('kid')?'國小':'高二';S.cls='702';S.remind='2000';S.cityV=CITY_V;
+ S=fresh();S.tutorialDone=true;S.starterDone=true;S.scopeTipDone=true;S.loginDay=today();EVENTS=[];/* 宣傳影片不放有日期的活動橫幅，才不會過期 */S.lastGreet=today();S.name='小明';S.tier=sc.startsWith('kid')?'kid':'sage';S.grade=sc.startsWith('kid')?'國小':'高二';S.cls='702';S.remind='2000';S.cityV=CITY_V;
  const d=new Date();
  for(let i=0;i<12;i++){const x=new Date(d);x.setDate(d.getDate()-i);S.days[keyOf(x)]=true;S.minutes[keyOf(x)]=60}
  ['serene','deliberate','fasten','reduce','interpret','overwhelmed','memorable','recall','skim','discover','curious','journey'].forEach((w,i)=>S.cards[w]={zh:['寧靜的','深思熟慮的','繫緊','降低','詮釋','不知所措的','難忘的','回想起','略讀','發現','好奇的','旅程'][i],n:1+(i%3===0)});
@@ -34,12 +34,16 @@ loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
    h.candies=[[9,11],[10,13],[13,13],[15,11],[17,12],[8,9],[19,13],[14,7]].map(([x,y],i)=>({x,y,k:i%3}));
    h.ghosts.forEach((g,i)=>{g.cool=0;g.px=[8,17,15][i]*16+8;g.py=[13,9,13][i]*16+8})}}
  if(sc==='daily'){const q=todayQ();const k=(!q.t||q.t==='v')?q:cardPool()[0];S.answers[dkey()]={c:q.a,ok:true,q,card:{w:k.w,zh:k.zh}};S.days[today()]=true;S.comments[dkey()]=['這題我上週才背過！'];save();go('daily')}
- if(sc==='room'){go('room');startFocus(25);tm.end=Date.now()+(12*60+34)*1000;tm.left=754;drawClock();{rchat.open=true;
+ if(sc==='room'){S.timerLen=120;save();go('room');startFocus(120);tm.end=Date.now()+(83*60+45)*1000;tm.left=83*60+45;drawClock();{rchat.open=true;
    rchat.msgs=[{id:1,user_id:'bot',name:'喝第三杯咖啡的貓頭鷹',tier:'sage',body:'學測倒數 100 天，大家一起撐住',created_at:new Date(Date.now()-420000).toISOString()},
      {id:2,user_id:'bot',name:'熬夜刷題的熊貓',tier:'sage',body:'這題的 effect / affect 我又錯了',created_at:new Date(Date.now()-240000).toISOString()},
      {id:3,user_id:'me',name:'小明',tier:'sage',body:'加油',created_at:new Date(Date.now()-60000).toISOString()}];drawRoomChat();
      const v=$('#view');v.scrollTop=$('#rchat').offsetTop-260}}
  if(sc==='home')renderHome();
+ if(sc==='login'){const y=new Date();y.setDate(y.getDate()-1);S.logins=[keyOf(y)];S.loginStreak=4;S.loginDay='';save();go('city');showLoginReward()}
+ if(sc==='guild'){S.cls='702';save();renderGuild()}
+ if(sc==='board'){go('room');boardTab='all';drawBoard();const v=$('#view');v.scrollTop=$('#board').offsetTop-120}
+ if(sc==='mistakes'){const p=pool();[0,3,5,8].forEach((i,k)=>{for(let j=0;j<=k%3;j++)addWrong(p[i])});S.wrongOk={[p[0].id]:2,[p[3].id]:1};save();renderMistakes();const dd=document.querySelector('#view details');if(dd)dd.open=true}
  if(sc==='shop'){renderShop('room','city');setTimeout(()=>{const v=$('#view'),it=v.querySelector('[data-it=bed_coffin],[data-id=bed_coffin]');if(it)v.scrollTop=it.offsetTop-200},300)}
  if(sc==='levels'){go('games');pickLevel('tower')}
  if(sc==='games')go('games');
@@ -51,7 +55,7 @@ loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
  if(sc==='granny'){gGranny(3);setTimeout(()=>{const k=key=>document.dispatchEvent(new KeyboardEvent('keydown',{key}));['ArrowRight','ArrowRight','ArrowDown','ArrowDown'].forEach(k)},300)}
  if(sc==='tower')gTower(3);
  if(sc==='start'){S=fresh();save();renderOnboard();document.querySelector('#nm').value='小美';document.querySelector('[data-t=teen]').click();setTimeout(()=>{const g=document.querySelector('[data-gr=國二]');g&&g.click();document.querySelector('[data-ci="4"]').click();const v=document.querySelector('#view');v.scrollTop=document.querySelector('#gradeBox').offsetTop-200},100)}
- if(sc==='gift'){ME='me';const F='f1';curTab='friends';$('#nav').hidden=false;openChat(F,'芸芸');setTimeout(()=>{chatWith.msgs=[{id:1,sender:F,body:'明天一起去讀書房嗎？',created_at:new Date(Date.now()-600000).toISOString()},{id:2,sender:'me',body:'好啊！我連續 12 天了',created_at:new Date(Date.now()-300000).toISOString()}];drawChat();giftModal(F,'芸芸')},200)}
+ if(sc==='gift'){ME='me';const F='f1';curTab='friends';$('#nav').hidden=false;openChat(F,'芸芸').then(()=>{chatWith.msgs=[{id:1,sender:F,body:'明天一起去讀書房嗎？',created_at:new Date(Date.now()-600000).toISOString()},{id:2,sender:'me',body:'好啊！我連續 12 天了',created_at:new Date(Date.now()-300000).toISOString()}];drawChat();giftModal(F,'芸芸')})}
 });
 """
 s = s.replace("\nboot();\n</script>", "\n" + SCENES + "\n</script>", 1)
