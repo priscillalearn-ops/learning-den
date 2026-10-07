@@ -57,6 +57,7 @@ h2{font-size:17px;font-weight:400;margin:0}
 .frow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:3px solid var(--ink);background:var(--deep);color:var(--paper);padding:8px 10px}
 .frow .grow{flex:1;min-width:0}
 .frow .mini{font-size:12px;padding:5px 8px}
+.btn.mini{font-size:13px;padding:5px 8px}
 .chat{display:flex;flex-direction:column;gap:6px;min-height:200px}
 .bub{max-width:80%;padding:8px 10px;border:3px solid var(--ink);line-height:1.5;word-break:break-word;font-size:14px}
 .bub.me{align-self:flex-end;background:var(--gold);color:var(--night)}
@@ -501,6 +502,19 @@ const SHOP=[
  {id:'wall_library',slot:'wall',name:'書牆壁紙',price:9999,c:['#5a3d2b','#8b5e3c'],books:true,cards:60},
  {id:'hat_wiz_gold',slot:'hat',name:'傳說金色魔法帽',price:9999,hat:'wiz',c:['#ffd166'],cards:100},
  {id:'hat_none',slot:'hat',name:'不戴帽子',price:0,hat:'hair'},
+ {id:'hair_long',slot:'hat',name:'髮型：長髮',price:0,hat:'hairlong'},
+ {id:'hair_ponytail',slot:'hat',name:'髮型：馬尾',price:0,hat:'ponytail'},
+ {id:'hair_bun',slot:'hat',name:'髮型：包包頭',price:0,hat:'bun'},
+ {id:'hair_spiky',slot:'hat',name:'髮型：刺蝟頭',price:0,hat:'spiky'},
+ {id:'hair_curly',slot:'hat',name:'髮型：捲髮',price:0,hat:'curly'},
+ {id:'hair_bob',slot:'hat',name:'髮型：妹妹頭',price:0,hat:'bob'},
+ {id:'hat_ninja',slot:'hat',name:'忍者頭巾',price:0,hat:'ninja',c:['#2b2b33']},
+ {id:'hat_astro',slot:'hat',name:'太空頭盔',price:0,hat:'astro'},
+ {id:'hat_chef',slot:'hat',name:'廚師帽',price:0,hat:'chef'},
+ {id:'hat_detective',slot:'hat',name:'偵探帽',price:0,hat:'detective',c:['#8b5e3c']},
+ {id:'hat_pirate',slot:'hat',name:'海盜帽',price:0,hat:'pirate'},
+ {id:'hat_tiara',slot:'hat',name:'小皇冠',price:0,hat:'tiara'},
+ {id:'hat_elf',slot:'hat',name:'精靈帽',price:0,hat:'elf',c:['#4caf50']},
  {id:'hat_wiz_p',slot:'hat',name:'紫色魔法帽',price:0,hat:'wiz',c:['#8a5cd6']},
  {id:'hat_helmet',slot:'hat',name:'騎士頭盔',price:0,hat:'helmet',c:['#9aa3b5']},
  {id:'hat_wiz_b',slot:'hat',name:'藍色魔法帽',price:60,hat:'wiz',c:['#3a7bd5']},
@@ -518,16 +532,36 @@ const SHOP=[
  {id:'top_pink',slot:'top',name:'粉紅上衣',price:30,c:['#f4a6c6']},
  {id:'top_black',slot:'top',name:'黑色帽T',price:60,c:['#2b2b33']},
  {id:'top_white',slot:'top',name:'白色襯衫',price:60,c:['#f4ecd8']},
+ {id:'top_ninja',slot:'top',name:'忍者裝',price:0,c:['#26215c']},
+ {id:'top_astro',slot:'top',name:'太空衣',price:0,c:['#e6f1fb']},
+ {id:'top_chef',slot:'top',name:'廚師服',price:0,c:['#fff6c9']},
+ {id:'top_coat',slot:'top',name:'偵探風衣',price:0,c:['#a8794a']},
+ {id:'top_navy',slot:'top',name:'海軍外套',price:0,c:['#1d2a5c']},
+ {id:'top_royal',slot:'top',name:'王室禮服',price:0,c:['#c25a9c']},
+ {id:'top_sport',slot:'top',name:'運動服',price:0,c:['#ff8a5c']},
+ {id:'top_forest',slot:'top',name:'森林斗篷',price:0,c:['#2f7045']},
  {id:'hair_brown',slot:'hair',name:'棕髮',price:0,c:['#c98a3a']},
  {id:'hair_black',slot:'hair',name:'黑髮',price:0,c:['#2b2b33']},
  {id:'hair_blond',slot:'hair',name:'金髮',price:0,c:['#ffd166']},
  {id:'hair_pink',slot:'hair',name:'粉紅髮',price:0,c:['#f4a6c6']},
  {id:'hair_blue',slot:'hair',name:'藍髮',price:0,c:['#6ab0f3']},
+ {id:'hair_red',slot:'hair',name:'紅髮',price:0,c:['#d94f4f']},
+ {id:'hair_white',slot:'hair',name:'白髮',price:0,c:['#f4ecd8']},
+ {id:'hair_purple',slot:'hair',name:'紫髮',price:0,c:['#8a5cd6']},
+ {id:'hair_green',slot:'hair',name:'綠髮',price:0,c:['#4caf50']},
+ {id:'hair_gray',slot:'hair',name:'灰髮',price:0,c:['#9aa3b5']},
+ {id:'hair_orange',slot:'hair',name:'橘髮',price:0,c:['#ff8a5c']},
  {id:'skin_1',slot:'skin',name:'膚色一',price:0,c:['#f2c79b']},
  {id:'skin_2',slot:'skin',name:'膚色二',price:0,c:['#ffe0c7']},
  {id:'skin_3',slot:'skin',name:'膚色三',price:0,c:['#d9a066']},
  {id:'skin_4',slot:'skin',name:'膚色四',price:0,c:['#8d5a3b']},
+ {id:'skin_5',slot:'skin',name:'膚色五',price:0,c:['#5c3a24']},
+ {id:'skin_6',slot:'skin',name:'膚色六',price:0,c:['#f8d5b8']},
  {id:'acc_none',slot:'acc',name:'不戴配件',price:0},
+ {id:'acc_ninja',slot:'acc',name:'忍者面罩',price:0,acc:'ninja'},
+ {id:'acc_eyepatch',slot:'acc',name:'海盜眼罩',price:0,acc:'eyepatch'},
+ {id:'acc_mustache',slot:'acc',name:'紳士鬍子',price:0,acc:'mustache'},
+ {id:'acc_freckle',slot:'acc',name:'腮紅雀斑',price:0,acc:'freckle'},
  {id:'acc_beard',slot:'acc',name:'大魔導師鬍子',price:0,acc:'beard'},
  {id:'acc_glasses',slot:'acc',name:'墨鏡',price:80,acc:'glasses'},
  {id:'acc_scarf',slot:'acc',name:'紅圍巾',price:60,acc:'scarf'},
@@ -563,12 +597,16 @@ const inWin=it=>!it.from||(mmdd()>=it.from&&mmdd()<=it.until);
 const buyable=it=>!it.cards&&!it.gacha&&!it.bundle&&inWin(it);
 
 /* 角色：帽子（0–2 列）＋臉（3–5）＋衣服（6）＋腳（7），配件疊在上面 */
-const HAT={witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],horns:['.h....h.','.hooooh.','.oooooo.'],mummy:['..hhhh..','.hghhgh.','.hhhhhh.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
+const HAT={hairlong:['..oooo..','.oooooo.','oooooooo'],ponytail:['..oooo..','.oooooo.','.oooooo.'],bun:['...oo...','..oooo..','.oooooo.'],spiky:['.o.o.o..','.oooooo.','.oooooo.'],curly:['.o.oo.o.','oooooooo','oooooooo'],bob:['..oooo..','.oooooo.','oooooooo'],
+  ninja:['..hhhh..','.hhhhhh.','hhhhhhhh'],astro:['..wwww..','.wBBBBw.','wBBBBBBw'],chef:['.wwwwww.','.wwwwww.','..wwww..'],detective:['...hh...','..hhhh..','hhhhhhhh'],pirate:['..kkkk..','.kkwkkk.','kkkkkkkk'],tiara:['...y.y..','..yyyy..','.oooooo.'],elf:['......h.','....hhh.','.hhhhhh.'],
+  witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],horns:['.h....h.','.hooooh.','.oooooo.'],mummy:['..hhhh..','.hghhgh.','.hhhhhh.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
   cap:['........','..hhhh..','.hhhhhhh'],bunny:['.h....h.','.h....h.','.hhhhhh.'],catear:['.h....h.','.hh..hh.','.hhhhhh.'],crown:['........','.h.hh.h.','.hhhhhh.']};
-const ACC={fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
+const HATSIDE={hairlong:{3:'o......o',4:'o......o',5:'o......o',6:'o......o'},ponytail:{2:'.......o',3:'.......o',4:'.......o'},curly:{3:'o......o',4:'o......o'},bob:{3:'.o....o.',4:'.o....o.'},astro:{3:'.w....w.',4:'.w....w.',5:'.w....w.'},elf:{4:'.s....s.'}};
+const ACC={ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
 function avatarGrid(outfit){
   const hat=ITEM[outfit.hat]||ITEM.hat_none,top=ITEM[outfit.top]||ITEM.top_blue,acc=ITEM[outfit.acc];
   const g=[...HAT[hat.hat||'hair'],'..ssss..','..ksks..','..ssss..','.cccccc.','..n..n..'];
+  const side=HATSIDE[hat.hat];if(side)Object.entries(side).forEach(([row,pat])=>{g[row]=[...g[row]].map((ch,i)=>pat[i]!=='.'&&ch==='.'?pat[i]:ch).join('')});
   if(acc&&ACC[acc.acc])Object.entries(ACC[acc.acc]).forEach(([row,pat])=>{g[row]=[...g[row]].map((ch,i)=>pat[i]!=='.'?pat[i]:ch).join('')});
   const hair=ITEM[outfit.hair]||ITEM.hair_brown,skin=ITEM[outfit.skin]||ITEM.skin_1;
   return{g,pal:{...RPAL,h:(hat.c||['#8a5cd6'])[0],c:top.c[0],o:hair.c[0],s:skin.c[0]}};
@@ -742,9 +780,92 @@ async function visitRoom(who,uid,tier){
     const room={};[...ROOM_SLOTS,...PET_SLOTS].forEach(([s])=>room[s]=pickSlot(s));
     look=lookOf({room,outfit:botOutfit(who)},tier);
   }
-  modal(`<h2>${esc(who)} 的房間</h2>${roomSVG(look,look.outfit,who+' 的房間')}<button class="btn" data-close>回去讀書</button>`);
+  const back=curTab==='city'?()=>go('city'):()=>go('room');
+  const m=modal(`<h2>${esc(who)} 的房間</h2>${roomSVG(look,look.outfit,who+' 的房間')}<div class="row"><button class="btn" data-close>回去</button><button class="btn gold" id="vgarden">看${esc(who)}的花園</button></div>`);
+  m.querySelector('#vgarden').onclick=()=>{m.remove();gardenBack=back;renderGarden(uid||'bot',who)};
 }
 
+
+/* ---------- 魔法花園：自己的 6 塊地，種東西、澆水、收成；也能去同學的花園幫忙澆水 ----------
+   魔法水每天重算：登入 1 ＋ 答今日一題 2 ＋ 每次專注滿 25 分鐘 1（最多 3）。每株最多澆 3 次，每次收成 +15%。
+   幫同學澆水不用自己的水，幫忙的人 +2 金幣（每天最多 5 次）。線上版由資料庫 garden_* 函式處理。 */
+const CROPS=[
+ {id:'wheat',name:'魔法小麥',hours:1,seed:10,coins:16,c:['#e8c35a','#9a7b2f'],g:['..1.1...','.11.1.1.','..11111.','...111..','....2...','...22...','....2.2.','....22..']},
+ {id:'carrot',name:'胡蘿蔔',hours:3,seed:20,coins:36,c:['#ff8a5c','#4caf50'],g:['..2.2...','...22...','..1111..','..1111..','...11...','...11...','....1...','........']},
+ {id:'tomato',name:'番茄',hours:6,seed:30,coins:58,c:['#d94f4f','#4caf50'],g:['...22...','..2222..','.111111.','11w11111','11111111','.111111.','..1111..','........']},
+ {id:'pumpkin',name:'南瓜',hours:12,seed:50,coins:100,c:['#ff8a5c','#4caf50'],g:['....2...','...22...','.111111.','11111111','11111111','11111111','.111111.','........']},
+ {id:'sunflower',name:'魔法向日葵',hours:24,seed:80,coins:170,c:['#5a3d2b','#4caf50'],g:['..yyyy..','.yy11yy.','.y1111y.','.yy11yy.','..yyyy..','...2....','..22.2..','...2....']},
+ {id:'starfruit',name:'星星果',hours:48,seed:120,coins:280,c:['#ffd166','#4caf50'],g:['...y....','..yyy...','yyyyyyy.','.yyyyy..','..y.y...','...2....','..222...','...2....']}
+];
+const CROP=Object.fromEntries(CROPS.map(c=>[c.id,c]));
+const SPROUT=[['........','........','........','........','........','........','...dd...','..dddd..'],['........','........','........','........','...G.G..','....G...','....G...','........'],['........','........','..G..G..','...GG...','.G.G..G.','..GGGG..','...GG...','........']];
+const ripeAt=pl=>new Date(pl.planted_at).getTime()+CROP[pl.crop].hours*3600e3;
+const harvestAmt=pl=>Math.round(CROP[pl.crop].coins*(1+.15*Math.min(pl.waters,3)));
+function plotSVG(pl){
+  let r='<rect x="0" y="0" width="10" height="10" fill="#6e472b"/><rect x="0" y="8" width="10" height="2" fill="#5a3d2b"/>';
+  if(pl&&pl.crop){const ripe=Date.now()>=ripeAt(pl),prog=(Date.now()-new Date(pl.planted_at).getTime())/(CROP[pl.crop].hours*3600e3);
+    if(pl.waters)r+='<rect x="0" y="0" width="10" height="10" fill="#1d2a5c" opacity=".25"/>';
+    const g=ripe?CROP[pl.crop].g:SPROUT[prog<.25?0:prog<.6?1:2],cl=CROP[pl.crop].c;
+    r+=gridRects(g,1,1,{...RPAL,'1':cl[0],'2':cl[1]});
+    for(let i=0;i<pl.waters;i++)r+=`<rect x="${.6+i*1.2}" y=".5" width=".8" height="1" fill="#6ab0f3"/>`;
+    if(ripe)r+='<rect x="8" y=".4" width="1.4" height="1.4" fill="#ffd166"/>'}
+  return `<svg viewBox="0 0 10 10" width="100%" shape-rendering="crispEdges" style="display:block;border:3px solid var(--ink)">${r}</svg>`;
+}
+function timeLeft(ms){const m=Math.max(0,Math.ceil(ms/60000));return m>=60?`${Math.floor(m/60)} 小時 ${m%60} 分`:`${m} 分鐘`}
+/* 單機版：自己的花園存在 S.garden；NPC 同學的花園用名字算出來 */
+function gardenWaterLocal(){const t=today(),used=((S.garden&&S.garden.used)||{})[t]||0;
+  return Math.max(0,1+(S.answers[dkey()]?2:0)+Math.min(3,Math.floor((S.minutes[t]||0)/25))-used)}
+function botGarden(name){const plots=[];for(let i=0;i<6;i++){const h=hash(name+today()+i);if(h%4===0)continue;const c=CROPS[h%CROPS.length];
+  plots.push({slot:i,crop:c.id,planted_at:new Date(Date.now()-((h>>3)%100)/100*c.hours*3600e3).toISOString(),waters:(h>>5)%3,watered_by_me:!!(S.botWater||{})[today()+name+i]})}
+  return {is_me:false,name,plots}}
+async function loadGarden(uid,name){
+  if(ONLINE&&uid!=='bot')return await cloud.run(()=>sb.rpc('garden_info',{p_user:uid||null}),true);
+  if(uid==='bot')return botGarden(name);
+  S.garden=S.garden||{plots:[],used:{},helpers:[]};
+  return {is_me:true,name:S.name,plots:S.garden.plots,water_left:gardenWaterLocal(),helpers:S.garden.helpers||[],helps_today:((S.garden.helped||{})[today()])||0};
+}
+async function renderGarden(uid,name){
+  const mine=!uid;curTab='garden';$('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current','false'));
+  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="gbk" style="padding:5px 10px;font-size:13px">← ${mine?'我的家':'回去'}</button><span>${mine?'我的花園':esc(name)+' 的花園'}</span>${coinChip()}</div><div id="gdn"><p class="small">載入中…</p></div>`;
+  paintSprites($('#view'));$('#gbk').onclick=()=>mine?renderHome():history.length&&gardenBack?gardenBack():go('room');
+  const g=await loadGarden(uid,name);if(curTab!=='garden')return;
+  if(!g){$('#gdn').innerHTML='<p class="small">花園載不到，請老師先跑最新的 SQL。</p>';return}
+  const byslot={};(g.plots||[]).forEach(p=>byslot[p.slot]=p);
+  const cell=i=>{const pl=byslot[i],now=Date.now();let info='',btn='';
+    if(!pl||!pl.crop){info='<span class="small">空地</span>';btn=mine?`<button class="btn gold mini" data-plant="${i}">種植</button>`:''}
+    else{const c=CROP[pl.crop],ripe=now>=ripeAt(pl);
+      info=`<span style="font-size:13px">${c.name}</span><br><span class="small">${ripe?`<span style="color:var(--gold)">成熟了！</span>`:'還要 '+timeLeft(ripeAt(pl)-now)}・水 ${pl.waters}/3</span>`;
+      if(mine&&ripe)btn=`<button class="btn gold mini" data-harv="${i}">收成 +${harvestAmt(pl)}</button>`;
+      else if(!ripe&&pl.waters<3&&!pl.watered_by_me)btn=`<button class="btn mini" data-water="${i}" style="background:#6ab0f3;color:var(--night)">${mine?'澆水':'幫忙澆水'}</button>`;
+      else if(!ripe&&pl.watered_by_me)btn='<span class="small">已澆過</span>'}
+    return `<div style="display:flex;flex-direction:column;gap:4px;align-items:stretch;text-align:center">${plotSVG(pl)}<div style="line-height:1.3;min-height:34px">${info}</div>${btn}</div>`};
+  $('#gdn').innerHTML=`${mine?`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:10px;padding:10px 12px"><span style="font-size:22px;color:#6ab0f3;white-space:nowrap">💧 ${g.water_left}</span><span class="small" style="line-height:1.6">今天的魔法水。登入 +1、答今日一題 +2、每次專注 25 分鐘 +1。每株澆水最多 3 次，每次收成 +15%。</span></div>`
+      :`<p class="small" style="margin:0;line-height:1.6">幫同學澆水不用花自己的魔法水，你還能拿 2 金幣（每天最多 5 次）。</p>`}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#3f8f5a;padding:10px;border:3px solid var(--ink)">${[0,1,2,3,4,5].map(cell).join('')}</div>
+    ${mine?`<div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 6px">最近來幫忙的同學</p>${(g.helpers||[]).length?`<div class="flist">${g.helpers.map(h=>`<div class="frow" style="padding:6px 10px"><span class="grow">${esc(h.name)}</span><span class="small">幫你的${h.crop&&CROP[h.crop]?CROP[h.crop].name:'作物'}澆水</span></div>`).join('')}</div>`:'<p class="small" style="margin:0">還沒有人來幫忙。去讀書房點同學的座位，參觀他們的花園互相幫忙吧！</p>'}</div>`:''}`;
+  paintSprites($('#gdn'));
+  const reload=()=>renderGarden(uid,name);
+  $('#gdn').querySelectorAll('[data-plant]').forEach(b=>b.onclick=()=>{const slot=+b.dataset.plant;
+    const m=modal(`<h2>選種子</h2><p class="small" style="margin:0">種下去之後，時間到就能收成（不用一直開著）。</p><div class="flist">${CROPS.map(c=>`<button class="frow" data-seed="${c.id}" style="padding:8px 10px">
+      <svg viewBox="0 0 8 8" width="36" height="36" shape-rendering="crispEdges">${gridRects(c.g,0,0,{...RPAL,'1':c.c[0],'2':c.c[1]})}</svg>
+      <span class="grow" style="text-align:left">${c.name}<br><span class="small">${c.hours>=24?c.hours/24+' 天':c.hours+' 小時'}成熟・收成 ${c.coins}～${Math.round(c.coins*1.45)}</span></span><span style="color:var(--gold)">${c.seed} 金幣</span></button>`).join('')}</div><button class="btn ghost" data-close>取消</button>`);
+    m.querySelectorAll('[data-seed]').forEach(x=>x.onclick=async()=>{const c=CROP[x.dataset.seed];if(coins()<c.seed){toast('金幣不夠買種子');return}
+      if(ONLINE){const r=await cloud.rpc('garden_plant',{p_slot:slot,p_crop:c.id});if(!r)return;syncWallet(r.wallet)}
+      else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot).concat([{slot,crop:c.id,planted_at:new Date().toISOString(),waters:0}]);S.tx=(S.tx||0)-c.seed;save()}
+      m.remove();toast(`種下${c.name}！`);reload()})});
+  $('#gdn').querySelectorAll('[data-water]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.water;b.disabled=true;
+    if(ONLINE&&uid!=='bot'){const r=await cloud.rpc('garden_water',{p_owner:uid||ME,p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet);toast(r.reward?`澆好了！幫忙獎勵 +${r.reward} 金幣`:'澆好了！')}
+    else if(mine){if(gardenWaterLocal()<1){toast('今天的魔法水用完了，答題或專注可以拿到更多');b.disabled=false;return}
+      const pl=S.garden.plots.find(p=>p.slot===slot);pl.waters++;pl.watered_by_me=true;S.garden.used[today()]=(S.garden.used[today()]||0)+1;save();toast('澆好了！')}
+    else{S.botWater=S.botWater||{};S.botWater[today()+name+slot]=1;S.garden=S.garden||{plots:[],used:{},helpers:[]};S.garden.helped=S.garden.helped||{};
+      const n=S.garden.helped[today()]||0;S.garden.helped[today()]=n+1;if(n<5){S.tx=(S.tx||0)+2;toast('澆好了！幫忙獎勵 +2 金幣')}else toast('澆好了！');save()}
+    reload()});
+  $('#gdn').querySelectorAll('[data-harv]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.harv,pl=byslot[slot];b.disabled=true;let amt=harvestAmt(pl);
+    if(ONLINE){const r=await cloud.rpc('garden_harvest',{p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet);amt=r.amount}
+    else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot);S.tx=(S.tx||0)+amt;save()}
+    modal(`<div style="display:flex;justify-content:center"><svg viewBox="0 0 8 8" width="80" height="80" shape-rendering="crispEdges">${gridRects(CROP[pl.crop].g,0,0,{...RPAL,'1':CROP[pl.crop].c[0],'2':CROP[pl.crop].c[1]})}</svg></div><h2 style="text-align:center">收成${CROP[pl.crop].name}！</h2><p style="text-align:center;margin:0;color:var(--gold)">+${amt} 金幣</p><button class="btn gold" data-close>好</button>`);reload()});
+}
+let gardenBack=null;
 /* ---------- 遊戲區：單字翻牌、60 秒快答、雙倍挑戰、銀行 ----------
    線上版的金幣進出全部由資料庫函式處理（claim_game、start/submit_challenge、bank_move），
    網頁只顯示結果；單機版在瀏覽器裡用同樣的規則模擬。 */
@@ -1509,9 +1630,10 @@ function renderHome(){
      ${petSvg?`<div id="hpet" style="position:absolute;width:12.5%;left:55%;top:78%;transition:left .9s linear,top .9s linear">${petSvg}</div>`:''}
    </div>
    <p class="small" style="margin:0">點地板走過去${petSvg?'，寵物會跟著你':''}。</p>
-   <div class="row"><button class="btn gold" id="hdeco">布置房間</button><button class="btn" id="hwear">換裝</button></div>`;
+   <div class="row"><button class="btn gold" id="hdeco">布置房間</button><button class="btn" id="hwear">換裝</button></div>
+   <button class="btn mint" id="hgarden">我的魔法花園</button>`;
   paintSprites($('#view'));
-  $('#hback').onclick=()=>go('city');$('#hdeco').onclick=()=>renderShop('room','home');$('#hwear').onclick=()=>renderShop('wear','home');
+  $('#hback').onclick=()=>go('city');$('#hgarden').onclick=()=>renderGarden();$('#hdeco').onclick=()=>renderShop('room','home');$('#hwear').onclick=()=>renderShop('wear','home');
   const room=$('#hroom'),me=$('#hme'),pt=$('#hpet');let cur={x:20,y:72};
   const moveTo=(x,y)=>{const d=Math.hypot(x-cur.x,y-cur.y),s=Math.max(.2,d/35);me.style.transition=`left ${s}s linear,top ${s}s linear`;
     me.firstElementChild.style.transform=x<cur.x?'scaleX(-1)':'';me.style.left=x+'%';me.style.top=y+'%';cur={x,y};
@@ -2113,8 +2235,19 @@ const STARTERS=[
  {name:'小騎士',o:{hat:'hat_helmet',top:'top_red',acc:'acc_none'}},
  {name:'大魔導師',o:{hat:'hat_wiz_p',top:'top_purple',acc:'acc_beard'}},
  {name:'陽光少年',o:{hat:'hat_none',top:'top_blue',acc:'acc_none',hair:'hair_black'}},
- {name:'元氣少女',o:{hat:'hat_none',top:'top_red',acc:'acc_none',hair:'hair_pink'}},
- {name:'神秘旅人',o:{hat:'hat_none',top:'top_purple',acc:'acc_none',hair:'hair_blond'}}
+ {name:'元氣少女',o:{hat:'hair_ponytail',top:'top_red',acc:'acc_freckle',hair:'hair_pink'}},
+ {name:'神秘旅人',o:{hat:'hat_none',top:'top_purple',acc:'acc_none',hair:'hair_blond'}},
+ {name:'長髮學姊',o:{hat:'hair_long',top:'top_navy',acc:'acc_none',hair:'hair_black'}},
+ {name:'包包頭',o:{hat:'hair_bun',top:'top_sport',acc:'acc_none',hair:'hair_brown'}},
+ {name:'刺蝟頭',o:{hat:'hair_spiky',top:'top_sport',acc:'acc_headband',hair:'hair_orange'}},
+ {name:'捲髮畫家',o:{hat:'hair_curly',top:'top_forest',acc:'acc_none',hair:'hair_red'}},
+ {name:'忍者',o:{hat:'hat_ninja',top:'top_ninja',acc:'acc_ninja'}},
+ {name:'太空人',o:{hat:'hat_astro',top:'top_astro',acc:'acc_none'}},
+ {name:'小廚師',o:{hat:'hat_chef',top:'top_chef',acc:'acc_mustache',hair:'hair_brown'}},
+ {name:'名偵探',o:{hat:'hat_detective',top:'top_coat',acc:'acc_none',hair:'hair_black'}},
+ {name:'海盜船長',o:{hat:'hat_pirate',top:'top_navy',acc:'acc_eyepatch'}},
+ {name:'小公主',o:{hat:'hat_tiara',top:'top_royal',acc:'acc_none',hair:'hair_blond'}},
+ {name:'森林精靈',o:{hat:'hat_elf',top:'top_forest',acc:'acc_none',hair:'hair_green'}}
 ];
 function renderOnboard(){
   $('#nav').hidden=true;
