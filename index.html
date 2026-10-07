@@ -273,7 +273,7 @@ function streak(){let d=new Date(),n=0;if(!S.days[keyOf(d)])d.setDate(d.getDate(
 const DM_NEED=7;
 function bestStreak(){let best=0,run=0,prev=null;Object.keys(S.days).sort().forEach(k=>{const d=new Date(k+'T00:00');run=prev&&(d-prev)/864e5===1?run+1:1;prev=d;best=Math.max(best,run)});return best}
 const dmTierOk=()=>S.tier!=='kid';
-const dmOpen=()=>dmTierOk()&&bestStreak()>=DM_NEED;
+const dmOpen=()=>dmTierOk();  /* 2026-10-08 起好友和私訊直接開放（國小除外），不用再連續打卡 */
 function weekMinutes(){let t=0,d=new Date();for(let i=0;i<7;i++){t+=S.minutes[keyOf(d)]||0;d.setDate(d.getDate()-1)}return t}
 /* 今日一題和留言依「日期＋等級」記，換等級會拿到該等級自己的題目 */
 const dkey=()=>today()+':'+S.tier;
@@ -1262,7 +1262,7 @@ const BUILDINGS=[
  {id:'food',name:'魔法餐廳',x:1,y:9,w:5,h:2,door:[3,11],roof:'#ff8a5c',wall:'#fff6c9',open:()=>renderFood()},
  {id:'post',name:'郵局',x:22,y:5,w:4,h:3,door:[24,8],roof:'#d94f4f',wall:'#f4ecd8',open:()=>go('friends')},
  {id:'arcade',name:'遊樂場',x:1,y:14,w:5,h:3,door:[3,17],roof:'#3f8f5a',wall:'#f4ecd8',open:()=>go('games')},
- {id:'home',name:'我的家',x:8,y:14,w:5,h:3,door:[10,17],roof:'#f4a6c6',wall:'#fbe3ec',open:()=>renderHome()},
+ {id:'home',name:'我的家・花園',x:8,y:14,w:5,h:3,door:[10,17],roof:'#f4a6c6',wall:'#fbe3ec',open:()=>renderHome()},
  {id:'store',name:'百貨公司',x:16,y:14,w:5,h:3,door:[18,17],roof:'#5dcaa5',wall:'#e1f5ee',open:()=>renderShop('room','city')},
  {id:'guild',name:'任務公會',x:8,y:22,w:5,h:3,door:[10,21],roof:'#8b5e3c',wall:'#f4ecd8',open:()=>renderGuild()}
 ];
@@ -1286,6 +1286,8 @@ function openLibrary(){
   m.querySelector('#lcard').onclick=()=>{m.remove();go('me')};
 }
 /* 大魔法師之塔：老師的公告和信箱 */
+/* 直接打開我的魔法花園（在我的家下面） */
+function openMyGarden(){renderHome();setTimeout(()=>{const g=$('#gdn');if(g)g.scrollIntoView({block:'start',behavior:'smooth'})},150)}
 function openTower(){
   const m=modal(`<div style="display:flex;justify-content:center"><span data-s="master" data-z="7"></span></div><h2 style="text-align:center">大魔法師之塔</h2>
     <p class="small" style="margin:0;text-align:center;line-height:1.6">宇宙超年輕大魔法師（Priscilla 老師）住在這裡。<br>公告會貼在這裡，想跟老師說話就寫信吧！</p>
@@ -1335,6 +1337,7 @@ function renderCity(){
      <button class="chip" id="cmap" style="position:absolute;right:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--gold)">全圖</button>
    </div>
    <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。<span style="color:var(--gold)">今天城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
+   <button class="btn" id="gardenbtn" style="background:#3f8f5a;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px">${cropIcon('sunflower',22)}我的魔法花園（種菜、偷菜、換配件）</button>
    ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
    <div class="chips">${BUILDINGS.map(b=>`<button class="chip" data-b="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-b="notice">布告欄</button><button class="chip" data-b="quest">任務板</button></div>`;
   paintSprites($('#view'));
@@ -1342,6 +1345,7 @@ function renderCity(){
   const cv=$('#ccv');
   cv.onclick=e=>{const r=cv.getBoundingClientRect(),[cx,cy]=cityCam(),tx=Math.floor(((e.clientX-r.left)/r.width*VW*TS+cx)/TS),ty=Math.floor(((e.clientY-r.top)/r.height*VH*TS+cy)/TS);cityTap(tx,ty)};
   $('#cmap').onclick=openCityMap;
+  $('#gardenbtn').onclick=openMyGarden;
   if($('#hwbtn'))$('#hwbtn').onclick=()=>{if(city.hw)return;cityTap(HW_STAND[0],HW_STAND[1])};
   $('#view').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{if(b.dataset.b==='notice')openNotice();else if(b.dataset.b==='quest')renderQuests();else{const x=BUILDINGS.find(y=>y.id===b.dataset.b);enterBuilding(x)}});
   joinCity();
@@ -1916,7 +1920,7 @@ const TOUR=[
  ['lamp','讀書房：一起專注','選 15、25、50 分鐘或 2 小時，跟同學一起專注，每分鐘 +1 金幣。同年級的同學會出現在座位上，點座位還能參觀他們的房間；讀書房裡也能聊天打氣。'],
  ['coin','金幣怎麼用？','到百貨公司買家具、服裝、寵物，布置「我的家」。遊樂場有小遊戲和雙倍挑戰；銀行存錢每天會生利息。'],
  ['scroll','任務板和布告欄','噴水池旁的任務板有每日、每週和老師出的任務，完成就能領金幣。布告欄可以看老師的公告和本週排行。'],
- ['chat','好友與老師信箱',`連續打卡 ${DM_NEED} 天，就能加同學好友、互傳私訊和送禮物。老師傳來的訊息會出現在「好友」頁的老師信箱，也可以回覆老師。`],
+ ['chat','好友與老師信箱',`國中、高中可以直接加同學好友、互傳私訊和送禮物。老師傳來的訊息會出現在「好友」頁的老師信箱，也可以回覆老師。`],
  ['feast','準備好了嗎？','第一步：先去魔法餐廳吃第一餐，再到魔法學院答今日一題。有問題隨時到「我的」按「玩法說明」再看一次。']
 ];
 /* 依年級推薦一個範圍（找名字有對到的組合包），回傳 scope 下拉選單的值 */
@@ -2068,8 +2072,11 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-08b',title:'好友直接開放、花園更好找',items:[
+  ['chat','好友和私訊直接開放','國中、高中不用再連續打卡 7 天，馬上就能加同學好友、傳私訊、送禮物！',()=>go('friends')],
+  ['seed','魔法花園入口','城市上方多了綠色的「我的魔法花園」按鈕，地圖上的我的家也變成「我的家・花園」。',()=>openMyGarden()]]},
  {v:'2026-10-08',title:'魔法花園大更新',items:[
-  ['seed','魔法花園','「我的家」下面多了自己的花園！種菜、澆水，時間到就能收成。魔法水靠答題和專注拿。',()=>renderHome()],
+  ['seed','魔法花園','「我的家」下面多了自己的花園！種菜、澆水，時間到就能收成。魔法水靠答題和專注拿。',()=>openMyGarden()],
   ['ghost','偷菜和稻草人','同學的菜成熟 30 分鐘還沒收，可以偷摘一點！放稻草人可以抓小偷。',()=>renderHome()],
   ['card','倉庫和交換所','收成可以收進倉庫，換買不到的花園限定配件：麥穗草帽、南瓜頭盔、星星果披風…',()=>openExchange()],
   ['bento','自己下廚','餐廳可以用自己種的菜做料理，有金幣、魔法水、盲盒券等效果，第一道也算吃飯打卡。',()=>renderFood()],
@@ -2860,8 +2867,8 @@ async function renderFriends(){
   const best=bestStreak();
   const head=`${header()}<h2>好友與私訊</h2><div id="tinbox"></div>`;
   setTimeout(fillTeacherInbox);
-  if(!dmTierOk()){$('#view').innerHTML=`${head}<div class="box" style="background:var(--deep)"><p style="margin:0;line-height:1.7">見習魔法師還不能用私訊喔。升上國中變成冒險騎士，連續打卡 ${DM_NEED} 天就能加好友了。</p></div>`;paintSprites($('#view'));return}
-  if(best<DM_NEED){
+  if(!dmTierOk()){$('#view').innerHTML=`${head}<div class="box" style="background:var(--deep)"><p style="margin:0;line-height:1.7">見習魔法師還不能用私訊喔。升上國中變成冒險騎士就能加好友了。</p></div>`;paintSprites($('#view'));return}
+  if(false){
     $('#view').innerHTML=`${head}
      <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:10px">
        <div style="display:flex;gap:12px;align-items:center"><span data-s="lock2" data-z="5"></span><div><div style="font-size:16px">連續打卡 ${DM_NEED} 天解鎖</div><div class="small">目前最長 ${best} 天・還差 ${DM_NEED-best} 天</div></div></div>
@@ -2870,7 +2877,7 @@ async function renderFriends(){
      </div>`;
     paintSprites($('#view'));return;
   }
-  if(!ONLINE){$('#view').innerHTML=`${head}<div class="box" style="background:var(--deep)"><p style="margin:0;line-height:1.7">你已經解鎖了。好友和私訊要在網頁版登入後才能用。</p></div>`;paintSprites($('#view'));return}
+  if(!ONLINE){$('#view').innerHTML=`${head}<div class="box" style="background:var(--deep)"><p style="margin:0;line-height:1.7">好友和私訊要在網頁版用 Google 登入後才能用。</p></div>`;paintSprites($('#view'));return}
   const myCode=ME.slice(0,6).toUpperCase();
   $('#view').innerHTML=`${head}
    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px">
@@ -3188,6 +3195,7 @@ function renderMe(){
      <p class="small" style="margin:0">目前：${esc(scopeName())}・${pool().length.toLocaleString()} 題。</p>
    </div>`:''}
    <button class="btn" id="mywrong">錯題本（${wrongs().length} 題）</button>
+   <button class="btn" id="mygarden" style="background:#3f8f5a;color:var(--paper)">我的魔法花園</button>
    <div class="row"><button class="btn" id="howto">玩法說明</button><button class="btn" id="mylog">更新紀錄</button></div>
    ${reminderBox()}
    ${TEACHER?'<button class="btn mint" id="tdash">老師後台</button>':''}
@@ -3196,7 +3204,7 @@ function renderMe(){
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
-  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;$('#mywrong').onclick=()=>renderMistakes();
+  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;$('#mygarden').onclick=openMyGarden;$('#mywrong').onclick=()=>renderMistakes();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
