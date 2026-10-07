@@ -775,7 +775,10 @@ async function visitRoom(who,uid,tier){
 
 /* ---------- 魔法花園：自己的 6 塊地，種東西、澆水、收成；也能去同學的花園幫忙澆水 ----------
    魔法水每天重算：登入 1 ＋ 答今日一題 2 ＋ 每次專注滿 25 分鐘 1（最多 3）。每株最多澆 3 次，每次收成 +15%。
-   幫同學澆水不用自己的水，幫忙的人 +2 金幣（每天最多 5 次）。線上版由資料庫 garden_* 函式處理。 */
+   幫同學澆水不用自己的水，幫忙的人 +2 金幣（每天最多 5 次）。
+   偷菜：別人的作物成熟 30 分鐘後可以偷，每次偷收成的 10%（至少 2），每株最多被偷 3 次、同一株一人一次、每天最多偷 5 次。
+   稻草人 30 金幣守 24 小時：小偷 40% 被抓到，賠主人 5 金幣。線上版由資料庫 garden_* 函式處理。 */
+const STEAL_WAIT=30*60e3,STEAL_MAX=3,STEAL_DAY=5,SCARE_COST=30;
 const CROPS=[
  {id:'wheat',name:'魔法小麥',hours:1,seed:10,coins:16,c:['#e8c35a','#9a7b2f'],g:['..1.1...','.11.1.1.','..11111.','...111..','....2...','...22...','....2.2.','....22..']},
  {id:'carrot',name:'胡蘿蔔',hours:3,seed:20,coins:36,c:['#ff8a5c','#4caf50'],g:['..2.2...','...22...','..1111..','..1111..','...11...','...11...','....1...','........']},
@@ -787,7 +790,8 @@ const CROPS=[
 const CROP=Object.fromEntries(CROPS.map(c=>[c.id,c]));
 const SPROUT=[['........','........','........','........','........','........','...dd...','..dddd..'],['........','........','........','........','...G.G..','....G...','....G...','........'],['........','........','..G..G..','...GG...','.G.G..G.','..GGGG..','...GG...','........']];
 const ripeAt=pl=>new Date(pl.planted_at).getTime()+CROP[pl.crop].hours*3600e3;
-const harvestAmt=pl=>Math.round(CROP[pl.crop].coins*(1+.15*Math.min(pl.waters,3)));
+const harvestAmt=pl=>Math.round(CROP[pl.crop].coins*(1+.15*Math.min(pl.waters,3))*(1-.1*Math.min(pl.stolen||0,3)));
+const stealAmt=pl=>Math.max(2,Math.round(CROP[pl.crop].coins*(1+.15*Math.min(pl.waters,3))*.1));
 function plotSVG(pl){
   let r='<rect x="0" y="0" width="10" height="10" fill="#6e472b"/><rect x="0" y="8" width="10" height="2" fill="#5a3d2b"/>';
   if(pl&&pl.crop){const ripe=Date.now()>=ripeAt(pl),prog=(Date.now()-new Date(pl.planted_at).getTime())/(CROP[pl.crop].hours*3600e3);
@@ -798,18 +802,20 @@ function plotSVG(pl){
     if(ripe)r+='<rect x="8" y=".4" width="1.4" height="1.4" fill="#ffd166"/>'}
   return `<svg viewBox="0 0 10 10" width="100%" shape-rendering="crispEdges" style="display:block;border:3px solid var(--ink)">${r}</svg>`;
 }
+function scareSVG(){return `<svg viewBox="0 0 8 8" width="40" height="40" shape-rendering="crispEdges" style="flex:0 0 auto">${gridRects(['..yyyy..','.yyyyyy.','..wkwk..','..wwww..','ooooooo.','...dd...','...dd...','..d..d..'],0,0,{...RPAL,o:'#c98a3a'})}</svg>`}
 function timeLeft(ms){const m=Math.max(0,Math.ceil(ms/60000));return m>=60?`${Math.floor(m/60)} 小時 ${m%60} 分`:`${m} 分鐘`}
 /* 單機版：自己的花園存在 S.garden；NPC 同學的花園用名字算出來 */
 function gardenWaterLocal(){const t=today(),used=((S.garden&&S.garden.used)||{})[t]||0;
   return Math.max(0,1+(S.answers[dkey()]?2:0)+Math.min(3,Math.floor((S.minutes[t]||0)/25))-used)}
 function botGarden(name){const plots=[];for(let i=0;i<6;i++){const h=hash(name+today()+i);if(h%4===0)continue;const c=CROPS[h%CROPS.length];
-  plots.push({slot:i,crop:c.id,planted_at:new Date(Date.now()-((h>>3)%100)/100*c.hours*3600e3).toISOString(),waters:(h>>5)%3,watered_by_me:!!(S.botWater||{})[today()+name+i]})}
-  return {is_me:false,name,plots}}
+  const ripe=(h>>9)%3===0,age=ripe?(c.hours*3600e3+STEAL_WAIT+((h>>4)%120)*60e3):((h>>3)%100)/100*c.hours*3600e3;
+  plots.push({slot:i,crop:c.id,planted_at:new Date(Date.now()-age).toISOString(),waters:(h>>5)%3,stolen:(h>>7)%2,watered_by_me:!!(S.botWater||{})[today()+name+i],stolen_by_me:!!(S.botSteal||{})[today()+name+i]})}
+  return {is_me:false,name,plots,scarecrow_until:hash(name+today())%3===0?new Date(Date.now()+6*3600e3).toISOString():null,steals_today:((S.garden&&S.garden.stole)||{})[today()]||0}}
 async function loadGarden(uid,name){
   if(ONLINE&&uid!=='bot')return await cloud.run(()=>sb.rpc('garden_info',{p_user:uid||null}),true);
   if(uid==='bot')return botGarden(name);
   S.garden=S.garden||{plots:[],used:{},helpers:[]};
-  return {is_me:true,name:S.name,plots:S.garden.plots,water_left:gardenWaterLocal(),helpers:S.garden.helpers||[],helps_today:((S.garden.helped||{})[today()])||0};
+  return {is_me:true,name:S.name,plots:S.garden.plots,water_left:gardenWaterLocal(),helpers:S.garden.helpers||[],helps_today:((S.garden.helped||{})[today()])||0,scarecrow_until:S.garden.scare&&new Date(S.garden.scare)>new Date()?S.garden.scare:null};
 }
 async function renderGarden(uid,name){
   const mine=!uid;curTab='garden';$('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current','false'));
@@ -821,15 +827,19 @@ async function renderGarden(uid,name){
   const cell=i=>{const pl=byslot[i],now=Date.now();let info='',btn='';
     if(!pl||!pl.crop){info='<span class="small">空地</span>';btn=mine?`<button class="btn gold mini" data-plant="${i}">種植</button>`:''}
     else{const c=CROP[pl.crop],ripe=now>=ripeAt(pl);
-      info=`<span style="font-size:13px">${c.name}</span><br><span class="small">${ripe?`<span style="color:var(--gold)">成熟了！</span>`:'還要 '+timeLeft(ripeAt(pl)-now)}・水 ${pl.waters}/3</span>`;
+      info=`<span style="font-size:13px">${c.name}</span><br><span class="small">${ripe?`<span style="color:var(--gold)">成熟了！</span>`:'還要 '+timeLeft(ripeAt(pl)-now)}・水 ${pl.waters}/3${pl.stolen?`・<span style="color:var(--coral)">被偷 ${pl.stolen}</span>`:''}</span>`;
       if(mine&&ripe)btn=`<button class="btn gold mini" data-harv="${i}">收成 +${harvestAmt(pl)}</button>`;
+      else if(!mine&&ripe){const ok=now>=ripeAt(pl)+STEAL_WAIT;
+        btn=pl.stolen_by_me?'<span class="small">已經偷過了</span>':(pl.stolen||0)>=STEAL_MAX?'<span class="small">被偷光了</span>':!ok?`<span class="small">${timeLeft(ripeAt(pl)+STEAL_WAIT-now)}後可偷</span>`:`<button class="btn coral mini" data-steal="${i}">偷摘 +${stealAmt(pl)}</button>`}
       else if(!ripe&&pl.waters<3&&!pl.watered_by_me)btn=`<button class="btn mini" data-water="${i}" style="background:#6ab0f3;color:var(--night)">${mine?'澆水':'幫忙澆水'}</button>`;
       else if(!ripe&&pl.watered_by_me)btn='<span class="small">已澆過</span>'}
     return `<div style="display:flex;flex-direction:column;gap:4px;align-items:stretch;text-align:center">${plotSVG(pl)}<div style="line-height:1.3;min-height:34px">${info}</div>${btn}</div>`};
   $('#gdn').innerHTML=`${mine?`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:10px;padding:10px 12px"><span style="font-size:22px;color:#6ab0f3;white-space:nowrap">💧 ${g.water_left}</span><span class="small" style="line-height:1.6">今天的魔法水。登入 +1、答今日一題 +2、每次專注 25 分鐘 +1。每株澆水最多 3 次，每次收成 +15%。</span></div>`
-      :`<p class="small" style="margin:0;line-height:1.6">幫同學澆水不用花自己的魔法水，你還能拿 2 金幣（每天最多 5 次）。</p>`}
+      :`<p class="small" style="margin:0;line-height:1.6">幫同學澆水不用花自己的魔法水，你還能拿 2 金幣（每天最多 5 次）。成熟 30 分鐘還沒收的作物可以偷摘（今天偷了 ${g.steals_today||0}／${STEAL_DAY} 次）${g.scarecrow_until?'，<b style="color:var(--coral)">但這裡有稻草人，小心被抓！</b>':'。'}</p>`}
+    ${mine?`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:10px;padding:10px 12px">${scareSVG()}<span class="grow small" style="line-height:1.6">${g.scarecrow_until?`<b style="color:var(--mint)">稻草人守護中</b>・還有 ${timeLeft(new Date(g.scarecrow_until)-Date.now())}<br>小偷有 40% 會被抓到，賠你 5 金幣`:'作物成熟 30 分鐘後，同學可以來偷摘。放稻草人：小偷 40% 會被抓到、賠你 5 金幣。'}</span><button class="btn mini" id="gscare" style="flex:0 0 auto">${g.scarecrow_until?'續 24 小時':'放稻草人'}<br>${SCARE_COST} 金幣</button></div>`:''}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#3f8f5a;padding:10px;border:3px solid var(--ink)">${[0,1,2,3,4,5].map(cell).join('')}</div>
-    ${mine?`<div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 6px">最近來幫忙的同學</p>${(g.helpers||[]).length?`<div class="flist">${g.helpers.map(h=>`<div class="frow" style="padding:6px 10px"><span class="grow">${esc(h.name)}</span><span class="small">幫你的${h.crop&&CROP[h.crop]?CROP[h.crop].name:'作物'}澆水</span></div>`).join('')}</div>`:'<p class="small" style="margin:0">還沒有人來幫忙。去讀書房點同學的座位，參觀他們的花園互相幫忙吧！</p>'}</div>`:''}`;
+    ${mine?`<div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 6px">最近來過花園的同學</p>${(g.helpers||[]).length?`<div class="flist">${g.helpers.map(h=>{const cn=h.crop&&CROP[h.crop]?CROP[h.crop].name:'作物';
+      return `<div class="frow" style="padding:6px 10px"><span class="grow">${esc(h.name)}</span><span class="small" style="color:${h.kind==='steal'?(h.caught?'var(--mint)':'var(--coral)'):'var(--paper)'}">${h.kind!=='steal'?`幫你的${cn}澆水`:h.caught?`想偷${cn}，被稻草人抓到！+5`:`偷了你的${cn} −${h.amount}`}</span></div>`}).join('')}</div>`:'<p class="small" style="margin:0">還沒有人來過。去讀書房點同學的座位，參觀他們的花園吧！</p>'}</div>`:''}`;
   paintSprites($('#gdn'));
   const reload=()=>renderGarden(uid,name);
   $('#gdn').querySelectorAll('[data-plant]').forEach(b=>b.onclick=()=>{const slot=+b.dataset.plant;
@@ -838,7 +848,7 @@ async function renderGarden(uid,name){
       <span class="grow" style="text-align:left">${c.name}<br><span class="small">${c.hours>=24?c.hours/24+' 天':c.hours+' 小時'}成熟・收成 ${c.coins}～${Math.round(c.coins*1.45)}</span></span><span style="color:var(--gold)">${c.seed} 金幣</span></button>`).join('')}</div><button class="btn ghost" data-close>取消</button>`);
     m.querySelectorAll('[data-seed]').forEach(x=>x.onclick=async()=>{const c=CROP[x.dataset.seed];if(coins()<c.seed){toast('金幣不夠買種子');return}
       if(ONLINE){const r=await cloud.rpc('garden_plant',{p_slot:slot,p_crop:c.id});if(!r)return;syncWallet(r.wallet)}
-      else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot).concat([{slot,crop:c.id,planted_at:new Date().toISOString(),waters:0}]);S.tx=(S.tx||0)-c.seed;save()}
+      else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot).concat([{slot,crop:c.id,planted_at:new Date().toISOString(),waters:0,stolen:0}]);S.tx=(S.tx||0)-c.seed;save()}
       m.remove();toast(`種下${c.name}！`);reload()})});
   $('#gdn').querySelectorAll('[data-water]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.water;b.disabled=true;
     if(ONLINE&&uid!=='bot'){const r=await cloud.rpc('garden_water',{p_owner:uid||ME,p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet);toast(r.reward?`澆好了！幫忙獎勵 +${r.reward} 金幣`:'澆好了！')}
@@ -847,6 +857,19 @@ async function renderGarden(uid,name){
     else{S.botWater=S.botWater||{};S.botWater[today()+name+slot]=1;S.garden=S.garden||{plots:[],used:{},helpers:[]};S.garden.helped=S.garden.helped||{};
       const n=S.garden.helped[today()]||0;S.garden.helped[today()]=n+1;if(n<5){S.tx=(S.tx||0)+2;toast('澆好了！幫忙獎勵 +2 金幣')}else toast('澆好了！');save()}
     reload()});
+  $('#gdn').querySelectorAll('[data-steal]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.steal,pl=byslot[slot];b.disabled=true;let r;
+    if(ONLINE&&uid!=='bot'){r=await cloud.rpc('garden_steal',{p_owner:uid,p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet)}
+    else{S.garden=S.garden||{plots:[],used:{},helpers:[]};S.garden.stole=S.garden.stole||{};const n=S.garden.stole[today()]||0;
+      if(n>=STEAL_DAY){toast('今天已經偷 5 次了，明天再來');b.disabled=false;return}
+      S.garden.stole[today()]=n+1;S.botSteal=S.botSteal||{};S.botSteal[today()+name+slot]=1;
+      const caught=g.scarecrow_until&&Math.random()<.4;r={caught,amount:caught?5:stealAmt(pl)};S.tx=(S.tx||0)+(caught?-5:r.amount);save()}
+    modal(r.caught?`<div style="display:flex;justify-content:center">${scareSVG().replace('width="40" height="40"','width="80" height="80"')}</div><h2 style="text-align:center">被稻草人抓到了！</h2><p style="text-align:center;margin:0">賠給 ${esc(name)} <b style="color:var(--coral)">5 金幣</b></p><button class="btn" data-close>下次小心</button>`
+      :`<div style="display:flex;justify-content:center"><svg viewBox="0 0 8 8" width="80" height="80" shape-rendering="crispEdges">${gridRects(CROP[pl.crop].g,0,0,{...RPAL,'1':CROP[pl.crop].c[0],'2':CROP[pl.crop].c[1]})}</svg></div><h2 style="text-align:center">偷摘成功！</h2><p style="text-align:center;margin:0">從 ${esc(name)} 的花園摘了一點${CROP[pl.crop].name} <b style="color:var(--gold)">+${r.amount} 金幣</b><br><span class="small">${esc(name)} 會在花園看到是你喔</span></p><button class="btn gold" data-close>嘿嘿</button>`);
+    reload()});
+  if($('#gscare'))$('#gscare').onclick=async()=>{if(coins()<SCARE_COST){toast('金幣不夠');return}
+    if(ONLINE){const r=await cloud.rpc('garden_scarecrow');if(!r)return;syncWallet(r.wallet)}
+    else{const base=S.garden.scare&&new Date(S.garden.scare)>new Date()?new Date(S.garden.scare).getTime():Date.now();S.garden.scare=new Date(base+24*3600e3).toISOString();S.tx=(S.tx||0)-SCARE_COST;save()}
+    toast('稻草人站好崗了！');reload()};
   $('#gdn').querySelectorAll('[data-harv]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.harv,pl=byslot[slot];b.disabled=true;let amt=harvestAmt(pl);
     if(ONLINE){const r=await cloud.rpc('garden_harvest',{p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet);amt=r.amount}
     else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot);S.tx=(S.tx||0)+amt;save()}
