@@ -24,6 +24,11 @@ loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
  S.owned={};HW.forEach(id=>S.owned[id]=ITEM[id].price);
  S.look={room:{...DEFAULT_LOOK.room,wall:'wall_halloween',floor:'floor_halloween',window:'win_hallow',poster:'poster_ghost',bed:'bed_coffin',plant:'plant_jack',rug:'rug_web',lamp:'lamp_ghost',pet:'pet_pumpkin'},outfit:{hat:'hat_witch_purple',top:'top_vampire',acc:'acc_fangs',hair:'hair_brown',skin:'skin_1'}};
  if(sc==='kid')S.scopes.kid=['GP'];
+ S.farm={items:{wheat:6,carrot:3,tomato:4,pumpkin:2,sunflower:1},cooked:{}};
+ {const now=Date.now(),H=3600e3;S.garden={used:{},helpers:[{name:'熬夜刷題的熊貓',kind:'help',crop:'pumpkin'},{name:'喝珍奶的企鵝',kind:'steal',crop:'tomato',amount:6},{name:'背單字的仙人掌',kind:'steal',crop:'carrot',caught:true}],scare:new Date(now+20*H).toISOString(),
+   plots:[{slot:0,crop:'pumpkin',planted_at:new Date(now-13*H).toISOString(),waters:3},{slot:1,crop:'sunflower',planted_at:new Date(now-10*H).toISOString(),waters:2},{slot:2,crop:'carrot',planted_at:new Date(now-1*H).toISOString(),waters:1},
+     {slot:3,crop:'tomato',planted_at:new Date(now-7*H).toISOString(),waters:2,stolen:1},{slot:4,crop:'wheat',planted_at:new Date(now-.2*H).toISOString(),waters:0}]}}
+ S.seenVer=CHANGES[0].v;
  S.tx=0;S.tx=1280-(coinsEarned()-coinsSpent());
  S.gday={d:today(),match:12,speed:0,granny:0,tower:0,halloween:0,chal:1};S.bank={balance:860,settled:today(),log:[]};S.glv={match:3,speed:2,granny:4,tower:3};
  save();
@@ -39,7 +44,10 @@ loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
      {id:2,user_id:'bot',name:'熬夜刷題的熊貓',tier:'sage',body:'這題的 effect / affect 我又錯了',created_at:new Date(Date.now()-240000).toISOString()},
      {id:3,user_id:'me',name:'小明',tier:'sage',body:'加油',created_at:new Date(Date.now()-60000).toISOString()}];drawRoomChat();
      const v=$('#view');v.scrollTop=$('#rchat').offsetTop-260}}
- if(sc==='home')renderHome();
+ if(sc==='home'){renderHome();setTimeout(()=>{},0)}
+ if(sc==='homegarden'){renderHome();const v=$('#view');v.scrollTop=($('#gdn')||v).offsetTop-60}
+ if(sc==='cook'){renderFood();}
+ if(sc==='whatsnew'){go('city');showWhatsNew()}
  if(sc==='login'){const y=new Date();y.setDate(y.getDate()-1);S.logins=[keyOf(y)];S.loginStreak=4;S.loginDay='';save();go('city');showLoginReward()}
  if(sc==='chars'){S=fresh();save();renderOnboard();document.querySelector('#view').scrollTop=document.querySelector('#cpick').offsetTop-140}
  if(sc==='garden'){const now=Date.now(),H=3600e3;S.garden={used:{},helpers:[{name:'熬夜刷題的熊貓',crop:'pumpkin'},{name:'喝珍奶的企鵝',crop:'sunflower'},{name:'背單字的仙人掌',crop:'carrot'}],

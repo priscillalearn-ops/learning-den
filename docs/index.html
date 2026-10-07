@@ -179,7 +179,7 @@ const SPR={
  chat:['........','.BBBBBB.','BBBBBBBB','BwBwBwBB','BBBBBBBB','.BBBBBB.','..BB....','.B......'],
  dog:['o......o','oo.oo.oo','.oooooo.','.okooko.','.oooooo.','..okko..','.oooooo.','.o....o.']
 };
-function sprite(name,z){const m=SPR[name];let r='';m.forEach((row,y)=>[...row].forEach((c,x)=>{if(PAL[c])r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`}));return `<svg width="${8*z}" height="${8*z}" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block" aria-hidden="true">${r}</svg>`}
+function sprite(name,z){const m=SPR[name]||SPR.bento;let r='';m.forEach((row,y)=>[...row].forEach((c,x)=>{if(PAL[c])r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`}));return `<svg width="${8*z}" height="${8*z}" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block" aria-hidden="true">${r}</svg>`}
 /* 看圖題的圖：每個出題的地方都要放，不然只剩 What is this? */
 const qPic=(q,z=6)=>q&&q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="${z}"></span></div>`:'';
 function paintSprites(root=document){root.querySelectorAll('[data-s]').forEach(e=>{e.innerHTML=sprite(e.dataset.s,+e.dataset.z||4)})}
@@ -342,7 +342,7 @@ function speak(w){try{const u=new SpeechSynthesisUtterance(w);u.lang='en-US';u.r
    SHOP 是商品目錄；價格也會由 tools/shop-sql.js 產生到 schema.sql（資料庫以那邊為準）。
    圖用 8×8 那種字串格子畫：'1' '2' 是商品自己的顏色，其他字母查 RPAL。 */
 /* SHOP_START */
-const RPAL={k:'#1a1026',w:'#f4ecd8',y:'#ffd166',o:'#c98a3a',s:'#f2c79b',r:'#d94f4f',b:'#3a7bd5',B:'#8fc6f5',t:'#5dcaa5',g:'#9aa3b5',G:'#4caf50',P:'#f4a6c6',n:'#1d2a5c',p:'#8a5cd6',d:'#5a3d2b',L:'#fff6c9'};
+const RPAL={O:'#ff8a5c',k:'#1a1026',w:'#f4ecd8',y:'#ffd166',o:'#c98a3a',s:'#f2c79b',r:'#d94f4f',b:'#3a7bd5',B:'#8fc6f5',t:'#5dcaa5',g:'#9aa3b5',G:'#4caf50',P:'#f4a6c6',n:'#1d2a5c',p:'#8a5cd6',d:'#5a3d2b',L:'#fff6c9'};
 const SHAPE={
  desk:['111111111111','222222222222','.2........2.','.2........2.','.2........2.','.2........2.'],
  chair:['1....','1....','1....','1....','11111','1...1','1...1','1...1'],
@@ -524,6 +524,12 @@ const SHOP=[
  {id:'hat_cat',slot:'hat',name:'貓耳朵',price:150,hat:'catear',c:['#c98a3a']},
  {id:'hat_crown',slot:'hat',name:'金色皇冠',price:400,hat:'crown',c:['#ffd166']},
  {id:'hat_friend_crown',slot:'hat',name:'友情皇冠',price:9999,hat:'crown',c:['#f4a6c6'],bundle:'invite'},
+ {id:'hat_straw',slot:'hat',name:'麥穗草帽',price:9999,hat:'straw',c:['#e8c35a'],bundle:'farm'},
+ {id:'hat_pumpkinhelm',slot:'hat',name:'南瓜頭盔',price:9999,hat:'pumpkinhelm',bundle:'farm'},
+ {id:'top_apron',slot:'top',name:'番茄紅圍裙',price:9999,c:['#e0503c'],bundle:'farm'},
+ {id:'acc_carrot',slot:'acc',name:'胡蘿蔔髮夾',price:9999,acc:'carrotclip',bundle:'farm'},
+ {id:'acc_sunflower',slot:'acc',name:'向日葵髮飾',price:9999,acc:'sunclip',bundle:'farm'},
+ {id:'acc_starcape',slot:'acc',name:'星星果披風',price:9999,acc:'starcape',bundle:'farm'},
  {id:'top_blue',slot:'top',name:'藍色上衣',price:0,c:['#3a7bd5']},
  {id:'top_red',slot:'top',name:'紅色上衣',price:0,c:['#d94f4f']},
  {id:'top_purple',slot:'top',name:'紫色長袍',price:0,c:['#8a5cd6']},
@@ -597,12 +603,12 @@ const inWin=it=>!it.from||(mmdd()>=it.from&&mmdd()<=it.until);
 const buyable=it=>!it.cards&&!it.gacha&&!it.bundle&&inWin(it);
 
 /* 角色：帽子（0–2 列）＋臉（3–5）＋衣服（6）＋腳（7），配件疊在上面 */
-const HAT={hairlong:['..oooo..','.oooooo.','oooooooo'],ponytail:['..oooo..','.oooooo.','.oooooo.'],bun:['...oo...','..oooo..','.oooooo.'],spiky:['.o.o.o..','.oooooo.','.oooooo.'],curly:['.o.oo.o.','oooooooo','oooooooo'],bob:['..oooo..','.oooooo.','oooooooo'],
+const HAT={straw:['...hh...','.hhyyhh.','hhhhhhhh'],pumpkinhelm:['...G....','.OOOOOO.','OOOOOOOO'],hairlong:['..oooo..','.oooooo.','oooooooo'],ponytail:['..oooo..','.oooooo.','.oooooo.'],bun:['...oo...','..oooo..','.oooooo.'],spiky:['.o.o.o..','.oooooo.','.oooooo.'],curly:['.o.oo.o.','oooooooo','oooooooo'],bob:['..oooo..','.oooooo.','oooooooo'],
   ninja:['..hhhh..','.hhhhhh.','hhhhhhhh'],astro:['..wwww..','.wBBBBw.','wBBBBBBw'],chef:['.wwwwww.','.wwwwww.','..wwww..'],detective:['...hh...','..hhhh..','hhhhhhhh'],pirate:['..kkkk..','.kkwkkk.','kkkkkkkk'],tiara:['...y.y..','..yyyy..','.oooooo.'],elf:['......h.','....hhh.','.hhhhhh.'],
   witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],horns:['.h....h.','.hooooh.','.oooooo.'],mummy:['..hhhh..','.hghhgh.','.hhhhhh.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
   cap:['........','..hhhh..','.hhhhhhh'],bunny:['.h....h.','.h....h.','.hhhhhh.'],catear:['.h....h.','.hh..hh.','.hhhhhh.'],crown:['........','.h.hh.h.','.hhhhhh.']};
-const HATSIDE={hairlong:{3:'o......o',4:'o......o',5:'o......o',6:'o......o'},ponytail:{2:'.......o',3:'.......o',4:'.......o'},curly:{3:'o......o',4:'o......o'},bob:{3:'.o....o.',4:'.o....o.'},astro:{3:'.w....w.',4:'.w....w.',5:'.w....w.'},elf:{4:'.s....s.'}};
-const ACC={ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
+const HATSIDE={pumpkinhelm:{3:'O......O',4:'O......O'},hairlong:{3:'o......o',4:'o......o',5:'o......o',6:'o......o'},ponytail:{2:'.......o',3:'.......o',4:'.......o'},curly:{3:'o......o',4:'o......o'},bob:{3:'.o....o.',4:'.o....o.'},astro:{3:'.w....w.',4:'.w....w.',5:'.w....w.'},elf:{4:'.s....s.'}};
+const ACC={carrotclip:{0:'......G.',1:'.....OO.'},sunclip:{0:'.....yy.',1:'....ydy.',2:'.....yy.'},starcape:{5:'y......y',6:'y......y',7:'y......y'},ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
 function avatarGrid(outfit){
   const hat=ITEM[outfit.hat]||ITEM.hat_none,top=ITEM[outfit.top]||ITEM.top_blue,acc=ITEM[outfit.acc];
   const g=[...HAT[hat.hat||'hair'],'..ssss..','..ksks..','..ssss..','.cccccc.','..n..n..'];
@@ -740,7 +746,7 @@ function renderShop(cat,from){
        const on=(slot in L.room?L.room[slot]:L.outfit[slot])===it.id,own=owns(it.id);
        return `<button class="sitem${on?' on':''}" data-it="${it.id}">${itemThumb(it)}<span>${esc(it.name)}</span>
          ${it.gacha?`<span class="pill" style="background:${RARITY[it.gacha][1]};color:var(--night)">盲盒 ${it.gacha}</span>`:it.rare?'<span class="pill" style="background:var(--gold);color:var(--night)">稀有</span>':it.season?`<span class="pill" style="background:var(--coral);color:var(--night)">${it.season}限定・到 ${it.until.replace('-','/')}</span>`:''}
-         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
+         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
    <p class="demo" style="text-align:left;line-height:1.6">答今日一題 +10（答對再 +5）・專注每分鐘 +1（每天最多 ${FOCUS_CAP}）・連續打卡 3／7／15／30 天有額外獎勵。</p>`;
   paintSprites($('#view'));
   $('#sback').onclick=()=>shopFrom==='home'?renderHome():go(shopFrom);
@@ -756,7 +762,7 @@ function pickItem(it){
   if(owns(it.id)){equip(it);return}
   if(it.cards){const n=Object.keys(S.cards).length;modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div><h2 style="text-align:center">${esc(it.name)}</h2><p style="text-align:center;margin:0;line-height:1.6">收集 ${it.cards} 張單字卡就會自動得到，不能用金幣買。<br>你現在有 ${n} 張，還差 ${Math.max(0,it.cards-n)} 張。</p><button class="btn" data-close>好</button>`);return}
   if(it.gacha){toast(`${it.name}只能從遊樂場的魔法盲盒抽到（${it.gacha}）`);return}
-  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:`${it.name}是新手大禮包限定的`);return}
+  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:`${it.name}是新手大禮包限定的`);return}
   if(!inWin(it)){toast('這個限定商品現在沒有販售');return}
   const bal=coins();
   const m=modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div>
@@ -801,6 +807,44 @@ const CROPS=[
  {id:'starfruit',name:'星星果',hours:48,seed:120,coins:280,c:['#ffd166','#4caf50'],g:['...y....','..yyy...','yyyyyyy.','.yyyyy..','..y.y...','...2....','..222...','...2....']}
 ];
 const CROP=Object.fromEntries(CROPS.map(c=>[c.id,c]));
+/* 倉庫：收成可以收進來（小麥 4、胡蘿蔔／番茄 3、其他 2 個；澆滿 3 次 +1、被偷 2 次以上 −1） */
+const UNITS={wheat:4,carrot:3,tomato:3,pumpkin:2,sunflower:2,starfruit:2};
+const keepUnits=pl=>Math.max(1,UNITS[pl.crop]+(pl.waters>=3?1:0)-((pl.stolen||0)>=2?1:0));
+const EXCHANGE=[['hat_straw',{wheat:8}],['acc_carrot',{carrot:5}],['top_apron',{tomato:5}],['hat_pumpkinhelm',{pumpkin:4}],['acc_sunflower',{sunflower:3}],['acc_starcape',{starfruit:3}]];
+const DISHES=[
+ {id:'d_bread',name:'烤麵包',need:{wheat:2},coins:0,water:1,ticket:0,g:['........','..oooo..','.oyyyyo.','oyyyyyyo','oyyyyyyo','oooooooo','........','........']},
+ {id:'d_soup',name:'蔬菜湯',need:{carrot:1,tomato:1},coins:45,water:0,ticket:0,g:['..w..w..','...w.w..','wwwwwwww','wOrOrOrw','.wrOrOw.','..wwww..','........','........']},
+ {id:'d_pasta',name:'番茄義大利麵',need:{wheat:1,tomato:2},coins:20,water:2,ticket:0,g:['........','..rrrr..','.ryyryr.','wyyryyyw','wwyyyyww','.wwwwww.','........','........']},
+ {id:'d_pie',name:'南瓜派',need:{pumpkin:1,wheat:1},coins:80,water:0,ticket:0,g:['........','...oo...','..oOOo..','.oOOOOo.','oOOOOOOo','oooooooo','........','........']},
+ {id:'d_salad',name:'向日葵沙拉',need:{sunflower:1,carrot:1},coins:140,water:0,ticket:0,g:['........','.yG.Gy..','GyOGyOG.','wGGyGGGw','wwGGGGww','.wwwwww.','........','........']},
+ {id:'d_sundae',name:'星光聖代',need:{starfruit:1,wheat:1},coins:100,water:0,ticket:1,g:['...y....','..yyy...','.wPwPw..','.wwwww..','..BBB...','..BBB...','...B....','..BBB...']}
+];
+const DISH=Object.fromEntries(DISHES.map(d=>[d.id,d]));
+const COOK_DAY=3;
+const cropIcon=(id,z=24)=>{const c=CROP[id];return `<svg viewBox="0 0 8 8" width="${z}" height="${z}" shape-rendering="crispEdges" style="vertical-align:middle">${gridRects(c.g,0,0,{...RPAL,'1':c.c[0],'2':c.c[1]})}</svg>`};
+const dishIcon=(d,z=40)=>`<svg viewBox="0 0 8 8" width="${z}" height="${z}" shape-rendering="crispEdges">${gridRects(d.g,0,0,RPAL)}</svg>`;
+const needText=need=>Object.entries(need).map(([k,v])=>`${cropIcon(k,18)}${CROP[k].name}×${v}`).join(' ');
+/* 倉庫資料：線上從資料庫 my_items 讀；單機版存在 S.farm */
+async function loadFarm(){
+  if(ONLINE){const r=await cloud.run(()=>sb.rpc('my_items'));if(r){S.farm={items:r.items||{},cooked:{[today()]:r.cooked_today||0}};save()}}
+  S.farm=S.farm||{items:{},cooked:{}};S.farm.items=S.farm.items||{};S.farm.cooked=S.farm.cooked||{};return S.farm;
+}
+const hasNeed=need=>Object.entries(need).every(([k,v])=>((S.farm&&S.farm.items[k])||0)>=v);
+function takeNeed(need){Object.entries(need).forEach(([k,v])=>S.farm.items[k]-=v)}
+async function openExchange(after){
+  await loadFarm();
+  const m=modal(`<h2 style="text-align:center">花園交換所</h2><p class="small" style="margin:0;text-align:center">用倉庫裡的作物換<b style="color:var(--gold)">買不到</b>的花園限定配件</p>
+    <div class="flist">${EXCHANGE.map(([id,need])=>{const it=ITEM[id],own=owns(id),ok=hasNeed(need);
+      return `<div class="frow" style="padding:8px 10px">${itemThumb(it)}<span class="grow"><span>${it.name}</span><br><span class="small">${needText(need)}</span></span>${own?'<span class="pill ok">已擁有</span>':`<button class="btn mini ${ok?'gold':''}" data-ex="${id}" ${ok?'':'aria-disabled="true"'}>交換</button>`}</div>`}).join('')}</div>
+    <p class="small" style="margin:0">倉庫：${Object.entries(S.farm.items).filter(([,v])=>v>0).map(([k,v])=>`${cropIcon(k,18)}${v}`).join('　')||'空的，收成時選「收進倉庫」'}</p>
+    <button class="btn ghost" data-close>關閉</button>`);
+  m.querySelectorAll('[data-ex]').forEach(b=>b.onclick=async()=>{const [id,need]=EXCHANGE.find(e=>e[0]===b.dataset.ex);
+    if(!hasNeed(need)){toast('作物不夠，再種一些吧');return}
+    if(ONLINE){if(await cloud.rpc('farm_exchange',{p_item:id})===undefined)return}
+    else takeNeed(need);
+    S.owned[id]=0;save();m.remove();toast(`換到${ITEM[id].name}！到百貨公司換裝就能戴`);openExchange(after)});
+  m.addEventListener('click',e=>{if(e.target.closest('[data-close]')&&after)after()});
+}
 const SPROUT=[['........','........','........','........','........','........','...dd...','..dddd..'],['........','........','........','........','...G.G..','....G...','....G...','........'],['........','........','..G..G..','...GG...','.G.G..G.','..GGGG..','...GG...','........']];
 const ripeAt=pl=>new Date(pl.planted_at).getTime()+CROP[pl.crop].hours*3600e3;
 const harvestAmt=pl=>Math.round(CROP[pl.crop].coins*(1+.15*Math.min(pl.waters,3))*(1-.1*Math.min(pl.stolen||0,3)));
@@ -819,7 +863,7 @@ function scareSVG(){return `<svg viewBox="0 0 8 8" width="40" height="40" shape-
 function timeLeft(ms){const m=Math.max(0,Math.ceil(ms/60000));return m>=60?`${Math.floor(m/60)} 小時 ${m%60} 分`:`${m} 分鐘`}
 /* 單機版：自己的花園存在 S.garden；NPC 同學的花園用名字算出來 */
 function gardenWaterLocal(){const t=today(),used=((S.garden&&S.garden.used)||{})[t]||0;
-  return Math.max(0,1+(S.answers[dkey()]?2:0)+Math.min(3,Math.floor((S.minutes[t]||0)/25))-used)}
+  return Math.max(0,1+(S.answers[dkey()]?2:0)+Math.min(3,Math.floor((S.minutes[t]||0)/25))+((S.farm&&S.farm.water&&S.farm.water[t])||0)-used)}
 function botGarden(name){const plots=[];for(let i=0;i<6;i++){const h=hash(name+today()+i);if(h%4===0)continue;const c=CROPS[h%CROPS.length];
   const ripe=(h>>9)%3===0,age=ripe?(c.hours*3600e3+STEAL_WAIT+((h>>4)%120)*60e3):((h>>3)%100)/100*c.hours*3600e3;
   plots.push({slot:i,crop:c.id,planted_at:new Date(Date.now()-age).toISOString(),waters:(h>>5)%3,stolen:(h>>7)%2,watered_by_me:!!(S.botWater||{})[today()+name+i],stolen_by_me:!!(S.botSteal||{})[today()+name+i]})}
@@ -831,11 +875,15 @@ async function loadGarden(uid,name){
   return {is_me:true,name:S.name,plots:S.garden.plots,water_left:gardenWaterLocal(),helpers:S.garden.helpers||[],helps_today:((S.garden.helped||{})[today()])||0,scarecrow_until:S.garden.scare&&new Date(S.garden.scare)>new Date()?S.garden.scare:null};
 }
 async function renderGarden(uid,name){
-  const mine=!uid;curTab='garden';$('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current','false'));
+  const mine=!uid;if(mine){renderHome();return}curTab='garden';$('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current','false'));
   $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="gbk" style="padding:5px 10px;font-size:13px">← ${mine?'我的家':'回去'}</button><span>${mine?'我的花園':esc(name)+' 的花園'}</span>${coinChip()}</div><div id="gdn"><p class="small">載入中…</p></div>`;
-  paintSprites($('#view'));$('#gbk').onclick=()=>mine?renderHome():history.length&&gardenBack?gardenBack():go('room');
-  const g=await loadGarden(uid,name);if(curTab!=='garden')return;
-  if(!g){$('#gdn').innerHTML='<p class="small">花園載不到，請老師先跑最新的 SQL。</p>';return}
+  paintSprites($('#view'));$('#gbk').onclick=()=>gardenBack?gardenBack():go('room');
+  fillGarden($('#gdn'),uid,name);
+}
+async function fillGarden(box,uid,name){
+  const mine=!uid;
+  const [g]=await Promise.all([loadGarden(uid,name),mine?loadFarm():null]);if(!box.isConnected)return;
+  if(!g){box.innerHTML='<p class="small">花園載不到，請老師先跑最新的 SQL。</p>';return}
   const byslot={};(g.plots||[]).forEach(p=>byslot[p.slot]=p);
   const cell=i=>{const pl=byslot[i],now=Date.now();let info='',btn='';
     if(!pl||!pl.crop){info='<span class="small">空地</span>';btn=mine?`<button class="btn gold mini" data-plant="${i}">種植</button>`:''}
@@ -847,15 +895,19 @@ async function renderGarden(uid,name){
       else if(!ripe&&pl.waters<3&&!pl.watered_by_me)btn=`<button class="btn mini" data-water="${i}" style="background:#6ab0f3;color:var(--night)">${mine?'澆水':'幫忙澆水'}</button>`;
       else if(!ripe&&pl.watered_by_me)btn='<span class="small">已澆過</span>'}
     return `<div style="display:flex;flex-direction:column;gap:4px;align-items:stretch;text-align:center">${plotSVG(pl)}<div style="line-height:1.3;min-height:34px">${info}</div>${btn}</div>`};
-  $('#gdn').innerHTML=`${mine?`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:10px;padding:10px 12px"><span style="font-size:22px;color:#6ab0f3;white-space:nowrap">💧 ${g.water_left}</span><span class="small" style="line-height:1.6">今天的魔法水。登入 +1、答今日一題 +2、每次專注 25 分鐘 +1。每株澆水最多 3 次，每次收成 +15%。</span></div>`
+  box.innerHTML=`${mine?`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:10px;padding:10px 12px"><span style="font-size:22px;color:#6ab0f3;white-space:nowrap">💧 ${g.water_left}</span><span class="small" style="line-height:1.6">今天的魔法水。登入 +1、答今日一題 +2、每次專注 25 分鐘 +1。每株澆水最多 3 次，每次收成 +15%。</span></div>`
       :`<p class="small" style="margin:0;line-height:1.6">幫同學澆水不用花自己的魔法水，你還能拿 2 金幣（每天最多 5 次）。成熟 30 分鐘還沒收的作物可以偷摘（今天偷了 ${g.steals_today||0}／${STEAL_DAY} 次）${g.scarecrow_until?'，<b style="color:var(--coral)">但這裡有稻草人，小心被抓！</b>':'。'}</p>`}
     ${mine?`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:10px;padding:10px 12px">${scareSVG()}<span class="grow small" style="line-height:1.6">${g.scarecrow_until?`<b style="color:var(--mint)">稻草人守護中</b>・還有 ${timeLeft(new Date(g.scarecrow_until)-Date.now())}<br>小偷有 40% 會被抓到，賠你 5 金幣`:'作物成熟 30 分鐘後，同學可以來偷摘。放稻草人：小偷 40% 會被抓到、賠你 5 金幣。'}</span><button class="btn mini" id="gscare" style="flex:0 0 auto">${g.scarecrow_until?'續 24 小時':'放稻草人'}<br>${SCARE_COST} 金幣</button></div>`:''}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#3f8f5a;padding:10px;border:3px solid var(--ink)">${[0,1,2,3,4,5].map(cell).join('')}</div>
+    ${mine?`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px;padding:10px 12px"><div class="bar"><span>倉庫</span><span class="small">${Object.entries(S.farm.items).filter(([,v])=>v>0).map(([k,v])=>`${cropIcon(k,20)}${v}`).join('　')||'空的'}</span></div>
+      <div class="row"><button class="btn gold mini" id="gexch" style="padding:8px">交換所（換限定配件）</button><button class="btn mini" id="gcook" style="padding:8px">去餐廳下廚</button></div></div>`:''}
     ${mine?`<div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 6px">最近來過花園的同學</p>${(g.helpers||[]).length?`<div class="flist">${g.helpers.map(h=>{const cn=h.crop&&CROP[h.crop]?CROP[h.crop].name:'作物';
       return `<div class="frow" style="padding:6px 10px"><span class="grow">${esc(h.name)}</span><span class="small" style="color:${h.kind==='steal'?(h.caught?'var(--mint)':'var(--coral)'):'var(--paper)'}">${h.kind!=='steal'?`幫你的${cn}澆水`:h.caught?`想偷${cn}，被稻草人抓到！+5`:`偷了你的${cn} −${h.amount}`}</span></div>`}).join('')}</div>`:'<p class="small" style="margin:0">還沒有人來過。去讀書房點同學的座位，參觀他們的花園吧！</p>'}</div>`:''}`;
-  paintSprites($('#gdn'));
-  const reload=()=>renderGarden(uid,name);
-  $('#gdn').querySelectorAll('[data-plant]').forEach(b=>b.onclick=()=>{const slot=+b.dataset.plant;
+  paintSprites(box);
+  const reload=()=>fillGarden(box,uid,name);
+  if(box.querySelector('#gexch'))box.querySelector('#gexch').onclick=()=>openExchange(reload);
+  if(box.querySelector('#gcook'))box.querySelector('#gcook').onclick=()=>renderFood();
+  box.querySelectorAll('[data-plant]').forEach(b=>b.onclick=()=>{const slot=+b.dataset.plant;
     const m=modal(`<h2>選種子</h2><p class="small" style="margin:0">種下去之後，時間到就能收成（不用一直開著）。</p><div class="flist">${CROPS.map(c=>`<button class="frow" data-seed="${c.id}" style="padding:8px 10px">
       <svg viewBox="0 0 8 8" width="36" height="36" shape-rendering="crispEdges">${gridRects(c.g,0,0,{...RPAL,'1':c.c[0],'2':c.c[1]})}</svg>
       <span class="grow" style="text-align:left">${c.name}<br><span class="small">${c.hours>=24?c.hours/24+' 天':c.hours+' 小時'}成熟・收成 ${c.coins}～${Math.round(c.coins*1.45)}</span></span><span style="color:var(--gold)">${c.seed} 金幣</span></button>`).join('')}</div><button class="btn ghost" data-close>取消</button>`);
@@ -863,14 +915,14 @@ async function renderGarden(uid,name){
       if(ONLINE){const r=await cloud.rpc('garden_plant',{p_slot:slot,p_crop:c.id});if(!r)return;syncWallet(r.wallet)}
       else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot).concat([{slot,crop:c.id,planted_at:new Date().toISOString(),waters:0,stolen:0}]);S.tx=(S.tx||0)-c.seed;save()}
       m.remove();toast(`種下${c.name}！`);reload()})});
-  $('#gdn').querySelectorAll('[data-water]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.water;b.disabled=true;
+  box.querySelectorAll('[data-water]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.water;b.disabled=true;
     if(ONLINE&&uid!=='bot'){const r=await cloud.rpc('garden_water',{p_owner:uid||ME,p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet);toast(r.reward?`澆好了！幫忙獎勵 +${r.reward} 金幣`:'澆好了！')}
     else if(mine){if(gardenWaterLocal()<1){toast('今天的魔法水用完了，答題或專注可以拿到更多');b.disabled=false;return}
       const pl=S.garden.plots.find(p=>p.slot===slot);pl.waters++;pl.watered_by_me=true;S.garden.used[today()]=(S.garden.used[today()]||0)+1;save();toast('澆好了！')}
     else{S.botWater=S.botWater||{};S.botWater[today()+name+slot]=1;S.garden=S.garden||{plots:[],used:{},helpers:[]};S.garden.helped=S.garden.helped||{};
       const n=S.garden.helped[today()]||0;S.garden.helped[today()]=n+1;if(n<5){S.tx=(S.tx||0)+2;toast('澆好了！幫忙獎勵 +2 金幣')}else toast('澆好了！');save()}
     reload()});
-  $('#gdn').querySelectorAll('[data-steal]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.steal,pl=byslot[slot];b.disabled=true;let r;
+  box.querySelectorAll('[data-steal]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.steal,pl=byslot[slot];b.disabled=true;let r;
     if(ONLINE&&uid!=='bot'){r=await cloud.rpc('garden_steal',{p_owner:uid,p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet)}
     else{S.garden=S.garden||{plots:[],used:{},helpers:[]};S.garden.stole=S.garden.stole||{};const n=S.garden.stole[today()]||0;
       if(n>=STEAL_DAY){toast('今天已經偷 5 次了，明天再來');b.disabled=false;return}
@@ -879,14 +931,19 @@ async function renderGarden(uid,name){
     modal(r.caught?`<div style="display:flex;justify-content:center">${scareSVG().replace('width="40" height="40"','width="80" height="80"')}</div><h2 style="text-align:center">被稻草人抓到了！</h2><p style="text-align:center;margin:0">賠給 ${esc(name)} <b style="color:var(--coral)">5 金幣</b></p><button class="btn" data-close>下次小心</button>`
       :`<div style="display:flex;justify-content:center"><svg viewBox="0 0 8 8" width="80" height="80" shape-rendering="crispEdges">${gridRects(CROP[pl.crop].g,0,0,{...RPAL,'1':CROP[pl.crop].c[0],'2':CROP[pl.crop].c[1]})}</svg></div><h2 style="text-align:center">偷摘成功！</h2><p style="text-align:center;margin:0">從 ${esc(name)} 的花園摘了一點${CROP[pl.crop].name} <b style="color:var(--gold)">+${r.amount} 金幣</b><br><span class="small">${esc(name)} 會在花園看到是你喔</span></p><button class="btn gold" data-close>嘿嘿</button>`);
     reload()});
-  if($('#gscare'))$('#gscare').onclick=async()=>{if(coins()<SCARE_COST){toast('金幣不夠');return}
+  if(box.querySelector('#gscare'))box.querySelector('#gscare').onclick=async()=>{if(coins()<SCARE_COST){toast('金幣不夠');return}
     if(ONLINE){const r=await cloud.rpc('garden_scarecrow');if(!r)return;syncWallet(r.wallet)}
     else{const base=S.garden.scare&&new Date(S.garden.scare)>new Date()?new Date(S.garden.scare).getTime():Date.now();S.garden.scare=new Date(base+24*3600e3).toISOString();S.tx=(S.tx||0)-SCARE_COST;save()}
     toast('稻草人站好崗了！');reload()};
-  $('#gdn').querySelectorAll('[data-harv]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.harv,pl=byslot[slot];b.disabled=true;let amt=harvestAmt(pl);
-    if(ONLINE){const r=await cloud.rpc('garden_harvest',{p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet);amt=r.amount}
-    else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot);S.tx=(S.tx||0)+amt;save()}
-    modal(`<div style="display:flex;justify-content:center"><svg viewBox="0 0 8 8" width="80" height="80" shape-rendering="crispEdges">${gridRects(CROP[pl.crop].g,0,0,{...RPAL,'1':CROP[pl.crop].c[0],'2':CROP[pl.crop].c[1]})}</svg></div><h2 style="text-align:center">收成${CROP[pl.crop].name}！</h2><p style="text-align:center;margin:0;color:var(--gold)">+${amt} 金幣</p><button class="btn gold" data-close>好</button>`);reload()});
+  box.querySelectorAll('[data-harv]').forEach(b=>b.onclick=()=>{const slot=+b.dataset.harv,pl=byslot[slot],c=CROP[pl.crop];
+    const m=modal(`<div style="display:flex;justify-content:center"><svg viewBox="0 0 8 8" width="80" height="80" shape-rendering="crispEdges">${gridRects(c.g,0,0,{...RPAL,'1':c.c[0],'2':c.c[1]})}</svg></div><h2 style="text-align:center">${c.name}成熟了！</h2>
+      <p class="small" style="margin:0;text-align:center">賣掉換金幣，或收進倉庫拿去下廚、換花園限定配件</p>
+      <button class="btn gold" id="hsell">賣掉 +${harvestAmt(pl)} 金幣</button><button class="btn mint" id="hkeep">收進倉庫 +${keepUnits(pl)} 個${c.name}</button><button class="btn ghost" data-close>等等再說</button>`);
+    const done=async keep=>{m.querySelectorAll('button').forEach(x=>x.disabled=true);let amt=harvestAmt(pl),n=keepUnits(pl);
+      if(ONLINE){const r=await cloud.rpc('garden_harvest',{p_slot:slot,p_keep:keep});if(!r){m.remove();return}syncWallet(r.wallet);if(r.amount)amt=r.amount;if(r.kept)n=r.kept;if(keep){await loadFarm()}}
+      else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot);if(keep){S.farm=S.farm||{items:{},cooked:{}};S.farm.items[pl.crop]=(S.farm.items[pl.crop]||0)+n}else S.tx=(S.tx||0)+amt;save()}
+      m.remove();toast(keep?`收進倉庫：${c.name} ×${n}`:`賣掉${c.name} +${amt} 金幣`);reload()};
+    m.querySelector('#hsell').onclick=()=>done(false);m.querySelector('#hkeep').onclick=()=>done(true)});
 }
 let gardenBack=null;
 /* ---------- 遊戲區：單字翻牌、60 秒快答、雙倍挑戰、銀行 ----------
@@ -1654,9 +1711,10 @@ function renderHome(){
    </div>
    <p class="small" style="margin:0">點地板走過去${petSvg?'，寵物會跟著你':''}。</p>
    <div class="row"><button class="btn gold" id="hdeco">布置房間</button><button class="btn" id="hwear">換裝</button></div>
-   <button class="btn mint" id="hgarden">我的魔法花園</button>`;
+   <h2 style="margin:6px 0 0">我的魔法花園</h2>
+   <div id="gdn"><p class="small">載入中…</p></div>`;
   paintSprites($('#view'));
-  $('#hback').onclick=()=>go('city');$('#hgarden').onclick=()=>renderGarden();$('#hdeco').onclick=()=>renderShop('room','home');$('#hwear').onclick=()=>renderShop('wear','home');
+  $('#hback').onclick=()=>go('city');fillGarden($('#gdn'));$('#hdeco').onclick=()=>renderShop('room','home');$('#hwear').onclick=()=>renderShop('wear','home');
   const room=$('#hroom'),me=$('#hme'),pt=$('#hpet');let cur={x:20,y:72};
   const moveTo=(x,y)=>{const d=Math.hypot(x-cur.x,y-cur.y),s=Math.max(.2,d/35);me.style.transition=`left ${s}s linear,top ${s}s linear`;
     me.firstElementChild.style.transform=x<cur.x?'scaleX(-1)':'';me.style.left=x+'%';me.style.top=y+'%';cur={x,y};
@@ -1832,13 +1890,34 @@ function renderFood(){
     return;
   }
   body.innerHTML=`<p class="small" style="margin:0 0 6px">今日菜單${ate?'（今天已經吃過了）':''}</p>
-    <div class="shop">${FOODS.map(([id,name,price,desc])=>`<button class="sitem${ate===id?' on':''}" data-food="${id}" ${ate?'aria-disabled="true"':''}><span data-s="${id}" data-z="5"></span><span>${name}</span><span class="small">${desc}</span><span class="price">${price?`<span data-s="coin" data-z="2"></span>${price}`:'免費'}</span></button>`).join('')}</div>`;
-  paintSprites(body);
+    <div class="shop">${FOODS.map(([id,name,price,desc])=>`<button class="sitem${ate===id?' on':''}" data-food="${id}" ${ate?'aria-disabled="true"':''}><span data-s="${id}" data-z="5"></span><span>${name}</span><span class="small">${desc}</span><span class="price">${price?`<span data-s="coin" data-z="2"></span>${price}`:'免費'}</span></button>`).join('')}</div>
+    <div id="fcook"></div>`;
+  paintSprites(body);drawCook();
   body.querySelectorAll('[data-food]').forEach(b=>b.onclick=async()=>{
     if(ate){toast('今天已經吃飽了，明天再來');return}
     const f=FOODS.find(x=>x[0]===b.dataset.food);
     if(await eat(f[0])){modal(`<div style="display:flex;justify-content:center"><span data-s="${f[0]}" data-z="9"></span></div><h2 style="text-align:center">好好吃！</h2><p style="text-align:center;margin:0">吃了${f[1]}，飽足度回到 3 顆心。</p><button class="btn gold" data-close>吃飽了</button>`);renderFood()}
   });
+}
+/* 自己下廚：用花園倉庫的作物，每天最多 3 道；第一道也算當天吃飯。線上版由資料庫 cook() 處理 */
+async function drawCook(){
+  const box=$('#fcook');if(!box)return;await loadFarm();if(!box.isConnected)return;
+  const n=S.farm.cooked[today()]||0;
+  box.innerHTML=`<h2 style="margin:12px 0 4px">自己下廚</h2><p class="small" style="margin:0 0 6px;line-height:1.6">用魔法花園收進倉庫的作物做料理，每道都有特別效果！每天最多 ${COOK_DAY} 道（今天 ${n}/${COOK_DAY}），第一道也算吃飯打卡。</p>
+    <div class="flist">${DISHES.map(d=>{const ok=hasNeed(d.need)&&n<COOK_DAY;
+      const eff=[d.coins?`+${d.coins} 金幣`:'',d.water?`魔法水 +${d.water}`:'',d.ticket?'盲盒券 +1':''].filter(Boolean).join('・');
+      return `<div class="frow" style="padding:8px 10px">${dishIcon(d)}<span class="grow"><span>${d.name}</span> <span class="small" style="color:var(--gold)">${eff}</span><br><span class="small">${needText(d.need)}</span></span><button class="btn mini ${ok?'gold':''}" data-cook="${d.id}" ${ok?'':'aria-disabled="true"'}>下廚</button></div>`}).join('')}</div>
+    <p class="small" style="margin:6px 0 0">倉庫：${Object.entries(S.farm.items).filter(([,v])=>v>0).map(([k,v])=>`${cropIcon(k,18)}${v}`).join('　')||'空的。到「我的家」的花園收成時選「收進倉庫」'}</p>`;
+  box.querySelectorAll('[data-cook]').forEach(b=>b.onclick=async()=>{const d=DISH[b.dataset.cook];
+    if((S.farm.cooked[today()]||0)>=COOK_DAY){toast('今天已經煮 3 道了，明天再來');return}
+    if(!hasNeed(d.need)){toast('材料不夠，去花園種一些吧');return}
+    b.disabled=true;let r;
+    if(ONLINE){r=await cloud.rpc('cook',{p_dish:d.id});if(!r){b.disabled=false;return}syncWallet(r.wallet);if(r.meal)S.meals[today()]=d.id;await loadFarm()}
+    else{takeNeed(d.need);S.farm.cooked[today()]=(S.farm.cooked[today()]||0)+1;S.farm.water=S.farm.water||{};if(d.water)S.farm.water[today()]=(S.farm.water[today()]||0)+d.water;
+      S.tx=(S.tx||0)+d.coins;if(d.ticket)gstate().tickets+=d.ticket;r={meal:!S.meals[today()]};if(r.meal){S.meals[today()]=d.id;markDay()}save()}
+    modal(`<div style="display:flex;justify-content:center">${dishIcon(d,96)}</div><h2 style="text-align:center">做好${d.name}了！</h2>
+      <p style="text-align:center;margin:0;line-height:1.7">${[d.coins?`<b style="color:var(--gold)">+${d.coins} 金幣</b>`:'',d.water?`<b style="color:#6ab0f3">魔法水 +${d.water}</b>（今天可以多澆水）`:'',d.ticket?'<b style="color:var(--gold)">盲盒券 +1</b>':''].filter(Boolean).join('<br>')}${r.meal?'<br><span class="small">也算今天吃飯打卡了，飽足度回到 3 顆心</span>':''}</p><button class="btn gold" data-close>好吃！</button>`);
+    renderFood()});
 }
 /* ---------- 新手導覽 ---------- */
 const TOUR=[
@@ -1896,7 +1975,7 @@ function showTutorial(){
       ${last?'<button class="btn gold" id="tfood">去餐廳吃飯</button>':`<button class="btn gold" id="tnext">${body==='SCOPE'?'用這個範圍':'下一步'}</button>`}</div>
       ${last?'<button class="btn ghost" id="tfree">自己逛逛</button>':''}`;
     paintSprites(m);
-    const done=()=>{S.tutorialDone=true;S.lastGreet=today();save();m.remove();setTimeout(showStarter,300)};
+    const done=()=>{S.tutorialDone=true;S.seenVer=CHANGES[0].v;S.lastGreet=today();save();m.remove();setTimeout(showStarter,300)};
     const b=id=>m.querySelector(id),applyScope=body==='SCOPE'?bindScopeGuide(m):null;
     if(b('#tprev'))b('#tprev').onclick=()=>{i--;draw()};
     if(b('#tnext'))b('#tnext').onclick=()=>{if(applyScope){applyScope();toast(`範圍：${scopeName()}`)}i++;draw()};
@@ -1999,6 +2078,36 @@ async function showStarter(){
   m.querySelector('#sgacha').onclick=()=>{m.remove();gGacha()};
   return true;
 }
+/* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
+   以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
+const CHANGES=[
+ {v:'2026-10-08',title:'魔法花園大更新',items:[
+  ['seed','魔法花園','「我的家」下面多了自己的花園！種菜、澆水，時間到就能收成。魔法水靠答題和專注拿。',()=>renderHome()],
+  ['ghost','偷菜和稻草人','同學的菜成熟 30 分鐘還沒收，可以偷摘一點！放稻草人可以抓小偷。',()=>renderHome()],
+  ['card','倉庫和交換所','收成可以收進倉庫，換買不到的花園限定配件：麥穗草帽、南瓜頭盔、星星果披風…',()=>openExchange()],
+  ['bento','自己下廚','餐廳可以用自己種的菜做料理，有金幣、魔法水、盲盒券等效果，第一道也算吃飯打卡。',()=>renderFood()],
+  ['me','17 個新角色','忍者、太空人、小廚師、名偵探、海盜、小公主…還有 6 種髮型、更多髮色和膚色。',()=>renderShop('wear','home')]]},
+ {v:'2026-10-05',title:'段考預備週和全部排行',items:[
+  ['fire','段考預備週加成','這週答題、專注、任務金幣翻倍，還會隨機掉盲盒券！',()=>go('daily')],
+  ['castle','全部同學一起排行','排行榜多了「全部」分頁，所有同學都在同一座城市。',()=>go('room')],
+  ['book','題目字體更清楚','題目和選項改用清楚的字體，長句子更好讀。',()=>go('daily')]]},
+ {v:'2026-10-03',title:'連續登入獎勵',items:[['coin','每天登入領獎勵','7 天一輪，第 7 天送盲盒券。',()=>go('city')]]}
+];
+function changeItemsHTML(c){return `<div class="flist">${c.items.map((it,i)=>`<button class="frow" data-wn="${i}" style="padding:10px;text-align:left">${it[0]==='me'?avatarSVG(myLook().outfit,4):it[0]==='seed'?cropIcon('sunflower',32):`<span data-s="${it[0]}" data-z="4"></span>`}<span class="grow"><span style="color:var(--gold)">${it[1]}</span><br><span class="small" style="line-height:1.6">${it[2]}</span></span><span class="small">去看看 →</span></button>`).join('')}</div>`}
+function showWhatsNew(){
+  const c=CHANGES[0];S.seenVer=c.v;save();
+  return new Promise(done=>{
+    const m=modal(`<h2 style="text-align:center;color:var(--gold)">更新了！${esc(c.title)}</h2><p class="small" style="margin:0;text-align:center">點一項就帶你過去看看</p>${changeItemsHTML(c)}<button class="btn gold" id="wnok">知道了</button>`);
+    m.onclick=null;paintSprites(m);
+    m.querySelectorAll('[data-wn]').forEach(b=>b.onclick=()=>{m.remove();done();c.items[+b.dataset.wn][3]()});
+    m.querySelector('#wnok').onclick=()=>{m.remove();done()};
+  });
+}
+function showChangelog(){
+  const m=modal(`<h2>更新紀錄</h2>${CHANGES.map((c,k)=>`<div><p style="margin:8px 0 4px;color:var(--gold)">${c.v.slice(5).replace('-','/')}・${esc(c.title)}</p><div data-cl="${k}">${changeItemsHTML(c)}</div></div>`).join('')}<button class="btn ghost" data-close>關閉</button>`);
+  paintSprites(m);
+  m.querySelectorAll('[data-cl]').forEach(box=>box.querySelectorAll('[data-wn]').forEach(b=>b.onclick=()=>{m.remove();CHANGES[+box.dataset.cl].items[+b.dataset.wn][3]()}));
+}
 /* ---------- 連續登入獎勵：7 天一輪，第 7 天最多；斷掉就從第 1 天重來 ----------
    線上版由資料庫 claim_login() 判斷今天領過沒、連續幾天；單機版記在 S.logins。 */
 const LOGIN_REWARD=[10,15,20,25,30,40,50],LOGIN_TICKET_DAY=7;
@@ -2065,6 +2174,7 @@ function dailyGreet(force){
   if(!S.tier||!S.name||document.querySelector('.modal'))return;
   if(!S.tutorialDone){showTutorial();return}
   if(!S.starterDone){showStarter().then(shown=>{if(!shown)dailyGreet(force)});return}
+  if(S.seenVer!==CHANGES[0].v){showWhatsNew().then(()=>dailyGreet(force));return}
   if(S.loginDay!==today()){showLoginReward().then(()=>dailyGreet(force));return}
   if(!force&&S.lastGreet===today())return;
   S.lastGreet=today();save();
@@ -3091,7 +3201,7 @@ function renderMe(){
      <p class="small" style="margin:0">目前：${esc(scopeName())}・${pool().length.toLocaleString()} 題。</p>
    </div>`:''}
    <button class="btn" id="mywrong">錯題本（${wrongs().length} 題）</button>
-   <button class="btn" id="howto">玩法說明</button>
+   <div class="row"><button class="btn" id="howto">玩法說明</button><button class="btn" id="mylog">更新紀錄</button></div>
    ${reminderBox()}
    ${TEACHER?'<button class="btn mint" id="tdash">老師後台</button>':''}
    <div class="row"><button class="btn gold" id="share">產生分享圖</button><button class="btn mint" id="meinv">邀請好友拿獎勵</button></div>
@@ -3099,7 +3209,7 @@ function renderMe(){
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
-  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mywrong').onclick=()=>renderMistakes();
+  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;$('#mywrong').onclick=()=>renderMistakes();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
