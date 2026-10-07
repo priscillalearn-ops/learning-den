@@ -285,7 +285,8 @@ function streak(){let d=new Date(),n=0;if(!S.days[keyOf(d)])d.setDate(d.getDate(
 /* 曾經最長連續打卡幾天（好友與私訊的解鎖條件，跟資料庫的 best_streak 同一套算法） */
 const DM_NEED=7;
 function bestStreak(){let best=0,run=0,prev=null;Object.keys(S.days).sort().forEach(k=>{const d=new Date(k+'T00:00');run=prev&&(d-prev)/864e5===1?run+1:1;prev=d;best=Math.max(best,run)});return best}
-const dmTierOk=()=>S.tier!=='kid';
+const dmTierOk=()=>true;  /* 2026-10-08 起國小也能加好友，但只能加國小 */
+const friendTierOk=t=>(t==='kid')===(S.tier==='kid');
 const dmOpen=()=>dmTierOk();  /* 2026-10-08 起好友和私訊直接開放（國小除外），不用再連續打卡 */
 function weekMinutes(){let t=0,d=new Date();for(let i=0;i<7;i++){t+=S.minutes[keyOf(d)]||0;d.setDate(d.getDate()-1)}return t}
 /* 今日一題和留言依「日期＋等級」記，換等級會拿到該等級自己的題目 */
@@ -524,6 +525,8 @@ const SHOP=[
  {id:'hat_cat',slot:'hat',name:'貓耳朵',price:150,hat:'catear',c:['#c98a3a']},
  {id:'hat_crown',slot:'hat',name:'金色皇冠',price:400,hat:'crown',c:['#ffd166']},
  {id:'hat_friend_crown',slot:'hat',name:'友情皇冠',price:9999,hat:'crown',c:['#f4a6c6'],bundle:'invite'},
+ {id:'acc_friendband',slot:'acc',name:'友情手環',price:9999,acc:'friendband',bundle:'friend'},
+ {id:'acc_heartwings',slot:'acc',name:'愛心翅膀',price:9999,acc:'heartwings',bundle:'friend'},
  {id:'hat_straw',slot:'hat',name:'麥穗草帽',price:9999,hat:'straw',c:['#e8c35a'],bundle:'farm'},
  {id:'hat_pumpkinhelm',slot:'hat',name:'南瓜頭盔',price:9999,hat:'pumpkinhelm',bundle:'farm'},
  {id:'top_apron',slot:'top',name:'番茄紅圍裙',price:9999,c:['#e0503c'],bundle:'farm'},
@@ -608,7 +611,7 @@ const HAT={straw:['...hh...','.hhyyhh.','hhhhhhhh'],pumpkinhelm:['...G....','.OO
   witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],horns:['.h....h.','.hooooh.','.oooooo.'],mummy:['..hhhh..','.hghhgh.','.hhhhhh.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
   cap:['........','..hhhh..','.hhhhhhh'],bunny:['.h....h.','.h....h.','.hhhhhh.'],catear:['.h....h.','.hh..hh.','.hhhhhh.'],crown:['........','.h.hh.h.','.hhhhhh.']};
 const HATSIDE={pumpkinhelm:{3:'O......O',4:'O......O'},hairlong:{3:'o......o',4:'o......o',5:'o......o',6:'o......o'},ponytail:{2:'.......o',3:'.......o',4:'.......o'},curly:{3:'o......o',4:'o......o'},bob:{3:'.o....o.',4:'.o....o.'},astro:{3:'.w....w.',4:'.w....w.',5:'.w....w.'},elf:{4:'.s....s.'}};
-const ACC={carrotclip:{0:'......G.',1:'.....OO.'},sunclip:{0:'.....yy.',1:'....ydy.',2:'.....yy.'},starcape:{5:'y......y',6:'y......y',7:'y......y'},ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
+const ACC={friendband:{6:'P......P'},heartwings:{4:'r......r',5:'rr....rr',6:'r......r'},carrotclip:{0:'......G.',1:'.....OO.'},sunclip:{0:'.....yy.',1:'....ydy.',2:'.....yy.'},starcape:{5:'y......y',6:'y......y',7:'y......y'},ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
 function avatarGrid(outfit){
   const hat=ITEM[outfit.hat]||ITEM.hat_none,top=ITEM[outfit.top]||ITEM.top_blue,acc=ITEM[outfit.acc];
   const g=[...HAT[hat.hat||'hair'],'..ssss..','..ksks..','..ssss..','.cccccc.','..n..n..'];
@@ -746,7 +749,7 @@ function renderShop(cat,from){
        const on=(slot in L.room?L.room[slot]:L.outfit[slot])===it.id,own=owns(it.id);
        return `<button class="sitem${on?' on':''}" data-it="${it.id}">${itemThumb(it)}<span>${esc(it.name)}</span>
          ${it.gacha?`<span class="pill" style="background:${RARITY[it.gacha][1]};color:var(--night)">盲盒 ${it.gacha}</span>`:it.rare?'<span class="pill" style="background:var(--gold);color:var(--night)">稀有</span>':it.season?`<span class="pill" style="background:var(--coral);color:var(--night)">${it.season}限定・到 ${it.until.replace('-','/')}</span>`:''}
-         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
+         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':it.bundle==='friend'?'好感度獎勵':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
    <p class="demo" style="text-align:left;line-height:1.6">答今日一題 +10（答對再 +5）・專注每分鐘 +1（每天最多 ${FOCUS_CAP}）・連續打卡 3／7／15／30 天有額外獎勵。</p>`;
   paintSprites($('#view'));
   $('#sback').onclick=()=>shopFrom==='home'?renderHome():go(shopFrom);
@@ -762,7 +765,7 @@ function pickItem(it){
   if(owns(it.id)){equip(it);return}
   if(it.cards){const n=Object.keys(S.cards).length;modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div><h2 style="text-align:center">${esc(it.name)}</h2><p style="text-align:center;margin:0;line-height:1.6">收集 ${it.cards} 張單字卡就會自動得到，不能用金幣買。<br>你現在有 ${n} 張，還差 ${Math.max(0,it.cards-n)} 張。</p><button class="btn" data-close>好</button>`);return}
   if(it.gacha){toast(`${it.name}只能從遊樂場的魔法盲盒抽到（${it.gacha}）`);return}
-  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:`${it.name}是新手大禮包限定的`);return}
+  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:it.bundle==='friend'?`${it.name}：和好友的好感度升級才拿得到`:`${it.name}是新手大禮包限定的`);return}
   if(!inWin(it)){toast('這個限定商品現在沒有販售');return}
   const bal=coins();
   const m=modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div>
@@ -1933,7 +1936,7 @@ const TOUR=[
  ['lamp','讀書房：一起專注','選 15、25、50 分鐘或 2 小時，跟同學一起專注，每分鐘 +1 金幣。同年級的同學會出現在座位上，點座位還能參觀他們的房間；讀書房裡也能聊天打氣。'],
  ['coin','金幣怎麼用？','到百貨公司買家具、服裝、寵物，布置「我的家」。遊樂場有小遊戲和雙倍挑戰；銀行存錢每天會生利息。'],
  ['scroll','任務板和布告欄','噴水池旁的任務板有每日、每週和老師出的任務，完成就能領金幣。布告欄可以看老師的公告和本週排行。'],
- ['chat','好友與老師信箱',`國中、高中可以直接加同學好友、互傳私訊和送禮物。老師傳來的訊息會出現在「好友」頁的老師信箱，也可以回覆老師。`],
+ ['chat','好友與老師信箱',`可以直接加同學好友（國小只能加國小），互傳私訊、送禮物、培養好感度。老師傳來的訊息會出現在「好友」頁的老師信箱，也可以回覆老師。`],
  ['feast','準備好了嗎？','第一步：先去魔法餐廳吃第一餐，再到魔法學院答今日一題。有問題隨時到「我的」按「玩法說明」再看一次。']
 ];
 /* 依年級推薦一個範圍（找名字有對到的組合包），回傳 scope 下拉選單的值 */
@@ -2085,6 +2088,9 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-08c',title:'好友全開放＋友情好感度',items:[
+  ['chat','好友全開放','不用再連續打卡！國中、高中可以互加好友，國小也能加國小的同學。',()=>go('friends')],
+  ['heart','友情好感度','私訊、送禮、幫好友澆水都會增加好感度，升級時兩個人都拿金幣，最高等級還有愛心翅膀！',()=>{go('friends');setTimeout(affHelp,300)}]]},
  {v:'2026-10-08b',title:'好友直接開放、花園更好找',items:[
   ['chat','好友和私訊直接開放','國中、高中不用再連續打卡 7 天，馬上就能加同學好友、傳私訊、送禮物！',()=>go('friends')],
   ['seed','魔法花園入口','城市上方多了綠色的「我的魔法花園」按鈕，地圖上的我的家也變成「我的家・花園」。',()=>openMyGarden()]]},
@@ -2249,7 +2255,7 @@ const cloud={
   card(w){const c=S.cards[w];return this.run(()=>sb.from('cards').upsert({user_id:ME,word:w,zh:c.zh,n:c.n}))},
   stats(q){return this.run(()=>sb.rpc('daily_stats',{p_qid:q.id,p_day:today()}))},
   friends(){return this.run(()=>sb.from('friendships').select('requester,addressee,status,rq:profiles!friendships_requester_fkey(name,tier),ad:profiles!friendships_addressee_fkey(name,tier)'))},
-  request(uid){return this.run(()=>sb.from('friendships').insert({addressee:uid}),'邀請沒送出：對方要是同等級、也連續打卡滿 7 天才行')},
+  request(uid){return this.run(()=>sb.from('friendships').insert({addressee:uid}),'邀請沒送出：國小只能加國小，國中和高中可以互加')},
   accept(uid){return this.run(()=>sb.from('friendships').update({status:'accepted'}).eq('requester',uid).eq('addressee',ME),'沒接受成功，再試一次')},
   unfriend(uid){return this.run(()=>sb.from('friendships').delete().or(`and(requester.eq.${ME},addressee.eq.${uid}),and(requester.eq.${uid},addressee.eq.${ME})`))},
   findByCode(code){return this.run(()=>sb.rpc('find_by_code',{p_code:code}))},
@@ -2860,7 +2866,7 @@ function renderQuiz(){
 }
 
 /* ---------- 好友與私訊 ----------
-   規則：國小不開放；曾經連續打卡 7 天解鎖；只能加同等級、也解鎖的人；私訊只能傳給好友。
+   規則：不用連續打卡；國小只能加國小，國中、高中可以互加；私訊只能傳給好友。好感度見下面 AFF_*。
    這些規則資料庫也會再檢查一次（schema.sql 的 dm_ok、are_friends）。 */
 let unread={},dmChan=null,chatWith=null,unseenGifts=0;
 function drawUnread(){const n=Object.values(unread).reduce((a,b)=>a+b,0)+unseenGifts,b=$('#unread');b.hidden=!n;b.textContent=n>99?'99+':n}
@@ -2909,10 +2915,10 @@ async function renderFriends(){
     if(code===myCode){$('#ferr').textContent='這是你自己的代碼';return}
     const r=await cloud.findByCode(code);if(r===undefined)return;
     const who=r&&r[0];if(!who){$('#ferr').textContent='找不到這個代碼，再確認一次';return}
-    if(who.tier!==S.tier){$('#ferr').textContent=`${who.name} 不是${T().name}，只能加同等級的同學`;return}
+    if(!friendTierOk(who.tier)){$('#ferr').textContent=S.tier==='kid'?`${who.name} 不是國小的同學，國小只能加國小`:`${who.name} 是國小的同學，國中、高中不能加國小`;return}
     if(await cloud.request(who.id)!==undefined){toast(`已送出好友邀請給 ${who.name}`);renderFriends()}
   };
-  const rows=await cloud.friends();if(curTab!=='friends'||!$('#flists'))return;
+  const [rows]=await Promise.all([cloud.friends(),loadAffinity()]);if(curTab!=='friends'||!$('#flists'))return;
   if(rows===undefined){$('#flists').innerHTML='<p class="small">好友名單載不到，檢查一下網路。</p>';return}
   const other=r=>r.requester===ME?{uid:r.addressee,...(r.ad||{})}:{uid:r.requester,...(r.rq||{})};
   const fr=rows.filter(r=>r.status==='accepted').map(other).filter(f=>!isBlocked(f.uid));
@@ -2921,8 +2927,8 @@ async function renderFriends(){
   const row=(f,right)=>`<div class="frow"><span data-s="${TIERS[f.tier]?f.tier:'teen'}" data-z="3"></span><span class="grow">${esc(f.name||'同學')}</span>${right}</div>`;
   $('#flists').innerHTML=`
    ${inc.length?`<p class="small" style="margin:0 0 6px">好友邀請</p><div class="flist">${inc.map(f=>row(f,`<button class="btn gold mini" data-acc="${f.uid}">接受</button><button class="btn ghost mini" data-del="${f.uid}">略過</button>`)).join('')}</div>`:''}
-   <p class="small" style="margin:12px 0 6px">好友（${fr.length}）</p>
-   ${fr.length?`<div class="flist">${fr.map(f=>`<button class="frow" data-chat="${f.uid}" data-name="${esc(f.name||'同學')}"><span data-s="${TIERS[f.tier]?f.tier:'teen'}" data-z="3"></span><span class="grow">${esc(f.name||'同學')}</span>${unread[f.uid]?`<span class="badge" style="position:static">${unread[f.uid]}</span>`:'<span class="small">聊天</span>'}</button>`).join('')}</div>`
+   <div class="bar" style="margin:12px 0 6px"><span class="small">好友（${fr.length}）</span><button class="chip" id="affq" style="font-size:12px;padding:3px 8px">好感度怎麼算？</button></div>
+   ${fr.length?`<div class="flist">${fr.map(f=>`<button class="frow" data-chat="${f.uid}" data-name="${esc(f.name||'同學')}"><span data-s="${TIERS[f.tier]?f.tier:'teen'}" data-z="3"></span><span class="grow">${esc(f.name||'同學')}</span>${unread[f.uid]?`<span class="badge" style="position:static">${unread[f.uid]}</span>`:'<span class="small">聊天</span>'}${affBadge(f.uid)}</button>`).join('')}</div>`
      :'<p style="margin:0;line-height:1.6">還沒有好友。把你的好友代碼給同學，或在留言區的「⋯」選「加好友」。</p>'}
    ${out.length?`<p class="small" style="margin:12px 0 6px">等對方回覆</p><div class="flist">${out.map(f=>row(f,`<button class="btn ghost mini" data-del="${f.uid}">取消</button>`)).join('')}</div>`:''}`;
   paintSprites($('#flists'));
@@ -2936,6 +2942,31 @@ async function renderFriends(){
   $('#flists').querySelectorAll('[data-acc]').forEach(b=>b.onclick=async()=>{if(await cloud.accept(b.dataset.acc)!==undefined){toast('你們成為好友了');renderFriends()}});
   $('#flists').querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await cloud.unfriend(b.dataset.del);renderFriends()});
   $('#flists').querySelectorAll('[data-chat]').forEach(b=>b.onclick=()=>openChat(b.dataset.chat,b.dataset.name));
+  $('#affq').onclick=affHelp;
+  affLevelUps(Object.fromEntries(fr.map(f=>[f.uid,f.name])));
+}
+/* ---------- 友情好感度 ----------
+   私訊（每人每天第一則 +1）、送禮 +3、幫忙澆水 +1（每天最多 2）、偷好友的菜 −2；每對好友每天最多 +6。
+   升級雙方都拿獎勵：好朋友 10 點 +20、麻吉 30 點 +50、摯友 60 點 +100＋友情手環、靈魂伴侶 100 點 +200＋愛心翅膀。
+   點數由資料庫觸發器自動計算（bump_affinity），網頁只讀 my_affinity()。 */
+const AFF_LV=[[0,'點頭之交',0],[10,'好朋友',20],[30,'麻吉',50],[60,'摯友',100],[100,'靈魂伴侶',200]];
+let affCache={};
+async function loadAffinity(){if(!ONLINE)return affCache;const r=await cloud.run(()=>sb.rpc('my_affinity'));if(r){affCache={};r.forEach(x=>affCache[x.uid]=x)}return affCache}
+function affOf(uid){const a=affCache[uid]||{points:0,level:1,today:0};const lv=AFF_LV[a.level-1],next=AFF_LV[a.level];return {...a,name:lv[1],next,pct:next?Math.round(100*(a.points-lv[0])/(next[0]-lv[0])):100}}
+const affHearts=lv=>`<span style="color:#f4a6c6;letter-spacing:-1px">${'♥'.repeat(lv)}<span style="color:var(--dim)">${'♥'.repeat(5-lv)}</span></span>`;
+function affBadge(uid){const a=affOf(uid);return `<span style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:86px"><span class="small">${affHearts(a.level)} ${a.name}</span><span class="lock" style="width:80px;height:6px"><i style="width:${a.pct}%;background:#f4a6c6"></i></span></span>`}
+function affHelp(){modal(`<h2>友情好感度</h2><p style="margin:0;line-height:1.8">和好友互動就會增加好感度，升級時<b style="color:var(--gold)">兩個人都有獎勵</b>！</p>
+  <div class="flist">${AFF_LV.map(([p,n,c],i)=>`<div class="frow" style="padding:6px 10px"><span>${affHearts(i+1)}</span><span class="grow">${n}</span><span class="small">${p} 點${c?`・各 +${c} 金幣`:''}${i===3?'＋友情手環':i===4?'＋愛心翅膀':''}</span></div>`).join('')}</div>
+  <p class="small" style="margin:0;line-height:1.8">・每天第一則私訊 +1<br>・送禮物 +3<br>・幫好友的花園澆水 +1（每天最多 2）<br>・<span style="color:var(--coral)">偷好友的菜 −2</span><br>每對好友每天最多加 6 點，慢慢培養感情吧！</p><button class="btn gold" data-close>知道了</button>`)}
+/* 好友頁打開時：好感度升級了就跳通知 */
+function affLevelUps(names){
+  S.affSeen=S.affSeen||{};const ups=Object.values(affCache).filter(a=>a.level>(S.affSeen[a.uid]||1));
+  ups.forEach(a=>S.affSeen[a.uid]=a.level);save();
+  if(!ups.length)return;const a=ups[0],lv=AFF_LV[a.level-1];
+  modal(`<h2 style="text-align:center;color:#f4a6c6">好感度升級！</h2><p style="text-align:center;margin:0;font-size:22px">${affHearts(a.level)}</p>
+    <p style="text-align:center;margin:0;line-height:1.7">你和 <b>${esc(names[a.uid]||'好友')}</b> 變成「${lv[1]}」了！<br><b style="color:var(--gold)">兩個人各 +${lv[2]} 金幣</b>${a.level===4?'<br>還拿到「友情手環」！':a.level===5?'<br>還拿到「愛心翅膀」！':''}</p>
+    ${ups.length>1?`<p class="small" style="text-align:center;margin:0">另外還有 ${ups.length-1} 位好友也升級了</p>`:''}<button class="btn gold" data-close>太好了</button>`);
+  cloud.refreshWallet&&cloud.refreshWallet();
 }
 /* 老師信箱：傳過訊息給我的老師（不用連續打卡，國小也可以） */
 async function fillTeacherInbox(){
@@ -2950,13 +2981,14 @@ async function openChat(uid,name,opt){
   opt=opt||{};chatWith={uid,name,msgs:[]};
   $('#view').innerHTML=`
    <div class="bar"><button class="btn ghost mini" id="back" style="padding:5px 10px">← ${opt.backLabel||'好友'}</button><span style="color:var(--gold);display:flex;align-items:center;gap:6px">${opt.official?'<span data-s="master" data-z="3"></span>':''}${esc(name)}</span>${opt.official||opt.noMenu?'<span></span>':'<button class="more" id="cmore" aria-label="更多選項" style="font-size:18px">⋯</button>'}</div>
+   ${!opt.official&&!opt.noMenu&&ONLINE?`<button class="frow" id="caff" style="padding:6px 10px">${affBadge(uid).replace('align-items:flex-end','align-items:flex-start')}<span class="grow small" style="text-align:right">${affOf(uid).next?`再 ${affOf(uid).next[0]-affOf(uid).points} 點升「${affOf(uid).next[1]}」・今天 +${affOf(uid).today||0}/6`:'已經是最高等級！'}</span></button>`:''}
    <div class="menu" id="cmenu" hidden style="justify-content:flex-end"><button id="cgift">送禮物</button><button id="unf">刪除好友</button><button id="cblk">封鎖</button></div>
    <div class="chat" id="chat"><p class="small">載入中…</p></div>
    <div class="row"><input type="text" id="msg" maxlength="200" placeholder="想說什麼？（200 字內）" aria-label="私訊內容"><button class="btn gold" id="snd" style="flex:0 0 auto">送出</button></div>
    <p class="err" id="merr" role="alert"></p>
    <p class="demo" style="text-align:left">不要傳電話、地址、照片，也不要約見面。</p>`;
   paintSprites($('#view'));
-  $('#back').onclick=opt.back||renderFriends;
+  $('#back').onclick=opt.back||renderFriends;if($('#caff'))$('#caff').onclick=affHelp;
   if(opt.official||opt.noMenu)$('#cmenu').remove();else $('#cmore').onclick=()=>{$('#cmenu').hidden=!$('#cmenu').hidden};
   if(!opt.official&&!opt.noMenu){$('#cgift').onclick=()=>{$('#cmenu').hidden=true;giftModal(uid,name)};
   $('#unf').onclick=()=>{const m=modal(`<h2>刪除好友 ${esc(name)}？</h2><p class="small">之後就不能互傳私訊，要重新加好友。</p><div class="row"><button class="btn" data-close>取消</button><button class="btn coral" id="yes">刪除</button></div>`);m.querySelector('#yes').onclick=async()=>{m.remove();await cloud.unfriend(uid);toast(`已刪除好友 ${name}`);renderFriends()}};
