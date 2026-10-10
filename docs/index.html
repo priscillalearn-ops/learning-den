@@ -2088,6 +2088,8 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-10',title:'專注時間不會再不見',items:[
+  ['lamp','專注紀錄更安全','讀書時間如果因為網路不穩沒存到，會自動補存，不會再被吃掉。讀書房會顯示今天專注幾分鐘、有沒有存好。',()=>go('room')]]},
  {v:'2026-10-08c',title:'好友全開放＋友情好感度',items:[
   ['chat','好友全開放','不用再連續打卡！國中、高中可以互加好友，國小也能加國小的同學。',()=>go('friends')],
   ['heart','友情好感度','私訊、送禮、幫好友澆水都會增加好感度，升級時兩個人都拿金幣，最高等級還有愛心翅膀！',()=>{go('friends');setTimeout(affHelp,300)}]]},
@@ -2301,6 +2303,7 @@ const cloud={
     S.days={};S.minutes={};S.answers={};S.cards={};
     a.forEach(r=>{S.days[r.day]=true;S.answers[r.day+':'+r.tier]={c:r.choice,ok:r.correct,qid:r.qid}});
     f.forEach(r=>{S.days[r.day]=true;S.minutes[r.day]=(S.minutes[r.day]||0)+r.minutes});
+    (S.pendingFocus||[]).forEach(p=>{S.days[p.day]=true;S.minutes[p.day]=(S.minutes[p.day]||0)+p.minutes});
     c.forEach(r=>S.cards[r.word]={zh:r.zh,n:r.n});
     S.blocked=S.blocked.filter(x=>!x.startsWith('u:')).concat(b.map(r=>`u:${r.blocked_id}:${(r.profiles&&r.profiles.name)||'同學'}`));
     save();return true;
@@ -2323,7 +2326,7 @@ async function boot(){
     $('#retry').onclick=boot;return;
   }
   if(S.tier&&!(await loadBank(S.tier))){bankError();return}
-  joinRoom();listenDM();
+  joinRoom();listenDM();flushFocus(true);
   TEACHER=(await cloud.run(()=>sb.rpc('is_teacher')))===true;
   if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm){if(tm.title)TTITLE=tm.title;TNAME=tm.name||''}}
   if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet()).then(()=>setTimeout(checkInvites,1500))}else renderOnboard();
@@ -2641,6 +2644,7 @@ function renderRoom(){
    <div class="timer" id="clock" aria-live="off">${fmt(tm.mode==='idle'?len*60:tm.left)}</div>
    <p class="small" id="mlabel" style="text-align:center;margin:0">${tm.mode==='break'?'休息時間・來一題快問快答':tm.mode==='idle'?'選好時間，按開始':'專注中…'}</p>
    <div class="prog"><i id="bar"></i></div>
+   <p class="small" style="text-align:center;margin:0">今天已專注 ${S.minutes[today()]||0} 分鐘${(S.pendingFocus||[]).length?`・<span style="color:var(--coral)">${S.pendingFocus.length} 次還在存檔，有網路就會自動補上</span>`:ONLINE?'・已存到雲端 ✓':''}</p>
    <div class="chips" style="justify-content:center">${[15,25,50,120].map(m=>`<button class="chip" data-len="${m}" aria-pressed="${len===m}" ${tm.mode!=='idle'?'aria-disabled="true"':''}>${m===120?'2 小時':m+' 分鐘'}</button>`).join('')}</div>
    <div class="row" id="ctl"></div>
    <div id="quiz"></div>
@@ -2811,15 +2815,35 @@ async function renderGuild(){
     toast(`讀書會任務完成！+${got} 金幣`);renderGuild()});
 }
 function startFocus(len){
-  tm={...tm,mode:'focus',len:len*60,left:len*60,end:Date.now()+len*60*1000/tm.speed,paused:false};
+  tm={...tm,mode:'focus',len:len*60,left:len*60,end:Date.now()+len*60*1000/tm.speed,paused:false,sid:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>tm.wake=w).catch(()=>{})}catch(e){}
   saveTimer();loop();trackMe();renderRoom();
 }
 function endTimer(){clearInterval(tm.tick);tm.mode='idle';tm.paused=false;try{tm.wake&&tm.wake.release()}catch(e){}tm.wake=null;saveTimer();trackMe()}
+/* 專注紀錄先放進待存清單，資料庫確認存好才移除；存不上就在打開 app、回到 app、網路恢復時自動補存 */
+function queueFocus(sid,day,minutes){if(!ONLINE)return;S.pendingFocus=(S.pendingFocus||[]).concat([{sid,day,minutes}]);save();flushFocus()}
+let flushing=false;
+async function flushFocus(quiet){
+  if(!ONLINE||!ME||flushing||!(S.pendingFocus||[]).length)return;flushing=true;
+  try{
+    try{await sb.auth.getSession()}catch(e){}  /* 讀書很久登入可能過期，先換新的 */
+    for(const p of S.pendingFocus.slice()){
+      let r=await sb.from('focus_sessions').upsert({day:p.day,minutes:p.minutes,client_id:p.sid},{onConflict:'client_id',ignoreDuplicates:true});
+      if(r.error&&/client_id|on conflict|constraint/i.test(r.error.message||''))r=await sb.from('focus_sessions').insert({day:p.day,minutes:p.minutes});
+      if(r.error){if(!quiet)toast('專注紀錄暫時存不上，網路恢復後會自動補存，時間不會不見');break}
+      S.pendingFocus=S.pendingFocus.filter(x=>x.sid!==p.sid);save();
+    }
+  }finally{flushing=false}
+}
+window.addEventListener('online',()=>flushFocus(true));
 /* 手機切到別的 App 常會重新載入頁面：把計時狀態存起來，回來時接著算 */
-function saveTimer(){S.timer=tm.mode==='idle'?null:{mode:tm.mode,end:tm.end,len:tm.len,left:tm.left,paused:!!tm.paused,speed:tm.speed};save()}
+const TKEY='wordden.timer.v1';
+function saveTimer(){S.timer=tm.mode==='idle'?null:{mode:tm.mode,end:tm.end,len:tm.len,left:tm.left,paused:!!tm.paused,speed:tm.speed,sid:tm.sid};save();
+  try{localStorage.setItem(TKEY,JSON.stringify({uid:S.uid||S.name,t:S.timer}))}catch(e){}}
 function restoreTimer(){
-  const t=S.timer;if(!t||tm.mode!=='idle')return;
+  /* 優先用獨立存的計時狀態（同一台裝置開兩個分頁時，另一個分頁存檔不會把它蓋掉） */
+  let t=S.timer;try{const x=JSON.parse(localStorage.getItem(TKEY)||'null');if(x&&x.uid===(S.uid||S.name))t=x.t}catch(e){}
+  if(!t||tm.mode!=='idle')return;
   Object.assign(tm,t);if(tm.paused)return;
   tm.left=(tm.end-Date.now())*tm.speed/1000;
   if(tm.left>0){loop();return}
@@ -2839,8 +2863,11 @@ function drawClock(){
   document.querySelectorAll('[data-bm]').forEach(e=>e.textContent=botMin[e.dataset.bm]);
 }
 function finishFocus(){
-  const mins=Math.round(tm.len/60),m0=S.minutes[today()]||0,before=bestStreak();
-  S.minutes[today()]=m0+mins;markDay();cloud.focus(mins);
+  const mins=Math.round(tm.len/60),m0=S.minutes[today()]||0,before=bestStreak(),sid=tm.sid||('f'+tm.end);
+  S.doneSids=(S.doneSids||[]).slice(-30);
+  if(S.doneSids.includes(sid)){tm={...tm,mode:'idle'};saveTimer();if(curTab==='room')renderRoom();return}
+  S.doneSids.push(sid);
+  S.minutes[today()]=m0+mins;markDay();queueFocus(sid,today(),mins);
   const gain=(Math.min(m0+mins,FOCUS_CAP)-Math.min(m0,FOCUS_CAP))*evMult(today());
   const q=pick(cardPool());
   const had=giveCard(q.w,q.zh);cloud.card(q.w);
@@ -3291,7 +3318,7 @@ document.addEventListener('visibilitychange',()=>{
   if(!ONLINE||!ME)return;
   if(document.hidden){clearTimeout(idleT);idleT=setTimeout(()=>{napping=true;leaveRoom();leaveCity();
     if(dmChan){sb.removeChannel(dmChan);dmChan=null}if(rchat.chan){sb.removeChannel(rchat.chan);rchat.chan=null;rchat.room=''}},60000)}
-  else{clearTimeout(idleT);if(!napping)return;napping=false;
+  else{clearTimeout(idleT);flushFocus(true);if(!napping)return;napping=false;
     joinRoom();listenDM();if(curTab==='city')joinCity();if(curTab==='room')openRoomChat()}
 });
 boot();
