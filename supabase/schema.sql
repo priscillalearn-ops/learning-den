@@ -1319,6 +1319,16 @@ insert into public.shop_items (id, slot, price, unlock_cards, avail_from, avail_
   ('bed_cloud', 'bed', 9999, null, null, null, 'SR', null),
   ('acc_fairy', 'acc', 9999, null, null, null, 'SR', null),
   ('pet_dragon_rainbow', 'pet', 9999, null, null, null, 'SSR', null),
+  ('acc_maple', 'acc', 9999, null, null, null, 'N', null),
+  ('poster_maple', 'poster', 9999, null, null, null, 'N', null),
+  ('rug_autumn', 'rug', 9999, null, null, null, 'N', null),
+  ('hat_beret', 'hat', 9999, null, null, null, 'R', null),
+  ('pet_hedgehog', 'pet', 9999, null, null, null, 'R', null),
+  ('lamp_lantern', 'lamp', 9999, null, null, null, 'R', null),
+  ('pet_fox', 'pet', 9999, null, null, null, 'SR', null),
+  ('acc_flowercrown', 'acc', 9999, null, null, null, 'SR', null),
+  ('pet_moonrabbit', 'pet', 9999, null, null, null, 'SSR', null),
+  ('hat_galaxy', 'hat', 9999, null, null, null, 'SSR', null),
   ('hat_star_crown', 'hat', 9999, null, null, null, 'SSR', null),
   ('wall_aurora', 'wall', 9999, null, null, null, 'SSR', null),
   ('pet_chick', 'pet', 9999, null, null, null, null, 'starter'),
@@ -2960,3 +2970,12 @@ revoke all on function public.teacher_add_focus(uuid, date, integer, text) from 
 grant execute on function public.teacher_add_focus(uuid, date, integer, text) to authenticated;
 revoke all on function public.teacher_focus_adds_for(uuid) from public, anon;
 grant execute on function public.teacher_focus_adds_for(uuid) to authenticated;
+
+-- =====================================================================
+-- 段考週 ×3、盲盒秋季新品（2026-10-12 更新；整份重跑即可）
+-- =====================================================================
+-- 段考週：10/12～10/18 答題、專注、任務金幣 ×3，盲盒券掉落一樣 40%
+insert into public.app_events (name, start_day, end_day, mult, drop_rate)
+  values ('段考週加成', '2026-10-12', '2026-10-18', 3, 0.4)
+  on conflict (name, start_day) do update set end_day = excluded.end_day, mult = excluded.mult, drop_rate = excluded.drop_rate;
+

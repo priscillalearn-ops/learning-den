@@ -53,6 +53,7 @@ loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
  if(sc==='garden'){const now=Date.now(),H=3600e3;S.garden={used:{},helpers:[{name:'熬夜刷題的熊貓',crop:'pumpkin'},{name:'喝珍奶的企鵝',crop:'sunflower'},{name:'背單字的仙人掌',crop:'carrot'}],
    plots:[{slot:0,crop:'pumpkin',planted_at:new Date(now-13*H).toISOString(),waters:3},{slot:1,crop:'sunflower',planted_at:new Date(now-10*H).toISOString(),waters:2},{slot:2,crop:'carrot',planted_at:new Date(now-1*H).toISOString(),waters:1},
      {slot:3,crop:'tomato',planted_at:new Date(now-7*H).toISOString(),waters:2},{slot:4,crop:'wheat',planted_at:new Date(now-.2*H).toISOString(),waters:0}]};save();renderGarden()}
+ if(sc==='gachanew'){SHOP.filter(x=>x.isNew).forEach(x=>S.owned[x.id]=0);save();gGacha();setTimeout(()=>{},0);const v=$('#view');v.scrollTop=v.querySelector('.shop').offsetTop-80}
  if(sc==='guild'){S.cls='167';save();renderGuild()}
  if(sc==='board'){go('room');boardTab='all';drawBoard();const v=$('#view');v.scrollTop=$('#board').offsetTop-120}
  if(sc==='mistakes'){const p=pool();[0,3,5,8].forEach((i,k)=>{for(let j=0;j<=k%3;j++)addWrong(p[i])});S.wrongOk={[p[0].id]:2,[p[3].id]:1};save();renderMistakes();const dd=document.querySelector('#view details');if(dd)dd.open=true}

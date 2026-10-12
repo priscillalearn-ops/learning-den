@@ -386,6 +386,12 @@ const SHAPE={
  blackcat:['.k....k.','.kk..kk.','.kkkkkk.','.kykkyk.','.kkkkkk.','..kPPk..','.kkkkkk.','.k.kk.k.'],
  dinorainbow:['.....rrr','....rkrr','....yyyy','t..yyy..','t.ttttt.','.bbbyyb.','..bbbb..','..p..p..'],
  chick:['........','..yyyy..','.ykyyky.','.yyooyy.','.yyyyyy.','yyyyyyyy','.yyyyyy.','..o..o..'],
+ pmaple:['2222222','2111112','211O112','21OOO12','2OOOOO2','21OOO12','211d112','2111112','2222222'],
+ rugautumn:['.111111111111111111.','1O1y1O1y1O1y1O1y1O1y','.111111111111111111.'],
+ lantern:['.dd.','rrrr','ryyr','rrrr','.d..','.2..','.2..','.2..','.2..','222.'],
+ hedgehog:['........','..dddd..','.dododd.','dodkddd.','ddddddP.','.dddddd.','.s....s.','........'],
+ fox:['O....O..','OO..OO..','OOOOOO.w','OkOOkO.O','OOwwOO.O','.OOOOOOO','.O.O.OO.','........'],
+ moonrabbit:['....yy..','..w.yyy.','..w..yy.','.wwww...','.wkwkw..','.wwPww..','.wwwww..','..w.w...'],
  jack:['...G..','.1111.','1k11k1','111111','1kkkk1','.1111.','.2222.','..22..'],
  lampghost:['.ww.','wwww','wkkw','wwww','w.ww','.2..','.2..','.2..','.2..','222.'],
  pghost:['2222222','2111112','21www12','2wkwkw2','2wwwww2','2wwkww2','2w1w1w2','2111112','2222222'],
@@ -495,6 +501,16 @@ const SHOP=[
  {id:'bed_cloud',slot:'bed',name:'雲朵床',price:9999,g:'bed',c:['#f4ecd8','#bfe3ff'],gacha:'SR'},
  {id:'acc_fairy',slot:'acc',name:'精靈翅膀',price:9999,acc:'fairy',gacha:'SR'},
  {id:'pet_dragon_rainbow',slot:'pet',name:'彩虹龍',price:9999,g:'dinorainbow',gacha:'SSR'},
+ {id:'acc_maple',slot:'acc',name:'楓葉髮夾',price:9999,acc:'maple',gacha:'N',isNew:1},
+ {id:'poster_maple',slot:'poster',name:'楓葉海報',price:9999,g:'pmaple',c:['#2b1d0e','#c98a3a'],gacha:'N',isNew:1},
+ {id:'rug_autumn',slot:'rug',name:'秋葉地毯',price:9999,g:'rugautumn',c:['#8b5e3c'],gacha:'N',isNew:1},
+ {id:'hat_beret',slot:'hat',name:'紅色貝雷帽',price:9999,hat:'beret',c:['#d94f4f'],gacha:'R',isNew:1},
+ {id:'pet_hedgehog',slot:'pet',name:'小刺蝟',price:9999,g:'hedgehog',gacha:'R',isNew:1},
+ {id:'lamp_lantern',slot:'lamp',name:'紅燈籠',price:9999,g:'lantern',c:['#d94f4f','#5a3d2b'],gacha:'R',isNew:1},
+ {id:'pet_fox',slot:'pet',name:'九尾狐',price:9999,g:'fox',gacha:'SR',isNew:1},
+ {id:'acc_flowercrown',slot:'acc',name:'花冠',price:9999,acc:'flowercrown',gacha:'SR',isNew:1},
+ {id:'pet_moonrabbit',slot:'pet',name:'月兔',price:9999,g:'moonrabbit',gacha:'SSR',isNew:1},
+ {id:'hat_galaxy',slot:'hat',name:'星河魔法帽',price:9999,hat:'galaxy',gacha:'SSR',isNew:1},
  {id:'hat_star_crown',slot:'hat',name:'星星皇冠',price:9999,hat:'starcrown',gacha:'SSR'},
  {id:'wall_aurora',slot:'wall',name:'極光壁紙',price:9999,c:['#0f2a3a','#9fe1cb'],aurora:true,gacha:'SSR'},
  {id:'pet_chick',slot:'pet',name:'新手小雞',price:9999,g:'chick',bundle:'starter'},
@@ -606,12 +622,12 @@ const inWin=it=>!it.from||(mmdd()>=it.from&&mmdd()<=it.until);
 const buyable=it=>!it.cards&&!it.gacha&&!it.bundle&&inWin(it);
 
 /* 角色：帽子（0–2 列）＋臉（3–5）＋衣服（6）＋腳（7），配件疊在上面 */
-const HAT={straw:['...hh...','.hhyyhh.','hhhhhhhh'],pumpkinhelm:['...G....','.OOOOOO.','OOOOOOOO'],hairlong:['..oooo..','.oooooo.','oooooooo'],ponytail:['..oooo..','.oooooo.','.oooooo.'],bun:['...oo...','..oooo..','.oooooo.'],spiky:['.o.o.o..','.oooooo.','.oooooo.'],curly:['.o.oo.o.','oooooooo','oooooooo'],bob:['..oooo..','.oooooo.','oooooooo'],
+const HAT={beret:['........','.hhhhh..','hhhhhhh.'],galaxy:['...pp...','..pypp..','.pppppp.'],straw:['...hh...','.hhyyhh.','hhhhhhhh'],pumpkinhelm:['...G....','.OOOOOO.','OOOOOOOO'],hairlong:['..oooo..','.oooooo.','oooooooo'],ponytail:['..oooo..','.oooooo.','.oooooo.'],bun:['...oo...','..oooo..','.oooooo.'],spiky:['.o.o.o..','.oooooo.','.oooooo.'],curly:['.o.oo.o.','oooooooo','oooooooo'],bob:['..oooo..','.oooooo.','oooooooo'],
   ninja:['..hhhh..','.hhhhhh.','hhhhhhhh'],astro:['..wwww..','.wBBBBw.','wBBBBBBw'],chef:['.wwwwww.','.wwwwww.','..wwww..'],detective:['...hh...','..hhhh..','hhhhhhhh'],pirate:['..kkkk..','.kkwkkk.','kkkkkkkk'],tiara:['...y.y..','..yyyy..','.oooooo.'],elf:['......h.','....hhh.','.hhhhhh.'],
   witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],horns:['.h....h.','.hooooh.','.oooooo.'],mummy:['..hhhh..','.hghhgh.','.hhhhhh.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
   cap:['........','..hhhh..','.hhhhhhh'],bunny:['.h....h.','.h....h.','.hhhhhh.'],catear:['.h....h.','.hh..hh.','.hhhhhh.'],crown:['........','.h.hh.h.','.hhhhhh.']};
 const HATSIDE={pumpkinhelm:{3:'O......O',4:'O......O'},hairlong:{3:'o......o',4:'o......o',5:'o......o',6:'o......o'},ponytail:{2:'.......o',3:'.......o',4:'.......o'},curly:{3:'o......o',4:'o......o'},bob:{3:'.o....o.',4:'.o....o.'},astro:{3:'.w....w.',4:'.w....w.',5:'.w....w.'},elf:{4:'.s....s.'}};
-const ACC={friendband:{6:'P......P'},heartwings:{4:'r......r',5:'rr....rr',6:'r......r'},carrotclip:{0:'......G.',1:'.....OO.'},sunclip:{0:'.....yy.',1:'....ydy.',2:'.....yy.'},starcape:{5:'y......y',6:'y......y',7:'y......y'},ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
+const ACC={maple:{1:'......O.',2:'.....OO.'},flowercrown:{2:'.PyPyPy.'},friendband:{6:'P......P'},heartwings:{4:'r......r',5:'rr....rr',6:'r......r'},carrotclip:{0:'......G.',1:'.....OO.'},sunclip:{0:'.....yy.',1:'....ydy.',2:'.....yy.'},starcape:{5:'y......y',6:'y......y',7:'y......y'},ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
 function avatarGrid(outfit){
   const hat=ITEM[outfit.hat]||ITEM.hat_none,top=ITEM[outfit.top]||ITEM.top_blue,acc=ITEM[outfit.acc];
   const g=[...HAT[hat.hat||'hair'],'..ssss..','..ksks..','..ssss..','.cccccc.','..n..n..'];
@@ -655,7 +671,7 @@ function itemThumb(it){
    跟資料庫的 coins_earned() 同一套算法；線上版買東西時由資料庫再算一次，改網頁也灌不了金幣。 */
 const MILESTONES=[[3,20],[7,50],[15,100],[30,200],[60,400],[100,800]];
 /* 活動週（段考週加成）：線上版從資料庫 app_events 讀；單機版用這份。期間內答題、專注、任務金幣 × mult，答題／專注還會隨機掉盲盒券 */
-let EVENTS=[{name:'段考預備週加成',start:'2026-10-05',end:'2026-10-11',mult:2,drop:.4}];
+let EVENTS=[{name:'段考預備週加成',start:'2026-10-05',end:'2026-10-11',mult:2,drop:.4},{name:'段考週加成',start:'2026-10-12',end:'2026-10-18',mult:3,drop:.4}];
 const evMult=day=>EVENTS.reduce((m,e)=>day>=e.start&&day<=e.end?Math.max(m,e.mult):m,1);
 const curEvent=()=>EVENTS.filter(e=>today()>=e.start&&today()<=e.end).sort((a,b)=>b.mult-a.mult)[0]||null;
 async function eventRoll(kind){
@@ -668,7 +684,7 @@ async function eventRoll(kind){
     <p style="text-align:center;margin:0">${kind==='answer'?'認真答題':'專注讀書'}的獎勵：<b style="color:var(--gold)">盲盒券 1 張</b><br><span class="small">到遊樂場的魔法盲盒免費抽</span></p><button class="btn gold" data-close>太好了</button>`),600);
 }
 function eventBar(){const e=curEvent();if(!e)return '';const [,m,d]=e.end.split('-');
-  return `<div class="box" style="background:linear-gradient(90deg,var(--gold),var(--coral));color:var(--night);padding:8px 12px;outline-color:var(--night);font-size:14px;line-height:1.5"><b>${esc(e.name)} ×${e.mult}</b>・答題、專注、任務金幣翻倍，還會隨機掉盲盒券！（到 ${+m}/${+d}）</div>`}
+  return `<div class="box" style="background:linear-gradient(90deg,var(--gold),var(--coral));color:var(--night);padding:8px 12px;outline-color:var(--night);font-size:14px;line-height:1.5"><b>${esc(e.name)} ×${e.mult}</b>・答題、專注、任務金幣 ${e.mult===2?'翻倍':e.mult+' 倍'}，還會隨機掉盲盒券！（到 ${+m}/${+d}）</div>`}
 const FOCUS_CAP=150;
 function coinsEarned(){
   let e=50;
@@ -1152,6 +1168,7 @@ async function gGacha(){
   if(ONLINE){const st=await cloud.run(()=>sb.rpc('gacha_info'));if(st){const g=gstate();g.pity=st.pity;g.pulls=st.pulls;g.free=st.free_used?today():'';g.tickets=st.tickets||0}}
   const g=gstate(),all=SHOP.filter(x=>x.gacha),have=all.filter(x=>S.owned[x.id]!=null).length,left=GACHA_PITY-g.pity,canFree=gachaFree();
   gameShell('魔法盲盒',`
+    <div class="box" style="background:linear-gradient(90deg,#c98a3a,#ff8a5c);color:var(--night);padding:8px 12px;outline-color:var(--night);font-size:14px;line-height:1.5"><b>盲盒更新・秋季新品 ${all.filter(x=>x.isNew).length} 款！</b>月兔、星河魔法帽（SSR）、九尾狐、花冠（SR）…快來抽！</div>
     <div style="display:flex;justify-content:center;padding:6px 0"><span data-s="capsule" data-z="14" id="gmach" style="display:block"></span></div>
     <div class="flist">
       ${g.tickets?`<button class="btn gold" id="gticket">用盲盒券抽一次（還有 ${g.tickets} 張）</button>`:''}
@@ -1163,7 +1180,7 @@ async function gGacha(){
       <div class="tstats" style="grid-template-columns:repeat(4,1fr)">${['SSR','SR','R','N'].map(k=>{const [n,c,p,rf]=RARITY[k];return `<div><b style="color:${c}">${n}</b><span class="small">${p}%<br>重複換 ${rf}</span></div>`}).join('')}</div><p class="small" style="margin:6px 0 0">以上是每一抽的基本機率；十連抽和 50 抽保底會讓實際抽到 SR、SSR 的機會再高一點。</p></div>
     <p class="small" style="margin:0">盲盒圖鑑 ${have}／${all.length}</p>
     <div class="shop">${all.slice().sort((a,b)=>['SSR','SR','R','N'].indexOf(a.gacha)-['SSR','SR','R','N'].indexOf(b.gacha)).map(x=>{const own=S.owned[x.id]!=null;
-      return `<div class="sitem" style="border-color:${RARITY[x.gacha][1]};${own?'':'opacity:.5'}">${own?itemThumb(x):'<span style="font-size:28px;height:40px;line-height:40px">?</span>'}<span>${own?esc(x.name):'？？？'}</span><span class="pill" style="background:${RARITY[x.gacha][1]};color:var(--night)">${x.gacha}</span></div>`}).join('')}</div>
+      return `<div class="sitem" style="border-color:${RARITY[x.gacha][1]};${own?'':'opacity:.5'}">${own?itemThumb(x):'<span style="font-size:28px;height:40px;line-height:40px">?</span>'}<span>${own?esc(x.name):'？？？'}${x.isNew?' <b style="color:var(--coral)">NEW</b>':''}</span><span class="pill" style="background:${RARITY[x.gacha][1]};color:var(--night)">${x.gacha}</span></div>`}).join('')}</div>
     <p class="demo" style="text-align:left;line-height:1.6">盲盒只能用讀書賺來的金幣抽，不能用真錢買金幣。抽到的東西會自動放進百貨公司，可以直接換上。</p>`,'games');
   const pull=async(n,free,ticket)=>{
     const cost=free||ticket?0:n===1?GACHA_ONE:GACHA_TEN;
@@ -2088,6 +2105,10 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-12',title:'段考週 ×3＋盲盒秋季新品',items:[
+  ['fire','段考週加成 ×3','10/12～10/18 答題、專注、任務的金幣都變 3 倍，還會隨機掉盲盒券！考試加油！',()=>go('daily')],
+  ['capsule','盲盒秋季新品','新增 10 款：月兔、星河魔法帽（SSR）、九尾狐、花冠（SR）、小刺蝟、紅燈籠…',()=>{go('games');setTimeout(gGacha,200)}],
+  ['ghost','萬聖節商品','萬聖節商品 11/7 下架，已經買的會一直留著，可以繼續穿戴和布置。',()=>renderShop('wear','city')]]},
  {v:'2026-10-10',title:'專注時間不會再不見',items:[
   ['lamp','專注紀錄更安全','讀書時間如果因為網路不穩沒存到，會自動補存，不會再被吃掉。讀書房會顯示今天專注幾分鐘、有沒有存好。',()=>go('room')]]},
  {v:'2026-10-08c',title:'好友全開放＋友情好感度',items:[
