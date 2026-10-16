@@ -2092,6 +2092,9 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-16',title:'老師頒獎和獎盃櫃',items:[
+  ['master','老師會頒獎了！','段考考王、進步最多、全勤讀書王…被老師頒獎會跳出慶祝畫面，還有金幣！',()=>go('me')],
+  ['coin','我的獎盃','「我的」頁會擺出你拿過的獎盃，努力讀書就有機會被老師看見！',()=>go('me')]]},
  {v:'2026-10-12',title:'段考週 ×3＋盲盒秋季新品',items:[
   ['fire','段考週加成 ×3','10/12～10/18 答題、專注、任務的金幣都變 3 倍，還會隨機掉盲盒券！考試加油！',()=>go('daily')],
   ['capsule','盲盒秋季新品','新增 10 款：月兔、星河魔法帽（SSR）、九尾狐、花冠（SR）、小刺蝟、紅燈籠…',()=>{go('games');setTimeout(gGacha,200)}],
@@ -2337,7 +2340,7 @@ async function boot(){
   joinRoom();listenDM();flushFocus(true);
   TEACHER=(await cloud.run(()=>sb.rpc('is_teacher')))===true;
   if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm){if(tm.title)TTITLE=tm.title;TNAME=tm.name||''}}
-  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet()).then(()=>setTimeout(checkInvites,1500))}else renderOnboard();
+  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet()).then(()=>{setTimeout(checkInvites,1500);setTimeout(checkAwards,2500)})}else renderOnboard();
 }
 /* 舊玩家還沒有年級：進來先選一次（國小直接放國小） */
 async function fixGrade(){
@@ -3144,17 +3147,60 @@ async function tClass(){
        <td class="num">${r.week_correct}/${r.week_answers}</td>
        <td class="num">${r.mistakes}</td>
        <td>${tday(r.last_day)}</td>
-       <td><span style="display:flex;flex-direction:column;gap:4px"><button class="chip" data-addf="${r.user_id}" data-name="${esc(r.name)}" style="background:var(--mint);color:var(--night)">補登專注</button><button class="chip" data-mute="${r.user_id}" data-on="${r.muted?0:1}" data-name="${esc(r.name)}">${r.muted?'解除禁言':'禁言'}</button></span></td></tr>`).join('')}</tbody>
+       <td><span style="display:flex;flex-direction:column;gap:4px"><button class="chip" data-award="${r.user_id}" data-name="${esc(r.name)}" style="background:var(--gold);color:var(--night)">頒獎</button><button class="chip" data-addf="${r.user_id}" data-name="${esc(r.name)}" style="background:var(--mint);color:var(--night)">補登專注</button><button class="chip" data-mute="${r.user_id}" data-on="${r.muted?0:1}" data-name="${esc(r.name)}">${r.muted?'解除禁言':'禁言'}</button></span></td></tr>`).join('')}</tbody>
    </table></div>
    <p class="small" style="margin:0">打卡＝當天有答今日一題或完成一次專注。本週＝最近 7 天。禁言後學生不能留言和傳私訊，其他功能照常。學生反應讀書時間不見，可以按「補登專注」幫他補回來。</p>`;
   paintSprites($('#tbody'));
   $('#tbody').querySelectorAll('[data-tmsg]').forEach(b=>b.onclick=()=>teacherChat(b.dataset.tmsg,b.dataset.name,'class'));
   $('#tbody').querySelectorAll('[data-addf]').forEach(b=>b.onclick=()=>addFocusModal(b.dataset.addf,b.dataset.name));
+  $('#tbody').querySelectorAll('[data-award]').forEach(b=>b.onclick=()=>awardModal(b.dataset.award,b.dataset.name));
   $('#tbody').querySelectorAll('[data-mute]').forEach(b=>b.onclick=()=>{
     const on=b.dataset.on==='1',name=b.dataset.name;
     const m=modal(`<h2>${on?'禁言':'解除禁言'} ${esc(name)}？</h2><p class="small">${on?'禁言後不能留言和傳私訊，直到你解除。':'解除後可以正常留言和傳私訊。'}</p><div class="row"><button class="btn" data-close>取消</button><button class="btn ${on?'coral':'gold'}" id="yes">${on?'禁言':'解除'}</button></div>`);
     m.querySelector('#yes').onclick=async()=>{m.remove();if(await cloud.teacher('teacher_set_muted',{p_user:b.dataset.mute,p_muted:on})!==undefined){toast(on?`已禁言 ${name}`:`已解除 ${name} 的禁言`);tClass()}};
   });
+}
+/* 老師頒獎：獎項名稱、金幣（0～5000）、一句話；學生下次打開會看到慶祝畫面 */
+function awardModal(uid,name){
+  let coins=1000;
+  const m=modal(`<h2>頒獎給 ${esc(name)}</h2>
+    <label class="small" for="awt">獎項名稱</label><input type="text" id="awt" maxlength="20" value="段考考王">
+    <div class="chips">${['段考考王','進步最多','全勤讀書王','單字小達人'].map(t=>`<button class="chip" data-awt="${t}">${t}</button>`).join('')}</div>
+    <p class="small" style="margin:0">送多少金幣？</p><div class="chips">${[100,300,500,1000].map(x=>`<button class="chip" data-awc="${x}">${x}</button>`).join('')}<input type="text" id="awc" inputmode="numeric" value="1000" style="width:80px" aria-label="金幣"></div>
+    <label class="small" for="awn">想對他說的話（選填）</label><input type="text" id="awn" maxlength="60" value="恭喜你！段考辛苦了，繼續加油！">
+    <p class="err" id="awerr" role="alert"></p>
+    <div class="row"><button class="btn" data-close>取消</button><button class="btn gold" id="awgo">頒獎</button></div>`);
+  const mark=()=>m.querySelectorAll('[data-awc]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.awc===coins));mark();
+  m.querySelectorAll('[data-awt]').forEach(b=>b.onclick=()=>{m.querySelector('#awt').value=b.dataset.awt});
+  m.querySelectorAll('[data-awc]').forEach(b=>b.onclick=()=>{coins=+b.dataset.awc;m.querySelector('#awc').value=coins;mark()});
+  m.querySelector('#awc').oninput=e=>{coins=+e.target.value;mark()};
+  m.querySelector('#awgo').onclick=async()=>{
+    const title=m.querySelector('#awt').value.trim();
+    if(!title){m.querySelector('#awerr').textContent='要寫獎項名稱';return}
+    if(!Number.isInteger(coins)||coins<0||coins>5000){m.querySelector('#awerr').textContent='金幣要是 0 到 5000 的整數';return}
+    const r=await cloud.rpc('teacher_award',{p_student:uid,p_title:title,p_coins:coins,p_note:m.querySelector('#awn').value});
+    if(r===undefined)return;m.remove();toast(`已頒「${title}」給 ${name}（+${coins} 金幣）`);tClass()};
+}
+/* 我的頁：獎盃櫃（老師頒的獎） */
+async function drawTrophies(){
+  if(!ONLINE||TEACHER)return;if(!myAwards.length){const r=await cloud.run(()=>sb.rpc('my_awards'));if(r)myAwards=r}
+  const box=$('#mytrophy');if(!box||!myAwards.length)return;
+  box.innerHTML=`<div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 6px">我的獎盃</p><div class="chips">${myAwards.map(a=>`<span class="chip" style="background:var(--gold);color:var(--night)">🏆 ${esc(a.title)}</span>`).join('')}</div></div>`;
+}
+/* 學生：有新的獎就跳慶祝畫面 */
+let myAwards=[];
+async function checkAwards(){
+  if(!ONLINE||TEACHER)return;const r=await cloud.run(()=>sb.rpc('my_awards'));if(!r)return;myAwards=r;
+  const fresh=r.filter(a=>!a.seen);if(!fresh.length)return;
+  await cloud.run(()=>sb.rpc('awards_seen'));await cloud.refreshWallet();
+  const a=fresh[0],sum=fresh.reduce((x,y)=>x+y.coins,0);
+  const m=modal(`<div style="display:flex;justify-content:center;gap:8px"><span data-s="master" data-z="6"></span><span data-s="coin" data-z="6"></span></div>
+    <h2 style="text-align:center;color:var(--gold);font-size:26px">🏆 ${esc(a.title)}</h2>
+    <p style="text-align:center;margin:0;line-height:1.8">${esc(a.teacher||'老師')} 頒給你的獎！${a.note?`<br>「${esc(a.note)}」`:''}</p>
+    ${sum?`<p style="text-align:center;margin:0;font-size:20px;color:var(--gold)">+${sum} 金幣</p>`:''}
+    ${fresh.length>1?`<p class="small" style="text-align:center;margin:0">一共收到 ${fresh.length} 個獎：${fresh.map(x=>esc(x.title)).join('、')}</p>`:''}
+    <button class="btn gold" data-close>謝謝老師！</button>`);
+  paintSprites(m);
 }
 /* 老師補登專注時間：選日期（最近 7 天，或自己選 30 天內）、分鐘數、原因；每筆都留紀錄 */
 async function addFocusModal(uid,name){
@@ -3300,6 +3346,7 @@ function renderMe(){
      <p class="small" style="margin:0">目前：${esc(scopeName())}・${pool().length.toLocaleString()} 題。</p>
    </div>`:''}
    <button class="btn" id="mywrong">錯題本（${wrongs().length} 題）</button>
+   <div id="mytrophy"></div>
    <button class="btn" id="mygarden" style="background:#3f8f5a;color:var(--paper)">我的魔法花園</button>
    <div class="row"><button class="btn" id="howto">玩法說明</button><button class="btn" id="mylog">更新紀錄</button></div>
    ${reminderBox()}
@@ -3309,7 +3356,7 @@ function renderMe(){
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
-  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;$('#mygarden').onclick=openMyGarden;$('#mywrong').onclick=()=>renderMistakes();
+  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;drawTrophies();$('#mygarden').onclick=openMyGarden;$('#mywrong').onclick=()=>renderMistakes();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
