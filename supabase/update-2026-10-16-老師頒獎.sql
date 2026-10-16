@@ -52,3 +52,21 @@ revoke all on function public.my_awards() from public, anon;
 grant execute on function public.my_awards() to authenticated;
 revoke all on function public.awards_seen() from public, anon;
 grant execute on function public.awards_seen() to authenticated;
+
+-- =====================================================================
+-- 段考辛苦了！全體學生各送 1000 金幣（只發給目前已經有角色的學生，老師不算；重跑也不會重複發）
+-- =====================================================================
+with t as (select user_id from public.teachers order by user_id limit 1),
+s as (
+  insert into public.teacher_awards (teacher, student, title, coins, note)
+  select t.user_id, p.id, '段考辛苦了', 1000, '恭喜大家考完段考！這是老師送你的慶祝禮，好好休息一下～'
+  from public.profiles p, t
+  where p.id not in (select user_id from public.teachers)
+    and not exists (select 1 from public.teacher_awards a where a.student = p.id and a.title = '段考辛苦了')
+  returning student
+)
+insert into public.coin_tx (user_id, amount, kind, ref)
+select student, 1000, 'award', '段考辛苦了' from s;
+
+-- 看發了幾位
+select count(*) as 發出幾位 from public.teacher_awards where title = '段考辛苦了';

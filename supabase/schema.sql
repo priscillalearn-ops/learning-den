@@ -3034,3 +3034,4 @@ revoke all on function public.my_awards() from public, anon;
 grant execute on function public.my_awards() to authenticated;
 revoke all on function public.awards_seen() from public, anon;
 grant execute on function public.awards_seen() to authenticated;
+
