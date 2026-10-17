@@ -2092,6 +2092,8 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-17',title:'看得到累計讀書時數了',items:[
+  ['lamp','累計小時','「我的」頁和讀書房多了「累計小時」，是你在 Learning Den 讀過的全部時間。「最近 7 天」只算最近一週，上週讀的不會不見，都算在累計裡！',()=>go('me')]]},
  {v:'2026-10-16',title:'老師頒獎和獎盃櫃',items:[
   ['master','老師會頒獎了！','段考考王、進步最多、全勤讀書王…被老師頒獎會跳出慶祝畫面，還有金幣！',()=>go('me')],
   ['coin','我的獎盃','「我的」頁會擺出你拿過的獎盃，努力讀書就有機會被老師看見！',()=>go('me')]]},
@@ -2655,7 +2657,7 @@ function renderRoom(){
    <div class="timer" id="clock" aria-live="off">${fmt(tm.mode==='idle'?len*60:tm.left)}</div>
    <p class="small" id="mlabel" style="text-align:center;margin:0">${tm.mode==='break'?'休息時間・來一題快問快答':tm.mode==='idle'?'選好時間，按開始':'專注中…'}</p>
    <div class="prog"><i id="bar"></i></div>
-   <p class="small" style="text-align:center;margin:0">今天已專注 ${S.minutes[today()]||0} 分鐘${(S.pendingFocus||[]).length?`・<span style="color:var(--coral)">${S.pendingFocus.length} 次還在存檔，有網路就會自動補上</span>`:ONLINE?'・已存到雲端 ✓':''}</p>
+   <p class="small" style="text-align:center;margin:0">今天已專注 ${S.minutes[today()]||0} 分鐘・累計 ${(Object.values(S.minutes).reduce((a,b)=>a+b,0)/60).toFixed(1)} 小時${(S.pendingFocus||[]).length?`・<span style="color:var(--coral)">${S.pendingFocus.length} 次還在存檔，有網路就會自動補上</span>`:ONLINE?'・已存到雲端 ✓':''}</p>
    <div class="chips" style="justify-content:center">${[15,25,50,120].map(m=>`<button class="chip" data-len="${m}" aria-pressed="${len===m}" ${tm.mode!=='idle'?'aria-disabled="true"':''}>${m===120?'2 小時':m+' 分鐘'}</button>`).join('')}</div>
    <div class="row" id="ctl"></div>
    <div id="quiz"></div>
@@ -3124,8 +3126,9 @@ async function renderTeacher(view){
   ({class:tClass,msgs:tMsgs,ann:tAnn,mission:tMission,reports:tReports,recent:tRecent})[tview]();
 }
 async function tClass(){
-  const rows=await cloud.teacher('teacher_class_report',{p_class:S.tcls});
+  const [rows,tot]=await Promise.all([cloud.teacher('teacher_class_report',{p_class:S.tcls}),cloud.run(()=>sb.rpc('teacher_focus_totals',{p_class:S.tcls}))]);
   if(curTab!=='teacher'||!$('#tbody'))return;
+  const T2={};(tot||[]).forEach(t=>T2[t.user_id]=t);
   if(!rows){$('#tbody').innerHTML='<p class="small">報表載不到。</p>';return}
   const done=rows.filter(r=>r.today_done).length,wm=rows.reduce((a,r)=>a+r.week_minutes,0);
   const wa=rows.reduce((a,r)=>a+r.week_answers,0),wc=rows.reduce((a,r)=>a+r.week_correct,0);
@@ -3137,28 +3140,40 @@ async function tClass(){
      <div><b>${(wm/60).toFixed(1)}h</b><span class="small">本週專注合計</span></div>
      <div><b>${pct(wc,wa)}</b><span class="small">本週今日一題答對率</span></div>
    </div>
+   <div class="row"><button class="btn mint" id="classadd">全班補登專注時數</button></div>
    <div class="tscroll"><table class="tbl">
-     <thead><tr><th>學生</th><th>今天</th><th class="num">連續</th><th class="num">最長</th><th class="num">本週專注</th><th class="num">本週答對</th><th class="num">錯題</th><th>最後打卡</th><th></th></tr></thead>
+     <thead><tr><th>學生</th><th>今天</th><th class="num">連續</th><th class="num">最長</th><th class="num">本週專注</th><th class="num">累計</th><th class="num">本週答對</th><th class="num">錯題</th><th>最後打卡</th><th></th></tr></thead>
      <tbody>${rows.map(r=>`<tr>
        <td><span style="display:inline-flex;align-items:center;gap:6px"><span data-s="${TIERS[r.tier]?r.tier:'teen'}" data-z="2"></span>${esc(r.name)}${r.muted?' <span class="pill bad">禁言中</span>':''}</span><br><span class="small">${esc(r.email||'')}</span><br><button class="chip" data-tmsg="${r.user_id}" data-name="${esc(r.name)}" style="margin-top:4px">傳訊息</button></td>
        <td>${r.today_done?'<span class="pill ok">已打卡</span>':'<span class="pill no">還沒</span>'}</td>
        <td class="num">${r.streak}</td><td class="num">${r.best}</td>
        <td class="num">${r.week_minutes} 分</td>
+       <td class="num">${T2[r.user_id]?`<button class="chip" data-fdet="${r.user_id}" data-name="${esc(r.name)}" title="看每天明細">${(T2[r.user_id].total_minutes/60).toFixed(1)}h</button>`:'—'}</td>
        <td class="num">${r.week_correct}/${r.week_answers}</td>
        <td class="num">${r.mistakes}</td>
        <td>${tday(r.last_day)}</td>
        <td><span style="display:flex;flex-direction:column;gap:4px"><button class="chip" data-award="${r.user_id}" data-name="${esc(r.name)}" style="background:var(--gold);color:var(--night)">頒獎</button><button class="chip" data-addf="${r.user_id}" data-name="${esc(r.name)}" style="background:var(--mint);color:var(--night)">補登專注</button><button class="chip" data-mute="${r.user_id}" data-on="${r.muted?0:1}" data-name="${esc(r.name)}">${r.muted?'解除禁言':'禁言'}</button></span></td></tr>`).join('')}</tbody>
    </table></div>
-   <p class="small" style="margin:0">打卡＝當天有答今日一題或完成一次專注。本週＝最近 7 天。禁言後學生不能留言和傳私訊，其他功能照常。學生反應讀書時間不見，可以按「補登專注」幫他補回來。</p>`;
+   <p class="small" style="margin:0">打卡＝當天有答今日一題或完成一次專注。本週＝最近 7 天。禁言後學生不能留言和傳私訊，其他功能照常。學生反應讀書時間不見，可以按「補登專注」幫他補回來。「本週」是最近 7 天，上週讀的時間會滑出本週但不會不見，「累計」是全部加起來的總時數，點它可以看每天明細。</p>`;
   paintSprites($('#tbody'));
   $('#tbody').querySelectorAll('[data-tmsg]').forEach(b=>b.onclick=()=>teacherChat(b.dataset.tmsg,b.dataset.name,'class'));
   $('#tbody').querySelectorAll('[data-addf]').forEach(b=>b.onclick=()=>addFocusModal(b.dataset.addf,b.dataset.name));
+  $('#tbody').querySelectorAll('[data-fdet]').forEach(b=>b.onclick=()=>focusDetail(T2[b.dataset.fdet],b.dataset.name));
+  $('#classadd').onclick=()=>addFocusModal(null,(S.tcls?S.tcls+' ':'')+'全班',rows.length);
   $('#tbody').querySelectorAll('[data-award]').forEach(b=>b.onclick=()=>awardModal(b.dataset.award,b.dataset.name));
   $('#tbody').querySelectorAll('[data-mute]').forEach(b=>b.onclick=()=>{
     const on=b.dataset.on==='1',name=b.dataset.name;
     const m=modal(`<h2>${on?'禁言':'解除禁言'} ${esc(name)}？</h2><p class="small">${on?'禁言後不能留言和傳私訊，直到你解除。':'解除後可以正常留言和傳私訊。'}</p><div class="row"><button class="btn" data-close>取消</button><button class="btn ${on?'coral':'gold'}" id="yes">${on?'禁言':'解除'}</button></div>`);
     m.querySelector('#yes').onclick=async()=>{m.remove();if(await cloud.teacher('teacher_set_muted',{p_user:b.dataset.mute,p_muted:on})!==undefined){toast(on?`已禁言 ${name}`:`已解除 ${name} 的禁言`);tClass()}};
   });
+}
+/* 老師看學生最近 14 天每天的專注時間 */
+function focusDetail(t,name){
+  if(!t)return;const days=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-i);return keyOf(d)});
+  const max=Math.max(60,...days.map(k=>(t.days||{})[k]||0));
+  modal(`<h2>${esc(name)} 的專注明細</h2><p class="small" style="margin:0">累計 <b style="color:var(--gold)">${(t.total_minutes/60).toFixed(1)} 小時</b>・最近 7 天 ${(t.week_minutes/60).toFixed(1)} 小時</p>
+    <div class="flist">${days.map(k=>{const m=(t.days||{})[k]||0;return `<div class="frow" style="padding:4px 8px"><span style="width:54px" class="small">${tday(k)}</span><span class="grow"><span class="lock" style="height:10px"><i style="width:${Math.round(100*m/max)}%;background:var(--mint)"></i></span></span><span class="small" style="min-width:64px;text-align:right">${m?(m>=60?(m/60).toFixed(1)+' 小時':m+' 分'):'—'}</span></div>`}).join('')}</div>
+    <p class="small" style="margin:0">如果某一天學生說有讀但這裡是空的，可以按「補登專注」補那一天。</p><button class="btn" data-close>關閉</button>`);
 }
 /* 老師頒獎：獎項名稱、金幣（0～5000）、一句話；學生下次打開會看到慶祝畫面 */
 function awardModal(uid,name){
@@ -3203,28 +3218,35 @@ async function checkAwards(){
   paintSprites(m);
 }
 /* 老師補登專注時間：選日期（最近 7 天，或自己選 30 天內）、分鐘數、原因；每筆都留紀錄 */
-async function addFocusModal(uid,name){
+async function addFocusModal(uid,name,count){
   const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-i);return keyOf(d)});
   const dlabel=k=>k===today()?'今天':k===days[1]?'昨天':k===days[2]?'前天':`${+k.slice(5,7)}/${+k.slice(8)}`;
-  let day=today(),mins=25;
-  const m=modal(`<h2>幫 ${esc(name)} 補登專注</h2>
+  let day=today(),hrs=1;const whole=!uid;
+  const m=modal(`<h2>${whole?`幫 ${esc(name)}（${count} 人）補登專注`:`幫 ${esc(name)} 補登專注`}</h2>
+    ${whole?'<p class="small" style="margin:0;color:var(--coral)">班上每一位學生都會補一樣的時數。</p>':''}
     <p class="small" style="margin:0">哪一天？</p><div class="chips">${days.map(k=>`<button class="chip" data-fd="${k}">${dlabel(k)}</button>`).join('')}<input type="date" id="fdate" style="font-family:inherit;padding:4px" min="${(()=>{const d=new Date();d.setDate(d.getDate()-30);return keyOf(d)})()}" max="${today()}" aria-label="其他日期"></div>
-    <p class="small" style="margin:0">補幾分鐘？（一次 1～120 分鐘，超過可以分兩次補）</p><div class="chips">${[15,25,50,120].map(x=>`<button class="chip" data-fm="${x}">${x===120?'2 小時':x+' 分'}</button>`).join('')}<input type="text" id="fmin" inputmode="numeric" value="25" style="width:70px" aria-label="分鐘數"></div>
-    <label class="small" for="fnote">原因（選填，例如：網路不穩沒存到）</label><input type="text" id="fnote" maxlength="40" placeholder="網路不穩沒存到">
+    <p class="small" style="margin:0">補幾小時？（一次最多 60 小時，可以填小數，例如 1.5）</p><div class="chips">${[0.5,1,2,5,10,20].map(x=>`<button class="chip" data-fh="${x}">${x} 小時</button>`).join('')}<input type="text" id="fhrs" inputmode="decimal" value="1" style="width:70px" aria-label="小時"></div>
+    <p class="small" style="margin:0;line-height:1.6">補登的時間會算進累計、排行、連續打卡和讀書會任務；金幣照一般規則，每天的專注金幣有上限。</p>
+    <label class="small" for="fnote">原因（選填，例如：系統沒存到）</label><input type="text" id="fnote" maxlength="40" placeholder="系統沒存到">
     <p class="err" id="ferr2" role="alert"></p>
     <div class="row"><button class="btn" data-close>取消</button><button class="btn gold" id="fgo">補登</button></div>
-    <div id="flog"><p class="small" style="margin:0">載入補登紀錄中…</p></div>`);
-  const mark=()=>{m.querySelectorAll('[data-fd]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fd===day));m.querySelectorAll('[data-fm]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.fm===mins))};mark();
+    <div id="flog">${whole?'':'<p class="small" style="margin:0">載入補登紀錄中…</p>'}</div>`);
+  const mark=()=>{m.querySelectorAll('[data-fd]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fd===day));m.querySelectorAll('[data-fh]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.fh===hrs))};mark();
   m.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{day=b.dataset.fd;m.querySelector('#fdate').value='';mark()});
   m.querySelector('#fdate').onchange=e=>{if(e.target.value){day=e.target.value;mark()}};
-  m.querySelectorAll('[data-fm]').forEach(b=>b.onclick=()=>{mins=+b.dataset.fm;m.querySelector('#fmin').value=mins;mark()});
-  m.querySelector('#fmin').oninput=e=>{mins=+e.target.value||0;mark()};
+  m.querySelectorAll('[data-fh]').forEach(b=>b.onclick=()=>{hrs=+b.dataset.fh;m.querySelector('#fhrs').value=hrs;mark()});
+  m.querySelector('#fhrs').oninput=e=>{hrs=parseFloat(e.target.value)||0;mark()};
   m.querySelector('#fgo').onclick=async()=>{
-    if(!Number.isInteger(mins)||mins<1||mins>120){m.querySelector('#ferr2').textContent='分鐘數要是 1 到 120 的整數';return}
-    const r=await cloud.rpc('teacher_add_focus',{p_student:uid,p_day:day,p_minutes:mins,p_note:m.querySelector('#fnote').value});
-    if(r===undefined)return;m.remove();toast(`已幫 ${name} 補登 ${dlabel(day)} ${mins} 分鐘`);tClass()};
+    const mins=Math.round(hrs*60);
+    if(!(mins>=1&&mins<=3600)){m.querySelector('#ferr2').textContent='時數要在 0.1 到 60 小時之間';return}
+    const note=m.querySelector('#fnote').value;
+    if(whole&&!confirm(`確定幫全班 ${count} 位學生各補登 ${hrs} 小時（${dlabel(day)}）嗎？`))return;
+    const r=whole?await cloud.rpc('teacher_add_focus_class',{p_class:S.tcls||'',p_day:day,p_minutes:mins,p_note:note})
+                 :await cloud.rpc('teacher_add_focus',{p_student:uid,p_day:day,p_minutes:mins,p_note:note});
+    if(r===undefined)return;m.remove();toast(whole?`已幫 ${r.count} 位學生各補登 ${hrs} 小時`:`已幫 ${name} 補登 ${dlabel(day)} ${hrs} 小時`);tClass()};
+  if(whole)return;
   const log=await cloud.teacher('teacher_focus_adds_for',{p_student:uid});const box=m.querySelector('#flog');if(!box)return;
-  box.innerHTML=log&&log.length?`<p class="small" style="margin:6px 0 4px">之前補登過</p><div class="flist">${log.map(x=>`<div class="frow" style="padding:4px 8px"><span class="grow small">${tday(x.day)}・${x.minutes} 分鐘${x.note?'・'+esc(x.note):''}</span><span class="small">${when2(x.created_at)}</span></div>`).join('')}</div>`:'<p class="small" style="margin:0">還沒有補登紀錄。</p>';
+  box.innerHTML=log&&log.length?`<p class="small" style="margin:6px 0 4px">之前補登過</p><div class="flist">${log.map(x=>`<div class="frow" style="padding:4px 8px"><span class="grow small">${tday(x.day)}・${x.minutes>=60?(x.minutes/60).toFixed(1)+' 小時':x.minutes+' 分鐘'}${x.note?'・'+esc(x.note):''}</span><span class="small">${when2(x.created_at)}</span></div>`).join('')}</div>`:'<p class="small" style="margin:0">還沒有補登紀錄。</p>';
 }
 function teacherChat(uid,name,back){curTab='friends';$('#app').classList.remove('wide');openChat(uid,name,{backLabel:'老師後台',noMenu:true,back:()=>renderTeacher(back)})}
 const when2=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
@@ -3330,9 +3352,10 @@ function renderMe(){
      <div style="flex:1"><h2>${t.name} ${esc(S.name)}</h2><div class="small">${t.stage}${S.grade&&S.grade!==t.stage?'・'+esc(S.grade):''}${S.cls?'・'+esc(S.cls)+' 班':''}</div></div>${coinChip()}</div>
    <button id="myroom" style="padding:0;border:0;background:none;cursor:pointer" aria-label="布置我的房間">${roomSVG(myLook(),myLook().outfit,'我的房間')}</button>
    <div class="row"><button class="btn gold" id="deco">布置房間</button><button class="btn" id="wear">換裝</button></div>
-   <div class="box stats" style="background:var(--deep)">
+   <div class="box stats" style="background:var(--deep);grid-template-columns:repeat(4,1fr)">
      <div><b>${streak()}</b><span class="small">連續天數</span></div>
-     <div><b>${(weekMinutes()/60).toFixed(1)}</b><span class="small">本週小時</span></div>
+     <div><b>${(weekMinutes()/60).toFixed(1)}</b><span class="small">最近 7 天小時</span></div>
+     <div><b id="mytotal">${(Object.values(S.minutes).reduce((a,b)=>a+b,0)/60).toFixed(1)}</b><span class="small">累計小時</span></div>
      <div><b>${cards.length}</b><span class="small">單字卡</span></div>
    </div>
    <div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 8px">${m+1} 月打卡</p><div class="cal">${cal}</div></div>
@@ -3356,7 +3379,8 @@ function renderMe(){
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
-  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;drawTrophies();$('#mygarden').onclick=openMyGarden;$('#mywrong').onclick=()=>renderMistakes();
+  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;drawTrophies();
+  if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mywrong').onclick=()=>renderMistakes();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
