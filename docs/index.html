@@ -1326,11 +1326,12 @@ function openMyGarden(){renderHome();setTimeout(()=>{const g=$('#gdn');if(g)g.sc
 function openTower(){
   const m=modal(`<div style="display:flex;justify-content:center"><span data-s="master" data-z="7"></span></div><h2 style="text-align:center">大魔法師之塔</h2>
     <p class="small" style="margin:0;text-align:center;line-height:1.6">宇宙超年輕大魔法師（Priscilla 老師）住在這裡。<br>公告會貼在這裡，想跟老師說話就寫信吧！</p>
-    <button class="btn gold" id="tann">看老師的公告</button><button class="btn" id="tmail">寫信給老師</button><button class="btn mint" id="tquest">老師出的任務</button>
+    <button class="btn gold" id="tann">看老師的公告</button><button class="btn" id="tmail">寫信給老師</button><button class="btn mint" id="tquest">老師出的任務</button><button class="btn" id="tsugg">寫建議給老師</button>
     <button class="btn ghost" data-close>離開</button>`);
   m.querySelector('#tann').onclick=()=>{m.remove();openNotice('ann')};
   m.querySelector('#tmail').onclick=()=>{m.remove();go('friends')};
   m.querySelector('#tquest').onclick=()=>{m.remove();renderQuests()};
+  m.querySelector('#tsugg').onclick=()=>{m.remove();openSuggest()};
 }
 function bfs(sx,sy,tx,ty){
   if(!walk(tx,ty))return null;
@@ -1372,6 +1373,7 @@ function renderCity(){
      <button class="chip" id="cmap" style="position:absolute;right:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--gold)">全圖</button>
    </div>
    <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。<span style="color:var(--gold)">今天城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
+   ${suggOn()?`<button class="btn" id="suggbtn" style="background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="scroll" data-z="2"></span>上架建議箱：給建議最高拿 1000 金幣！</button>`:''}
    <button class="btn" id="gardenbtn" style="background:#3f8f5a;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px">${cropIcon('sunflower',22)}我的魔法花園（種菜、偷菜、換配件）</button>
    ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
    <div class="chips">${BUILDINGS.map(b=>`<button class="chip" data-b="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-b="notice">布告欄</button><button class="chip" data-b="quest">任務板</button></div>`;
@@ -1381,6 +1383,7 @@ function renderCity(){
   cv.onclick=e=>{const r=cv.getBoundingClientRect(),[cx,cy]=cityCam(),tx=Math.floor(((e.clientX-r.left)/r.width*VW*TS+cx)/TS),ty=Math.floor(((e.clientY-r.top)/r.height*VH*TS+cy)/TS);cityTap(tx,ty)};
   $('#cmap').onclick=openCityMap;
   $('#gardenbtn').onclick=openMyGarden;
+  if($('#suggbtn'))$('#suggbtn').onclick=openSuggest;
   if($('#hwbtn'))$('#hwbtn').onclick=()=>{if(city.hw)return;cityTap(HW_STAND[0],HW_STAND[1])};
   $('#view').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{if(b.dataset.b==='notice')openNotice();else if(b.dataset.b==='quest')renderQuests();else{const x=BUILDINGS.find(y=>y.id===b.dataset.b);enterBuilding(x)}});
   joinCity();
@@ -2107,6 +2110,9 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-20',title:'Learning Den 準備上架了！',items:[
+  ['scroll','給建議拿 1000 金幣','我們準備上架 App Store 和 Google Play！你覺得哪裡可以更好？寫在建議箱，被老師覺得很有幫助可以拿 100～1000 金幣！',()=>openSuggest()],
+  ['me','訪客試玩、刪除帳號','還沒註冊的朋友可以先「試玩看看」；「我的」頁也可以自己刪除帳號。',()=>go('me')]]},
  {v:'2026-10-17',title:'看得到累計讀書時數了',items:[
   ['lamp','累計小時','「我的」頁和讀書房多了「累計小時」，是你在 Learning Den 讀過的全部時間。「最近 7 天」只算最近一週，上週讀的不會不見，都算在累計裡！',()=>go('me')]]},
  {v:'2026-10-16',title:'老師頒獎和獎盃櫃',items:[
@@ -2357,7 +2363,7 @@ async function boot(){
   joinRoom();listenDM();flushFocus(true);
   TEACHER=(await cloud.run(()=>sb.rpc('is_teacher')))===true;
   if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm){if(tm.title)TTITLE=tm.title;TNAME=tm.name||''}}
-  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet()).then(()=>{setTimeout(checkInvites,1500);setTimeout(checkAwards,2500)})}else renderOnboard();
+  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet()).then(()=>{setTimeout(checkInvites,1500);setTimeout(checkAwards,2500);setTimeout(checkSuggest,3500)})}else renderOnboard();
 }
 /* 舊玩家還沒有年級：進來先選一次（國小直接放國小） */
 async function fixGrade(){
@@ -3135,7 +3141,7 @@ async function renderTeacher(view){
   $('#view').innerHTML=`
    <div class="bar"><h2>老師後台</h2><button class="btn ghost" id="tback" style="padding:5px 10px;font-size:13px">回到我的</button></div>
    <div class="bar" style="justify-content:flex-start;gap:10px"><span data-s="master" data-z="4"></span><span>學生看到的你：<span style="color:var(--gold)">${esc(TTITLE)}${TNAME?'（'+esc(TNAME)+'）':''}</span></span><button class="chip" id="ttitle">改稱號和名字</button></div>
-   <div class="chips">${[['class','班級總覽'],['msgs','學生訊息'],['ann','公告'],['mission','任務'],['reports','檢舉處理'],['recent','最新留言']].map(([k,n])=>`<button class="chip" data-tv="${k}" aria-pressed="${tview===k}">${n}</button>`).join('')}</div>
+   <div class="chips">${[['class','班級總覽'],['msgs','學生訊息'],['ann','公告'],['mission','任務'],['reports','檢舉處理'],['recent','最新留言'],['sugg','建議箱']].map(([k,n])=>`<button class="chip" data-tv="${k}" aria-pressed="${tview===k}">${n}</button>`).join('')}</div>
    <div id="tclass"></div>
    <div id="tbody"><p class="small">載入中…</p></div>`;
   $('#tback').onclick=()=>go('me');paintSprites($('#view'));
@@ -3147,7 +3153,7 @@ async function renderTeacher(view){
       if(await cloud.rpc('set_teacher_title',{p_title:v})===undefined)return;if(await cloud.rpc('set_teacher_name',{p_name:n})===undefined)return;
       TTITLE=v;TNAME=n;m.remove();toast('改好了');renderTeacher()}};
   $('#view').querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>renderTeacher(b.dataset.tv));
-  if(!['reports','msgs'].includes(tview)){
+  if(!['reports','msgs','sugg'].includes(tview)){
     if(!tclasses)tclasses=await cloud.teacher('teacher_classes');
     if(!tclasses){$('#tbody').innerHTML='<p class="small">載不到班級。確認已經在 Supabase 把你設成老師，並重跑過最新的 schema.sql。</p>';return}
     if(!tclasses.length){$('#tbody').innerHTML='<p class="small">還沒有學生登入。</p>';return}
@@ -3157,7 +3163,7 @@ async function renderTeacher(view){
       ${tclasses.map(c=>`<option value="${esc(c.class_code)}" ${c.class_code===S.tcls?'selected':''}>${c.class_code?esc(c.class_code)+' 班':'沒填班級代碼'}（${c.students} 人）</option>`).join('')}</select>`;
     $('#tsel').onchange=()=>{S.tcls=$('#tsel').value;save();renderTeacher()};
   }
-  ({class:tClass,msgs:tMsgs,ann:tAnn,mission:tMission,reports:tReports,recent:tRecent})[tview]();
+  ({class:tClass,msgs:tMsgs,ann:tAnn,mission:tMission,reports:tReports,recent:tRecent,sugg:tSugg})[tview]();
 }
 async function tClass(){
   const [rows,tot]=await Promise.all([cloud.teacher('teacher_class_report',{p_class:S.tcls}),cloud.run(()=>sb.rpc('teacher_focus_totals',{p_class:S.tcls}))]);
@@ -3208,6 +3214,61 @@ function focusDetail(t,name){
   modal(`<h2>${esc(name)} 的專注明細</h2><p class="small" style="margin:0">累計 <b style="color:var(--gold)">${(t.total_minutes/60).toFixed(1)} 小時</b>・最近 7 天 ${(t.week_minutes/60).toFixed(1)} 小時</p>
     <div class="flist">${days.map(k=>{const m=(t.days||{})[k]||0;return `<div class="frow" style="padding:4px 8px"><span style="width:54px" class="small">${tday(k)}</span><span class="grow"><span class="lock" style="height:10px"><i style="width:${Math.round(100*m/max)}%;background:var(--mint)"></i></span></span><span class="small" style="min-width:64px;text-align:right">${m?(m>=60?(m/60).toFixed(1)+' 小時':m+' 分'):'—'}</span></div>`}).join('')}</div>
     <p class="small" style="margin:0">如果某一天學生說有讀但這裡是空的，可以按「補登專注」補那一天。</p><button class="btn" data-close>關閉</button>`);
+}
+/* ---------- 上架建議箱：學生寫建議，老師給 100～1000 金幣或回覆 ---------- */
+const SUGG_UNTIL='2026-11-30',SUGG_CAT=[['feature','想要的新功能'],['question','題目內容'],['bug','遇到的問題'],['other','其他']];
+const suggOn=()=>today()<=SUGG_UNTIL;
+async function openSuggest(){
+  const mine=ONLINE?(await cloud.run(()=>sb.rpc('my_suggestions'))||[]):[];
+  let cat='feature';
+  const st=x=>x.status==='rewarded'?`<span style="color:var(--gold)">獲得 ${x.reward} 金幣</span>`:x.status==='thanked'?'<span style="color:var(--mint)">老師謝謝你</span>':'<span class="small">等老師看</span>';
+  const m=modal(`<div style="display:flex;justify-content:center"><span data-s="scroll" data-z="6"></span></div>
+    <h2 style="text-align:center;color:var(--gold)">上架建議箱</h2>
+    <p style="margin:0;line-height:1.8">Learning Den 準備上架 <b>App Store</b> 和 <b>Google Play</b> 了！你覺得哪裡可以更好？想要什麼新功能？題目哪裡怪怪的？<br><b style="color:var(--gold)">建議被老師覺得很有幫助，可以拿 100～1000 金幣！</b></p>
+    ${ONLINE?`<div class="chips">${SUGG_CAT.map(([k,n])=>`<button class="chip" data-sc="${k}">${n}</button>`).join('')}</div>
+    <textarea id="sgbody" maxlength="300" rows="4" placeholder="寫下你的建議（5～300 字），越具體越好！例如：希望讀書房可以放音樂" style="font-family:inherit;font-size:15px;padding:8px;border:3px solid var(--ink);background:var(--paper);color:var(--night);width:100%;box-sizing:border-box"></textarea>
+    <p class="err" id="sgerr" role="alert"></p>
+    <button class="btn gold" id="sggo">送出建議</button>`:'<p class="small" style="margin:0">要用 Google 帳號登入才能寫建議喔。</p>'}
+    ${mine.length?`<p class="small" style="margin:6px 0 4px">我寫過的建議</p><div class="flist">${mine.slice(0,10).map(x=>`<div class="frow" style="padding:6px 10px;flex-direction:column;align-items:stretch;gap:2px"><div class="bar"><span class="small">${(SUGG_CAT.find(c=>c[0]===x.category)||['',''])[1]}</span><span class="small">${st(x)}</span></div><div style="font-size:14px;line-height:1.5">${esc(x.body)}</div>${x.reply?`<div class="small" style="color:var(--mint)">老師回覆：${esc(x.reply)}</div>`:''}</div>`).join('')}</div>`:''}
+    <button class="btn ghost" data-close>關閉</button>`);
+  paintSprites(m);
+  const mark=()=>m.querySelectorAll('[data-sc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===cat));mark();
+  m.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>{cat=b.dataset.sc;mark()});
+  if(m.querySelector('#sggo'))m.querySelector('#sggo').onclick=async()=>{
+    const body=clean(m.querySelector('#sgbody').value.trim());
+    if(body.length<5){m.querySelector('#sgerr').textContent='建議至少寫 5 個字';return}
+    m.querySelector('#sggo').disabled=true;
+    if(await cloud.rpc('submit_suggestion',{p_category:cat,p_body:body})===undefined){m.querySelector('#sggo').disabled=false;return}
+    m.remove();toast('收到你的建議了！老師看過會通知你');};
+}
+/* 老師處理過的建議：下次打開跳通知 */
+async function checkSuggest(){
+  if(!ONLINE||TEACHER)return;const r=await cloud.run(()=>sb.rpc('my_suggestions'));if(!r)return;
+  const fresh=r.filter(x=>x.status!=='new'&&!x.notified);if(!fresh.length)return;
+  await cloud.run(()=>sb.rpc('suggestions_seen'));if(fresh.some(x=>x.reward))await cloud.refreshWallet();
+  const sum=fresh.reduce((a,x)=>a+x.reward,0);
+  modal(`<div style="display:flex;justify-content:center"><span data-s="master" data-z="6"></span></div><h2 style="text-align:center;color:var(--gold)">老師看了你的建議！</h2>
+    ${sum?`<p style="text-align:center;margin:0;font-size:20px;color:var(--gold)">+${sum} 金幣</p>`:''}
+    <div class="flist">${fresh.map(x=>`<div class="frow" style="padding:6px 10px;flex-direction:column;align-items:stretch;gap:2px"><div style="font-size:14px;line-height:1.5">${esc(x.body)}</div><div class="small" style="color:var(--gold)">${x.reward?`獲得 ${x.reward} 金幣`:'老師謝謝你'}${x.reply?`・${esc(x.reply)}`:''}</div></div>`).join('')}</div>
+    <p class="small" style="text-align:center;margin:0">謝謝你讓 Learning Den 變得更好！</p><button class="btn gold" data-close>不客氣！</button>`);
+}
+/* 老師後台：建議箱 */
+async function tSugg(){
+  const rows=await cloud.teacher('teacher_suggestions');if(curTab!=='teacher'||!$('#tbody'))return;
+  if(!rows){$('#tbody').innerHTML='<p class="small">建議箱載不到，請先跑最新的 SQL。</p>';return}
+  const n=rows.filter(r=>r.status==='new').length,cn=k=>(SUGG_CAT.find(c=>c[0]===k)||['',''])[1];
+  $('#tbody').innerHTML=`<p class="small" style="margin:0 0 6px">${n} 則還沒處理・全部 ${rows.length} 則。覺得有幫助就給 100～1000 金幣，或只說謝謝；可以寫一句回覆，學生下次打開會收到通知。</p>
+    ${rows.length?rows.map(r=>`<div class="titem" style="${r.status==='new'?'outline:2px solid var(--gold);outline-offset:-5px':''}">
+      <div class="bar"><span>${esc(r.name)} <span class="small">${r.class_code?esc(r.class_code)+'・':''}${cn(r.category)}・${when2(r.created_at)}</span></span>${r.status==='new'?'<span class="pill bad">新</span>':r.status==='rewarded'?`<span class="pill ok">已給 ${r.reward} 金幣</span>`:'<span class="pill ok">已謝謝</span>'}</div>
+      <div style="line-height:1.6">${esc(r.body)}</div>
+      ${r.reply?`<div class="small" style="color:var(--mint)">你的回覆：${esc(r.reply)}</div>`:''}
+      ${r.status==='new'?`<input type="text" maxlength="100" placeholder="回覆一句話（選填）" data-rp="${r.id}" style="margin-top:4px">
+        <div class="acts">${[0,100,300,500,1000].map(c=>`<button class="btn ${c?'gold':'ghost'} mini" data-sg="${r.id}" data-c="${c}">${c?c+' 金幣':'謝謝（不給金幣）'}</button>`).join('')}</div>`:''}
+    </div>`).join(''):'<p class="small">還沒有建議。</p>'}`;
+  $('#tbody').querySelectorAll('[data-sg]').forEach(b=>b.onclick=async()=>{const id=+b.dataset.sg,c=+b.dataset.c;
+    const reply=($('#tbody').querySelector(`[data-rp="${id}"]`)||{}).value||'';
+    if(c&&!confirm(`確定給這則建議 ${c} 金幣嗎？`))return;
+    if(await cloud.rpc('teacher_reward_suggestion',{p_id:id,p_coins:c,p_reply:reply})!==undefined){toast(c?`已給 ${c} 金幣`:'已回覆謝謝');tSugg()}});
 }
 /* 老師頒獎：獎項名稱、金幣（0～5000）、一句話；學生下次打開會看到慶祝畫面 */
 function awardModal(uid,name){
@@ -3405,6 +3466,7 @@ function renderMe(){
    <button class="btn" id="mywrong">錯題本（${wrongs().length} 題）</button>
    <div id="mytrophy"></div>
    <button class="btn" id="mygarden" style="background:#3f8f5a;color:var(--paper)">我的魔法花園</button>
+   <button class="btn" id="mysugg">建議箱（給老師建議）</button>
    <div class="row"><button class="btn" id="howto">玩法說明</button><button class="btn" id="mylog">更新紀錄</button></div>
    ${reminderBox()}
    ${TEACHER?'<button class="btn mint" id="tdash">老師後台</button>':''}
@@ -3416,7 +3478,7 @@ function renderMe(){
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
   $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;drawTrophies();
-  if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mywrong').onclick=()=>renderMistakes();
+  if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mysugg').onclick=openSuggest;$('#mywrong').onclick=()=>renderMistakes();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
