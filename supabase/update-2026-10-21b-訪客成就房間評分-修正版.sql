@@ -1,5 +1,5 @@
 -- =====================================================================
--- 每日特別訪客、成就、房間評分（2026-10-21 更新；整份重跑即可）
+-- 每日特別訪客、成就、房間評分（2026-10-21 修正版：修正數字型別錯誤；整份重跑即可）
 -- =====================================================================
 
 -- ---------- 每日特別訪客：owl 貓頭鷹博士（3 題，每題 +10）、merchant 旅行商人（高價收購作物）、cat 幸運貓（每天抽一次）----------
@@ -17,13 +17,13 @@ alter table public.visitor_log enable row level security;
 
 create or replace function public.visitor_kind(d date)
 returns text language sql immutable as $$
-  select (array['owl', 'merchant', 'cat'])[1 + (abs(hashtext('visitor' || d::text)::bigint) % 3)];
+  select (array['owl', 'merchant', 'cat'])[(1 + (abs(hashtext('visitor' || d::text)::bigint) % 3))::int];
 $$;
 -- 旅行商人今天要的作物、數量、每個價格（市場原價的 2.2 倍）
 create or replace function public.visitor_wants(d date, out crop text, out qty int, out each_price int)
 language sql immutable as $$
-  select c, 1 + (abs(hashtext('want' || d::text)::bigint) % 3), round(public.market_base(c) * 2.2)
-  from (select (array['wheat','carrot','tomato','pumpkin','sunflower','starfruit'])[1 + (abs(hashtext('crop' || d::text)::bigint) % 6)] c) x;
+  select c, (1 + (abs(hashtext('want' || d::text)::bigint) % 3))::int, round(public.market_base(c) * 2.2)::int
+  from (select (array['wheat','carrot','tomato','pumpkin','sunflower','starfruit'])[(1 + (abs(hashtext('crop' || d::text)::bigint) % 6))::int] c) x;
 $$;
 
 create or replace function public.visitor_today()
@@ -106,7 +106,7 @@ returns jsonb language sql stable security definer set search_path = public as $
   select jsonb_build_object(
     'answers', (select count(*) from public.answers where user_id = u),
     'correct', (select count(*) from public.answers where user_id = u and correct),
-    'focus_hours', (select coalesce(sum(minutes), 0) / 60 from public.focus_sessions where user_id = u),
+    'focus_hours', (select (coalesce(sum(minutes), 0) / 60)::int from public.focus_sessions where user_id = u),
     'streak', public.best_streak(u),
     'cards', (select count(*) from public.cards where user_id = u),
     'buys', (select count(*) from public.purchases where user_id = u and price > 0),
@@ -162,7 +162,7 @@ alter table public.room_claims enable row level security;
 create or replace function public.room_score(u uuid)
 returns int language sql stable security definer set search_path = public as $$
   with items as (
-    select kv.key as slot, s.* from public.looks l, jsonb_each_text(l.room) kv
+    select s.* from public.looks l, jsonb_each_text(l.room) kv
     join public.shop_items s on s.id = kv.value
     where l.user_id = u and kv.key in ('wall','floor','window','poster','bed','desk','chair','lamp','plant','rug','pet')),
   pts as (
