@@ -257,7 +257,9 @@ function load(){try{return JSON.parse(localStorage.getItem(KEY))||null}catch(e){
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let S=load()||{};
 /* 邀請連結 ?invite=ABC123：先記下來，建好角色後自動填入 */
-try{const iv=new URLSearchParams(location.search).get('invite');if(iv)localStorage.setItem('wordden.invite',iv.trim().toUpperCase().slice(0,8))}catch(e){}
+try{const q=new URLSearchParams(location.search),iv=q.get('invite'),cl=q.get('class');if(iv)localStorage.setItem('wordden.invite',iv.trim().toUpperCase().slice(0,8));if(cl)localStorage.setItem('wordden.class',cl.trim().slice(0,8))}catch(e){}
+const pendingClass=()=>{try{return localStorage.getItem('wordden.class')||''}catch(e){return ''}};
+const dropClass=()=>{try{localStorage.removeItem('wordden.class')}catch(e){}};
 function fresh(){return{name:'',tier:'',cls:'',answers:{},comments:{},days:{},minutes:{},cards:{},blocked:[],timerLen:0,scopes:{},wrong:{},timer:null,owned:{},look:{},remind:'2000',tx:0,bank:null,gday:null,meals:{},joined:''}}
 if(!S.tier)S=Object.assign(fresh(),S);
 if(!S.scopes)S.scopes={};if(!S.wrong)S.wrong={};if(!S.owned)S.owned={};if(!S.meals)S.meals={};if(!S.look)S.look={};if(Array.isArray(S.scope)){S.scopes.sage=S.scope;delete S.scope}
@@ -922,7 +924,7 @@ async function fillGarden(box,uid,name){
     m.querySelectorAll('[data-seed]').forEach(x=>x.onclick=async()=>{const c=CROP[x.dataset.seed];if(coins()<c.seed){toast('金幣不夠買種子');return}
       if(ONLINE){const r=await cloud.rpc('garden_plant',{p_slot:slot,p_crop:c.id});if(!r)return;syncWallet(r.wallet)}
       else{S.garden.plots=S.garden.plots.filter(p=>p.slot!==slot).concat([{slot,crop:c.id,planted_at:new Date().toISOString(),waters:0,stolen:0}]);S.tx=(S.tx||0)-c.seed;save()}
-      m.remove();toast(`種下${c.name}！`);reload()})});
+      S.everPlanted=true;save();m.remove();toast(`種下${c.name}！`);reload()})});
   box.querySelectorAll('[data-water]').forEach(b=>b.onclick=async()=>{const slot=+b.dataset.water;b.disabled=true;
     if(ONLINE&&uid!=='bot'){const r=await cloud.rpc('garden_water',{p_owner:uid||ME,p_slot:slot});if(!r){b.disabled=false;return}syncWallet(r.wallet);toast(r.reward?`澆好了！幫忙獎勵 +${r.reward} 金幣`:'澆好了！')}
     else if(mine){if(gardenWaterLocal()<1){toast('今天的魔法水用完了，答題或專注可以拿到更多');b.disabled=false;return}
@@ -1360,6 +1362,7 @@ function renderCity(){
      <button class="chip" id="cmap" style="position:absolute;right:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--gold)">全圖</button>
    </div>
    <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。<span style="color:var(--gold)">今天城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
+   ${newbieCard()}
    ${suggOn()?`<button class="btn" id="suggbtn" style="background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="scroll" data-z="2"></span>上架建議箱：給建議最高拿 1000 金幣！</button>`:''}
    <button class="btn" id="gardenbtn" style="background:#3f8f5a;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px">${cropIcon('sunflower',22)}我的魔法花園（種菜、偷菜、換配件）</button>
    ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
@@ -1371,6 +1374,8 @@ function renderCity(){
   $('#cmap').onclick=openCityMap;
   $('#gardenbtn').onclick=openMyGarden;
   if($('#suggbtn'))$('#suggbtn').onclick=openSuggest;
+  if($('#nbcard'))$('#nbcard').onclick=openNewbie;
+  if(!renderCity.nbLoading){renderCity.nbLoading=1;loadNewbie().then(st=>{renderCity.nbLoading=0;const had=!!$('#nbcard');if(curTab==='city'&&(!!st)!==had)renderCity();else if(st&&$('#nbcard'))$('#nbcard').outerHTML=newbieCard(),$('#nbcard').onclick=openNewbie,paintSprites($('#nbcard'))})}
   if($('#hwbtn'))$('#hwbtn').onclick=()=>{if(city.hw)return;cityTap(HW_STAND[0],HW_STAND[1])};
   $('#view').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{if(b.dataset.b==='notice')openNotice();else if(b.dataset.b==='quest')renderQuests();else{const x=BUILDINGS.find(y=>y.id===b.dataset.b);enterBuilding(x)}});
   joinCity();
@@ -1936,7 +1941,12 @@ async function drawCook(){
     renderFood()});
 }
 /* ---------- 新手導覽 ---------- */
-const TOUR=[
+const SHORT_TOUR=[
+ ['me','歡迎來到 Learning Den！','這是一座魔法城市。每天來這裡學一點英文、跟同學一起讀書、賺金幣、布置房間和花園。'],
+ ['castle','在城市裡走一走','點地面，角色就會走過去；點建築會自動走到門口進去。地圖右上角的「全圖」可以看整座城市。'],
+ ['scroll','跟著新手任務走','城市最上面有 5 個新手任務：吃飯、答題、專注、種菜、買東西。每完成一個 +30 金幣，全部完成再送盲盒券！有問題隨時到「我的」按「玩法說明」。']
+];
+const TOUR_FULL=[
  ['me','歡迎來到 Learning Den！','這是一座魔法城市。每天來這裡學一點英文，跟同學一起讀書、賺金幣、布置自己的房間。'],
  ['castle','在城市裡走一走','點地面，角色就會走過去；點建築會自動走到門口進去。地圖下面也有每棟建築的快速按鈕。'],
  ['book','魔法學院：今日一題','每天一題，答題 +10 金幣、答對再 +5，還能收集單字卡。答錯的題目會放進錯題本，可以到圖書館複習。'],
@@ -1978,8 +1988,8 @@ function scopeTip(after){
   m.querySelector('#stok').onclick=()=>{apply&&apply();m.remove();toast(`範圍：${scopeName()}`);after&&after()};
   return true;
 }
-function showTutorial(){
-  let i=0;
+function showTutorial(full){
+  const TOUR=full===true||S.tutorialDone?TOUR_FULL:SHORT_TOUR;let i=0;
   const m=modal('<div id="tour"></div>');
   m.onclick=null;
   const draw=()=>{const [sp,title,body]=TOUR[i],last=i===TOUR.length-1;
@@ -1991,7 +2001,7 @@ function showTutorial(){
       ${last?'<button class="btn gold" id="tfood">去餐廳吃飯</button>':`<button class="btn gold" id="tnext">${body==='SCOPE'?'用這個範圍':'下一步'}</button>`}</div>
       ${last?'<button class="btn ghost" id="tfree">自己逛逛</button>':''}`;
     paintSprites(m);
-    const done=()=>{S.tutorialDone=true;S.seenVer=CHANGES[0].v;S.lastGreet=today();save();m.remove();setTimeout(showStarter,300)};
+    const done=()=>{const first=!S.tutorialDone;S.tutorialDone=true;S.seenVer=CHANGES[0].v;S.lastGreet=today();save();m.remove();if(first){setTimeout(showStarter,300);if(curTab==='city')renderCity()}};
     const b=id=>m.querySelector(id),applyScope=body==='SCOPE'?bindScopeGuide(m):null;
     if(b('#tprev'))b('#tprev').onclick=()=>{i--;draw()};
     if(b('#tnext'))b('#tnext').onclick=()=>{if(applyScope){applyScope();toast(`範圍：${scopeName()}`)}i++;draw()};
@@ -2350,7 +2360,7 @@ async function boot(){
   joinRoom();listenDM();flushFocus(true);
   TEACHER=(await cloud.run(()=>sb.rpc('is_teacher')))===true;
   if(TEACHER){const tm=await cloud.run(()=>sb.rpc('teacher_me'));if(tm){if(tm.title)TTITLE=tm.title;TNAME=tm.name||''}}
-  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet()).then(()=>{setTimeout(checkInvites,1500);setTimeout(checkAwards,2500);setTimeout(checkSuggest,3500)})}else renderOnboard();
+  if(S.tier&&S.name){restoreTimer();go(S.timer?'room':'city');await fixGrade();Promise.all([loadAnn(),loadQuests()]).then(()=>dailyGreet()).then(()=>{setTimeout(checkInvites,1500);setTimeout(checkAwards,2500);setTimeout(checkSuggest,3500);setTimeout(checkClassLink,4500)})}else renderOnboard();
 }
 /* 舊玩家還沒有年級：進來先選一次（國小直接放國小） */
 async function fixGrade(){
@@ -2448,10 +2458,11 @@ function renderOnboard(){
      <label for="nm" class="small">你的冒險者名字</label>
      <input type="text" id="nm" maxlength="10" placeholder="小明" value="${esc(S.name)}">
      <div id="gradeBox"></div>
-     ${S.name?'':`<label for="ivc" class="small">好友的邀請碼（選填，填了你和好友都有獎勵）</label>
+     <details ${pendingInvite()||pendingClass()||S.cls?'open':''} style="display:flex;flex-direction:column;gap:6px"><summary class="small" style="cursor:pointer;color:var(--lilac)">有邀請碼或班級代碼嗎？（選填，之後也可以再填）</summary>
+     ${S.name?'':`<label for="ivc" class="small">好友的邀請碼（填了你和好友都有獎勵）</label>
      <input type="text" id="ivc" maxlength="8" placeholder="例如 A1B2C3" value="${esc(pendingInvite())}" style="text-transform:uppercase">`}
-     <label for="cc" class="small">班級代碼（選填，老師會給你）</label>
-     <input type="text" id="cc" maxlength="8" placeholder="702" value="${esc(S.cls)}">
+     <label for="cc" class="small">班級代碼（老師會給你）</label>
+     <input type="text" id="cc" maxlength="8" placeholder="702" value="${esc(S.cls||pendingClass())}"></details>
    </div>
    <p class="small" style="margin:0">選擇你的冒險等級</p>
    ${Object.entries(TIERS).map(([k,t])=>`
@@ -2505,7 +2516,7 @@ function renderOnboard(){
     S.look={...(S.look||{}),outfit:{...((S.look&&S.look.outfit)||{}),...ch}};if(!S.joined)S.joined=today();
     if(ONLINE){$('#go').textContent='存檔中…';if(await cloud.saveProfile()===undefined){Object.assign(S,old);$('#go').textContent='開始冒險';return}const l=myLook();cloud.saveLook(l.room,l.outfit);leaveRoom();joinRoom()}
     const ivc=$('#ivc')&&$('#ivc').value.trim().toUpperCase();
-    const isNew=!S.tutorialDone;city=null;save();go('city');if(ivc)await useInvite(ivc,true);if(isNew)setTimeout(showTutorial,300);
+    dropClass();const isNew=!S.tutorialDone;city=null;save();go('city');if(ivc)await useInvite(ivc,true);if(isNew)setTimeout(showTutorial,300);
   };
 }
 
@@ -3167,7 +3178,7 @@ async function tClass(){
      <div><b>${(wm/60).toFixed(1)}h</b><span class="small">本週專注合計</span></div>
      <div><b>${pct(wc,wa)}</b><span class="small">本週今日一題答對率</span></div>
    </div>
-   <div class="row"><button class="btn mint" id="classadd">全班補登專注時數</button></div>
+   <div class="row"><button class="btn gold" id="classqr">班級加入 QR code</button><button class="btn mint" id="classadd">全班補登專注時數</button></div>
    <div class="tscroll"><table class="tbl">
      <thead><tr><th>學生</th><th>今天</th><th class="num">連續</th><th class="num">最長</th><th class="num">本週專注</th><th class="num">累計</th><th class="num">本週答對</th><th class="num">錯題</th><th>最後打卡</th><th></th></tr></thead>
      <tbody>${rows.map(r=>`<tr>
@@ -3187,12 +3198,29 @@ async function tClass(){
   $('#tbody').querySelectorAll('[data-addf]').forEach(b=>b.onclick=()=>addFocusModal(b.dataset.addf,b.dataset.name));
   $('#tbody').querySelectorAll('[data-fdet]').forEach(b=>b.onclick=()=>focusDetail(T2[b.dataset.fdet],b.dataset.name));
   $('#classadd').onclick=()=>addFocusModal(null,(S.tcls?S.tcls+' ':'')+'全班',rows.length);
+  $('#classqr').onclick=()=>classQR(S.tcls);
   $('#tbody').querySelectorAll('[data-award]').forEach(b=>b.onclick=()=>awardModal(b.dataset.award,b.dataset.name));
   $('#tbody').querySelectorAll('[data-mute]').forEach(b=>b.onclick=()=>{
     const on=b.dataset.on==='1',name=b.dataset.name;
     const m=modal(`<h2>${on?'禁言':'解除禁言'} ${esc(name)}？</h2><p class="small">${on?'禁言後不能留言和傳私訊，直到你解除。':'解除後可以正常留言和傳私訊。'}</p><div class="row"><button class="btn" data-close>取消</button><button class="btn ${on?'coral':'gold'}" id="yes">${on?'禁言':'解除'}</button></div>`);
     m.querySelector('#yes').onclick=async()=>{m.remove();if(await cloud.teacher('teacher_set_muted',{p_user:b.dataset.mute,p_muted:on})!==undefined){toast(on?`已禁言 ${name}`:`已解除 ${name} 的禁言`);tClass()}};
   });
+}
+/* 班級加入 QR code：學生掃了直接打開 app，班級代碼自動填好；可以投影給全班 */
+function loadQRLib(){return window.QRCode?Promise.resolve():new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';sc.onload=ok;sc.onerror=no;document.head.appendChild(sc)})}
+async function classQR(code){
+  if(!code){toast('先在上面選一個有班級代碼的班級');return}
+  const url=SITE+'?class='+encodeURIComponent(code);
+  const m=modal(`<h2 style="text-align:center">加入 ${esc(code)} 讀書會</h2>
+    <div style="display:flex;justify-content:center"><div id="qrbox" style="background:#fff;padding:14px;border:3px solid var(--ink)"></div></div>
+    <p style="text-align:center;margin:0;line-height:1.7">用手機相機掃描，就會打開 Learning Den<br>班級代碼 <b style="color:var(--gold);font-size:20px">${esc(code)}</b> 會自動填好</p>
+    <p class="small" style="text-align:center;margin:0;word-break:break-all">${esc(url)}</p>
+    <div class="row"><button class="btn" id="qrcopy">複製連結</button><button class="btn gold" id="qrfull">全螢幕投影</button></div>
+    <button class="btn ghost" data-close>關閉</button>`);
+  try{await loadQRLib();new QRCode(m.querySelector('#qrbox'),{text:url,width:240,height:240,correctLevel:QRCode.CorrectLevel.M})}
+  catch(e){m.querySelector('#qrbox').textContent='QR code 載不到，請檢查網路，或直接分享下面的連結'}
+  m.querySelector('#qrcopy').onclick=async()=>{try{await navigator.clipboard.writeText(url);toast('連結複製好了')}catch(e){prompt('複製這個連結',url)}};
+  m.querySelector('#qrfull').onclick=()=>{const b=m.querySelector('.box');try{(b.requestFullscreen||b.webkitRequestFullscreen).call(b)}catch(e){}const q=m.querySelector('#qrbox img,#qrbox canvas');if(q){q.style.width='min(70vh,80vw)';q.style.height='auto'}};
 }
 /* 老師看學生最近 14 天每天的專注時間 */
 function focusDetail(t,name){
@@ -3201,6 +3229,65 @@ function focusDetail(t,name){
   modal(`<h2>${esc(name)} 的專注明細</h2><p class="small" style="margin:0">累計 <b style="color:var(--gold)">${(t.total_minutes/60).toFixed(1)} 小時</b>・最近 7 天 ${(t.week_minutes/60).toFixed(1)} 小時</p>
     <div class="flist">${days.map(k=>{const m=(t.days||{})[k]||0;return `<div class="frow" style="padding:4px 8px"><span style="width:54px" class="small">${tday(k)}</span><span class="grow"><span class="lock" style="height:10px"><i style="width:${Math.round(100*m/max)}%;background:var(--mint)"></i></span></span><span class="small" style="min-width:64px;text-align:right">${m?(m>=60?(m/60).toFixed(1)+' 小時':m+' 分'):'—'}</span></div>`}).join('')}</div>
     <p class="small" style="margin:0">如果某一天學生說有讀但這裡是空的，可以按「補登專注」補那一天。</p><button class="btn" data-close>關閉</button>`);
+}
+/* ---------- 新手任務：給 10/20 以後加入的新同學，每完成一個 +30，全部完成 +100 和 2 張盲盒券 ----------
+   線上版由資料庫 newbie_status()／claim_newbie() 確認真的做到了才發；單機版（訪客試玩）用本機紀錄判斷。 */
+const NEWBIE_FROM='2026-10-20';
+const NEWBIE=[
+ ['meal','去魔法餐廳吃第一餐','bento',()=>renderFood()],
+ ['answer','到魔法學院答第一題','book',()=>go('daily')],
+ ['focus','到讀書房專注一次（15 分鐘就好）','lamp',()=>go('room')],
+ ['plant','在魔法花園種第一顆菜','seed',()=>openMyGarden()],
+ ['buy','到百貨公司買第一件東西','coin',()=>renderShop('room','city')]
+];
+let nbState=null;
+const nbIcon=k=>k==='seed'?cropIcon('carrot',22):`<span data-s="${k}" data-z="3"></span>`;
+function nbLocalDone(k){
+  if(k==='meal')return Object.keys(S.meals||{}).length>0;
+  if(k==='answer')return Object.keys(S.answers||{}).length>0;
+  if(k==='focus')return Object.values(S.minutes||{}).some(m=>m>0);
+  if(k==='plant')return !!S.everPlanted||((S.garden&&S.garden.plots)||[]).length>0;
+  if(k==='buy')return Object.values(S.owned||{}).some(p=>p>0);
+  if(k==='all')return NEWBIE.every(([s])=>(S.nbClaims||[]).includes(s));
+  return false;
+}
+async function loadNewbie(){
+  if(!S.name||S.newbieDone||(S.joined&&S.joined<NEWBIE_FROM&&!GUEST)){nbState=null;return null}
+  if(ONLINE){const r=await cloud.run(()=>sb.rpc('newbie_status'));if(!r||!r.eligible){nbState=null;return null}nbState={done:r.done||{},claimed:r.claimed||[]}}
+  else nbState={done:Object.fromEntries([...NEWBIE.map(x=>x[0]),'all'].map(k=>[k,nbLocalDone(k)])),claimed:S.nbClaims||[]};
+  if(nbState.claimed.includes('all')){S.newbieDone=true;save();nbState=null}
+  return nbState;
+}
+function newbieCard(){
+  if(!nbState)return '';
+  const n=NEWBIE.filter(([k])=>nbState.claimed.includes(k)).length,ready=NEWBIE.filter(([k])=>nbState.done[k]&&!nbState.claimed.includes(k)).length+(nbState.done.all&&!nbState.claimed.includes('all')?1:0);
+  const next=NEWBIE.find(([k])=>!nbState.done[k]);
+  return `<button class="box" id="nbcard" style="background:var(--mint);color:var(--night);outline-color:var(--night);padding:10px 12px;text-align:left;display:flex;align-items:center;gap:10px;cursor:pointer;width:100%;font:inherit">
+    ${next?nbIcon(next[2]):'<span data-s="capsule" data-z="3"></span>'}<span class="grow" style="line-height:1.5"><b>新手任務 ${n}/5</b>${ready?`・<b style="color:#7a3f9e">有 ${ready} 個獎勵可以領！</b>`:''}<br><span style="font-size:13px">${next?'下一步：'+next[1]:'全部完成了！領最後的大獎吧'}</span></span><span style="font-size:13px">打開 →</span></button>`;
+}
+function openNewbie(){
+  if(!nbState)return;
+  const m=modal(`<h2 style="text-align:center;color:var(--gold)">新手任務</h2><p class="small" style="margin:0;text-align:center">每完成一個 +30 金幣，全部完成再送 100 金幣和 2 張盲盒券！</p>
+    <div class="flist">${NEWBIE.map(([k,t,ic])=>{const d=nbState.done[k],c=nbState.claimed.includes(k);
+      return `<div class="frow" style="padding:8px 10px">${nbIcon(ic)}<span class="grow">${t}</span>${c?'<span class="pill ok">已領 +30</span>':d?`<button class="btn gold mini" data-nbc="${k}">領 30 金幣</button>`:`<button class="btn mini" data-nbgo="${k}">去做</button>`}</div>`}).join('')}
+      <div class="frow" style="padding:8px 10px;background:var(--deep)"><span data-s="capsule" data-z="3"></span><span class="grow"><b>全部完成</b><br><span class="small">100 金幣＋盲盒券 ×2</span></span>${nbState.claimed.includes('all')?'<span class="pill ok">已領</span>':nbState.done.all?'<button class="btn gold mini" data-nbc="all">領大獎</button>':'<span class="small">還沒完成</span>'}</div></div>
+    <button class="btn ghost" data-close>關閉</button>`);
+  paintSprites(m);
+  m.querySelectorAll('[data-nbgo]').forEach(b=>b.onclick=()=>{m.remove();NEWBIE.find(x=>x[0]===b.dataset.nbgo)[3]()});
+  m.querySelectorAll('[data-nbc]').forEach(b=>b.onclick=async()=>{const k=b.dataset.nbc;b.disabled=true;
+    if(ONLINE){const r=await cloud.rpc('claim_newbie',{p_step:k});if(!r){b.disabled=false;return}syncWallet(r.wallet);if(r.tickets)gstate().tickets=r.tickets}
+    else{S.nbClaims=[...(S.nbClaims||[]),k];S.tx=(S.tx||0)+(k==='all'?100:30);if(k==='all')gstate().tickets+=2;save()}
+    m.remove();await loadNewbie();
+    if(k==='all')modal(`<div style="display:flex;justify-content:center"><span data-s="capsule" data-z="8"></span></div><h2 style="text-align:center;color:var(--gold)">新手任務全部完成！</h2><p style="text-align:center;margin:0;line-height:1.8">+100 金幣、盲盒券 ×2<br>你已經是 Learning Den 的正式冒險者了！明天記得回來讀書喔～</p><button class="btn gold" data-close>太棒了！</button>`);
+    else{toast('+30 金幣！');openNewbie()}
+    if(curTab==='city')renderCity()});
+}
+/* 班級連結：已經有角色的同學點了老師的班級連結，問要不要加入那個讀書會 */
+async function checkClassLink(){
+  const c=pendingClass();if(!c||!S.name)return;dropClass();if(S.cls===c)return;
+  const m=modal(`<h2 style="text-align:center">加入 ${esc(c)} 讀書會？</h2><p style="margin:0;line-height:1.7;text-align:center">你是從老師的班級連結進來的。加入後可以和同班同學一起完成讀書會任務、看同班排行。${S.cls?`<br><span class="small">（會離開原本的 ${esc(S.cls)}）</span>`:''}</p>
+    <div class="row"><button class="btn" data-close>先不要</button><button class="btn gold" id="cljoin">加入</button></div>`);
+  m.querySelector('#cljoin').onclick=async()=>{const old=S.cls;S.cls=c;if(ONLINE&&await cloud.saveProfile()===undefined){S.cls=old;return}save();m.remove();toast(`加入 ${c} 讀書會了！`)};
 }
 /* ---------- 上架建議箱：學生寫建議，老師給 100～1000 金幣或回覆 ---------- */
 const SUGG_UNTIL='2026-11-30',SUGG_CAT=[['feature','想要的新功能'],['question','題目內容'],['bug','遇到的問題'],['other','其他']];
@@ -3464,7 +3551,7 @@ function renderMe(){
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
-  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=showTutorial;$('#mylog').onclick=showChangelog;drawTrophies();
+  $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=()=>showTutorial(true);$('#mylog').onclick=showChangelog;drawTrophies();
   if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mysugg').onclick=openSuggest;$('#mywrong').onclick=()=>renderMistakes();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
