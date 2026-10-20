@@ -263,7 +263,9 @@ const STICKERS=['讚','好難','我答對','加油','好好玩'];
 const BAD=['笨蛋','白痴','白癡','智障','幹','靠北','去死','stupid','idiot','fuck','shit','damn'];
 
 /* ---------- 儲存 ---------- */
-const KEY='wordden.v1';
+/* 訪客試玩：不用登入，資料只存在這台裝置（給還沒註冊的人和商店審核用），和正式帳號分開存 */
+const GUEST=(()=>{try{return localStorage.getItem('wordden.guest')==='1'}catch(e){return false}})();
+const KEY=GUEST?'wordden.guest.v1':'wordden.v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||null}catch(e){return null}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let S=load()||{};
@@ -2251,7 +2253,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
    SB_URL、SB_KEY 填好，而且不是在 Artifact 預覽框裡時才連線；沒填就是單機版。
    SB_KEY 是公開用的 anon／publishable key，可以放在網頁裡；權限由資料庫的 RLS 把關。 */
 const SB_URL='https://kvqbjkgzziidwulsjols.supabase.co', SB_KEY='sb_publishable_bxPfQ8PsqEAoqxlswoLhBQ_gPtNBivo';
-const ONLINE=!!(SB_URL&&SB_KEY&&window.supabase&&window.top===window);
+const ONLINE=!!(SB_URL&&SB_KEY&&window.supabase&&window.top===window)&&!GUEST;
 const sb=ONLINE?supabase.createClient(SB_URL,SB_KEY):null;
 let ME=null,TEACHER=false,TTITLE='宇宙超年輕大魔法師',TNAME='';
 const isBlocked=uid=>S.blocked.some(b=>b.startsWith(`u:${uid}:`));
@@ -2377,12 +2379,31 @@ function renderLogin(){
    <p class="small" style="text-align:center;margin:0">陪你一起讀書啦｜每天一題，一起專注</p>
    <div style="display:flex;justify-content:center;gap:18px;margin:18px 0"><span data-s="kid" data-z="6"></span><span data-s="teen" data-z="6"></span><span data-s="sage" data-z="6"></span></div>
    <button class="btn gold" id="gl">用 Google 帳號登入</button>
+   <button class="btn" id="guest">先試玩看看（不用登入）</button>
    <p class="small" style="margin:0;line-height:1.6">登入只用來記住你的打卡和單字卡。同學只看得到你自己取的暱稱，看不到你的 email。</p>
    <p class="demo">免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>`;
   paintSprites($('#view'));
+  $('#guest').onclick=()=>{try{localStorage.setItem('wordden.guest','1')}catch(e){}location.reload()};
   $('#gl').onclick=async()=>{
     const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
     if(error)toast('登入沒成功，再試一次');
+  };
+}
+/* 學生自己刪除帳號（商店規定）：要輸入「刪除」確認，刪掉後所有資料都消失 */
+function deleteAccount(){
+  const m=modal(`<h2 style="color:var(--coral)">刪除帳號？</h2>
+    <p style="margin:0;line-height:1.8">刪除後，你的<b>角色、讀書紀錄、單字卡、金幣、房間、花園、好友和私訊</b>都會永久刪除，<b>沒辦法復原</b>。</p>
+    <p class="small" style="margin:0">之後還是可以用同一個 Google 帳號重新開始，但會是全新的角色。</p>
+    <label class="small" for="delc">確定的話，請輸入「刪除」兩個字</label><input type="text" id="delc" placeholder="刪除">
+    <p class="err" id="delerr" role="alert"></p>
+    <div class="row"><button class="btn" data-close>不要刪</button><button class="btn coral" id="delgo">永久刪除</button></div>`);
+  m.querySelector('#delgo').onclick=async()=>{
+    const v=m.querySelector('#delc').value.trim();
+    if(v!=='刪除'){m.querySelector('#delerr').textContent='請輸入「刪除」兩個字';return}
+    m.querySelector('#delgo').disabled=true;
+    if(await cloud.rpc('delete_my_account',{p_confirm:v})===undefined){m.querySelector('#delgo').disabled=false;return}
+    m.remove();try{localStorage.removeItem(TKEY)}catch(e){}
+    await logout();toast('帳號已經刪除了，謝謝你在 Learning Den 讀書');
   };
 }
 async function logout(){TEACHER=false;leaveRoom();leaveCity();city=null;if(dmChan){sb.removeChannel(dmChan);dmChan=null}unread={};drawUnread();endTimer();await sb.auth.signOut();S=fresh();save();ME=null;renderLogin()}
@@ -3389,6 +3410,8 @@ function renderMe(){
    ${TEACHER?'<button class="btn mint" id="tdash">老師後台</button>':''}
    <div class="row"><button class="btn gold" id="share">產生分享圖</button><button class="btn mint" id="meinv">邀請好友拿獎勵</button></div>
    <div class="row"><button class="btn ghost" id="chg">換等級／改名字</button><button class="btn ghost" id="rst">${ONLINE?'登出':'清除資料'}</button></div>
+   ${GUEST?'<div class="box" style="background:var(--deep);line-height:1.7"><b style="color:var(--gold)">訪客試玩中</b><br><span class="small">資料只存在這台裝置，不能加好友、聊天、看排行。用 Google 登入就能和同學一起讀書（試玩的資料不會帶過去）。</span><button class="btn gold" id="endguest" style="margin-top:8px;width:100%">改用 Google 帳號登入</button></div>':''}
+   ${ONLINE&&!TEACHER?'<button class="btn ghost" id="delacct" style="color:var(--coral);border-color:var(--coral);font-size:13px">刪除我的帳號</button>':''}
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
@@ -3398,6 +3421,8 @@ function renderMe(){
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
   $('#chg').onclick=renderOnboard;
+  if($('#delacct'))$('#delacct').onclick=deleteAccount;
+  if($('#endguest'))$('#endguest').onclick=()=>{try{localStorage.removeItem('wordden.guest')}catch(e){}location.reload()};
   $('#rst').onclick=ONLINE?logout:()=>{const mo=modal(`<h2>清除所有資料？</h2><p class="small">打卡紀錄、單字卡都會消失，無法復原。</p><div class="row"><button class="btn" data-close>取消</button><button class="btn coral" id="yes">清除</button></div>`);mo.querySelector('#yes').onclick=()=>{mo.remove();endTimer();S=fresh();save();renderOnboard()}};
   if($('#unb'))$('#unb').onclick=()=>{S.blocked=[];cloud.unblockAll();save();renderMe()};
 }
