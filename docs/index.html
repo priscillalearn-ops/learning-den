@@ -811,7 +811,7 @@ async function visitRoom(who,uid,tier){
     look=lookOf({room,outfit:botOutfit(who)},tier);
   }
   const back=curTab==='city'?()=>go('city'):()=>go('room');
-  const m=modal(`<h2>${esc(who)} 的房間</h2>${roomSVG(look,look.outfit,who+' 的房間')}<div class="row"><button class="btn" data-close>回去</button><button class="btn gold" id="vgarden">看${esc(who)}的花園</button></div>`);
+  const m=modal(`<h2>${esc(who)} 的房間</h2><p style="margin:0">${starStr(roomStars(roomScore(look.room)))} <span class="small">${roomScore(look.room)} 分</span></p>${roomSVG(look,look.outfit,who+' 的房間')}<div class="row"><button class="btn" data-close>回去</button><button class="btn gold" id="vgarden">看${esc(who)}的花園</button></div>`);
   m.querySelector('#vgarden').onclick=()=>{m.remove();gardenBack=back;renderGarden(uid||'bot',who)};
 }
 
@@ -1035,6 +1035,7 @@ function gameOver(game,lv,win,title,detail,r,score){
   if(m.querySelector('#gnext'))m.querySelector('#gnext').onclick=()=>{m.remove();run(lv+1)};
 }
 async function claimGame(game,score,lv=1){
+  S.gamesPlayed=(S.gamesPlayed||0)+1;
   const g=gday();let r;
   if(ONLINE){const res=await cloud.rpc('claim_game',{p_game:game,p_score:score,p_level:lv});if(!res)return 0;r=res.reward;syncWallet(res.wallet)}
   else{r=Math.max(0,Math.min(score,game==='halloween'?HW_MAX:lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
@@ -1379,6 +1380,7 @@ function renderCity(){
    <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。<span style="color:var(--gold)">今天城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
    ${newbieCard()}
    ${suggOn()?`<button class="btn" id="suggbtn" style="background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="scroll" data-z="2"></span>上架建議箱：給建議最高拿 1000 金幣！</button>`:''}
+   <button class="btn" id="visitbtn" style="background:var(--plum);color:var(--paper)">今日訪客來了！（廣場）</button>
    <div class="row"><button class="btn" id="fishbtn" style="background:#3a7bd5;color:var(--paper)">湖邊釣單字</button><button class="btn" id="marketbtn" style="background:#c98a3a;color:var(--night)">大頭菜市場<span id="mktip" class="small" style="display:block;font-size:11px"></span></button></div>
    <button class="btn" id="gardenbtn" style="background:#3f8f5a;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px">${cropIcon('sunflower',22)}我的魔法花園（種菜、偷菜、換配件）</button>
    ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
@@ -1390,6 +1392,8 @@ function renderCity(){
   $('#cmap').onclick=openCityMap;
   $('#gardenbtn').onclick=openMyGarden;
   $('#fishbtn').onclick=()=>cityTap(27,16);
+  $('#visitbtn').onclick=()=>cityTap(VISITOR_AT[0],VISITOR_AT[1]);
+  loadVisitor().then(v=>{const e=$('#visitbtn');if(e&&v)e.textContent=`今日訪客：${VISITORS[v.kind].name}（在廣場）`});
   $('#marketbtn').onclick=()=>openMarket();
   marketTip().then(t=>{const e=$('#mktip');if(e&&t)e.textContent=`今天${t.name} ×${t.mult.toFixed(1)}${t.mult>=1.5?'！':''}`});
   if($('#suggbtn'))$('#suggbtn').onclick=openSuggest;
@@ -1492,6 +1496,7 @@ function openCityMap(){
 }
 function cityTap(tx,ty){
   const me=city.me;
+  if(!city.hw&&visitorCache&&tx===VISITOR_AT[0]&&ty===VISITOR_AT[1]){const p=bfs(me.x,me.y,VISITOR_AT[0],VISITOR_AT[1]+1);if(p){me.path=p;me.goal='visitor';if(!p.length){me.goal=null;openVisitor()}}return}
   if(!city.hw&&((CITY[ty]&&CITY[ty][tx]==='w')||(tx===27&&ty===16))){let best=null;
     for(let r=0;r<=3&&!best;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=tx+dx,y=ty+dy;
       if(!best&&walk(x,y)&&!doorAt(x,y)&&[[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>CITY[y+b]&&CITY[y+b][x+a]==='w')){const p=bfs(me.x,me.y,x,y);if(p)best=p}}
@@ -1519,6 +1524,7 @@ function cityTick(dt){
     if(city.hw)me.armed=false;
     else if(!me.path.length&&me.goal==='hw'){me.goal=null;hwOpen()}
     else if(!me.path.length&&me.goal==='fish'){me.goal=null;openFishing()}
+    else if(!me.path.length&&me.goal==='visitor'){me.goal=null;openVisitor()}
     else{const door=doorAt(me.x,me.y);
     if(door&&me.armed&&(!me.path.length)){enterBuilding(door);return}
     if(!door)me.armed=true;
@@ -1702,6 +1708,7 @@ function cityDraw(){
   });
   c.font='7px "DotGothic16", sans-serif';
   if(city.hw){const h=city.hw;c.save();c.setTransform(CSC,0,0,CSC,0,0);const left=Math.max(0,Math.ceil((h.end-performance.now())/1000));c.fillStyle='rgba(15,10,26,.82)';c.fillRect(4,4,118,14);c.fillStyle='#ffd166';c.font='9px "DotGothic16",sans-serif';c.textAlign='left';c.fillText(`糖果 ${h.got}・剩 ${left} 秒・還有 ${h.candies.length} 顆`,8,14);c.restore();c.font='7px "DotGothic16", sans-serif'}
+  drawVisitor(c,t);c.font='7px "DotGothic16", sans-serif';
   city.bubbles.forEach(b=>{const w=c.measureText(b.txt).width+8,X=b.who.px-w/2,Y=b.who.py-34;c.fillStyle='#f4ecd8';c.fillRect(X,Y,w,12);c.fillStyle='#1a1026';c.textAlign='center';c.fillText(b.txt,b.who.px,Y+9)});
 }
 /* 寵物：跟在主人身後半格，走路時會一跳一跳 */
@@ -1756,10 +1763,11 @@ function renderHome(){
    </div>
    <p class="small" style="margin:0">點地板走過去${petSvg?'，寵物會跟著你':''}。</p>
    <div class="row"><button class="btn gold" id="hdeco">布置房間</button><button class="btn" id="hwear">換裝</button></div>
+   <div id="rrate"></div>
    <h2 style="margin:6px 0 0">我的魔法花園</h2>
    <div id="gdn"><p class="small">載入中…</p></div>`;
   paintSprites($('#view'));
-  $('#hback').onclick=()=>go('city');fillGarden($('#gdn'));$('#hdeco').onclick=()=>renderShop('room','home');$('#hwear').onclick=()=>renderShop('wear','home');
+  $('#hback').onclick=()=>go('city');fillGarden($('#gdn'));roomRatingBox();$('#hdeco').onclick=()=>renderShop('room','home');$('#hwear').onclick=()=>renderShop('wear','home');
   const room=$('#hroom'),me=$('#hme'),pt=$('#hpet');let cur={x:20,y:72};
   const moveTo=(x,y)=>{const d=Math.hypot(x-cur.x,y-cur.y),s=Math.max(.2,d/35);me.style.transition=`left ${s}s linear,top ${s}s linear`;
     me.firstElementChild.style.transform=x<cur.x?'scaleX(-1)':'';me.style.left=x+'%';me.style.top=y+'%';cur={x,y};
@@ -2131,6 +2139,10 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-22',title:'每日訪客、成就、房間評分',items:[
+  ['owl','每日特別訪客','廣場每天會來一位訪客：貓頭鷹博士出題送金幣、旅行商人高價收作物、幸運貓每天抽一次！',()=>{go('city');setTimeout(()=>cityTap(VISITOR_AT[0],VISITOR_AT[1]),300)}],
+  ['coin','45 個成就','答題、讀書、釣魚、交朋友、下廚…每達成一級都有金幣，到「我的」看看你已經完成幾個！',()=>openAch()],
+  ['me','房間評分','稀有家具、成套主題會加分，1～5 星每週都能領獎勵，參觀同學房間也看得到星等。',()=>renderHome()]]},
  {v:'2026-10-21',title:'湖邊釣單字＋大頭菜市場',items:[
   ['book','湖邊釣單字','到城市的湖邊拋竿，魚上鉤就答一題單字，答對才釣得上來！14 種魚，有的只在早上、晚上或秋天出現，收齊送釣魚帽。',()=>{go('city');setTimeout(()=>cityTap(27,16),300)}],
   ['coin','大頭菜市場','作物收購價每天中午和半夜各變一次！價格好就賣，不好就先存在倉庫。',()=>openMarket()]]},
@@ -3345,6 +3357,132 @@ async function openFishDex(){
     <div class="row"><button class="btn" data-close>關閉</button><button class="btn gold" id="fgo">去釣魚</button></div>`);
   m.querySelector('#fgo').onclick=()=>{m.remove();openFishing()};
 }
+/* ---------- 每日特別訪客：廣場每天來一位（貓頭鷹博士／旅行商人／幸運貓），線上版由資料庫 visitor_* 函式決定和發獎 ---------- */
+const VISITOR_AT=[18,9];
+const VISITORS={
+ owl:{name:'貓頭鷹博士',pet:'pet_owl',hi:'呼呼～我出 3 題英文考考你，每答對一題送你 10 金幣！'},
+ merchant:{name:'旅行商人',hi:'嘿！我從很遠的地方來，今天想高價收購一些作物。'},
+ cat:{name:'幸運貓',pet:'pet_blackcat',hi:'喵～摸摸我，今天會有好運喔！每天可以抽一次。'}
+};
+let visitorCache=null;
+async function loadVisitor(){
+  if(visitorCache&&visitorCache.day===today())return visitorCache;
+  let v;if(ONLINE)v=await cloud.run(()=>sb.rpc('visitor_today'));
+  if(!v){const k=['owl','merchant','cat'][mix('visitor'+today())%3],crops=Object.keys(MARKET_BASE),c=crops[mix('crop'+today())%6];
+    S.visitorDone=S.visitorDone&&S.visitorDone.day===today()?S.visitorDone:{day:today(),list:[]};
+    v={kind:k,wants:{crop:c,qty:1+mix('want'+today())%3,each:Math.round(MARKET_BASE[c]*2.2)},done:S.visitorDone.list}}
+  visitorCache={...v,day:today()};return visitorCache;
+}
+function drawVisitor(c,t){
+  if(!visitorCache||visitorCache.day!==today())return;const v=VISITORS[visitorCache.kind],X=VISITOR_AT[0]*TS+8,Y=VISITOR_AT[1]*TS+8;
+  if(v.pet)drawPet(c,v.pet,X,Y+2,-1,Math.abs(Math.sin(t*2))*2);
+  else{const {g,pal}=avatarGrid({hat:'hat_detective',top:'top_coat',acc:'acc_mustache',hair:'hair_gray',skin:'skin_3'});g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=pal[ch];if(col&&ch!=='.'){c.fillStyle=col;c.fillRect(X-8+xx*2,Y-12+yy*2,2,2)}}))}
+  const by=Y-26+Math.round(Math.sin(t*4)*2);c.fillStyle='#ffd166';c.fillRect(X-3,by,6,8);c.fillStyle='#1a1026';c.fillRect(X-1,by+1,2,4);c.fillRect(X-1,by+6,2,1);
+  c.font='7px "DotGothic16", sans-serif';c.textAlign='center';const w=c.measureText(v.name).width+4;c.fillStyle='rgba(122,63,158,.85)';c.fillRect(X-w/2,Y+6,w,9);c.fillStyle='#ffd166';c.fillText(v.name,X,Y+13);
+}
+async function openVisitor(){
+  const v=await loadVisitor(),V=VISITORS[v.kind],done=v.done||[];
+  const head=`<div style="display:flex;justify-content:center">${V.pet?`<svg viewBox="0 0 8 8" width="72" height="72" shape-rendering="crispEdges">${itemRects(V.pet,0,0)}</svg>`:avatarSVG({hat:'hat_detective',top:'top_coat',acc:'acc_mustache',hair:'hair_gray',skin:'skin_3'},9)}</div>
+    <h2 style="text-align:center;color:var(--gold)">今日訪客：${V.name}</h2><p style="margin:0;line-height:1.7;text-align:center">${V.hi}</p>`;
+  const m=modal(head+'<div id="vbody"></div><button class="btn ghost" data-close>再見</button>');const body=m.querySelector('#vbody');
+  if(v.kind==='owl'){
+    let n=done.filter(x=>x.kind==='owl').length;
+    const ask=()=>{if(n>=3){body.innerHTML='<p style="text-align:center;margin:0">今天的 3 題答完了，明天換別的訪客喔！</p>';return}
+      const src=pool().filter(z=>z.q.length<=110),q=pick(src);
+      body.innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">第 ${n+1}／3 題</p>${qPic(q,5)}<div class="qtext">${esc(q.q)}</div>${q.o.map((o,i)=>`<button class="btn opt" data-vo="${i}" style="padding:6px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
+      paintSprites(body);
+      body.querySelectorAll('[data-vo]').forEach(b=>b.onclick=async()=>{const c=+b.dataset.vo;body.querySelectorAll('[data-vo]').forEach(x=>x.disabled=true);let ok=c===q.a;
+        if(ONLINE){const r=await cloud.rpc('visitor_owl',{p_qid:q.id,p_choice:c});if(!r)return;ok=r.correct;syncWallet(r.wallet)}
+        else{S.visitorDone.list.push({kind:'owl',amount:ok?10:0});if(ok)S.tx=(S.tx||0)+10;save()}
+        if(!ok)addWrong(q);n++;visitorCache.done=[...(visitorCache.done||[]),{kind:'owl'}];
+        b.classList.add(ok?'right':'wrong');toast(ok?'答對了！+10 金幣':`答案是 ${q.o[q.a]}`);setTimeout(ask,900)})};
+    ask();
+  }else if(v.kind==='merchant'){
+    await loadFarm();const w=v.wants,have=S.farm.items[w.crop]||0,sold=done.some(x=>x.kind==='merchant');
+    body.innerHTML=`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:10px">${cropIcon(w.crop,40)}<span class="grow">想要 <b>${CROP[w.crop].name} ×${w.qty}</b><br><span class="small">每個 ${w.each} 金幣（市場原價的 2.2 倍）・你的倉庫有 ${have} 個</span></span></div>
+      ${sold?'<p style="text-align:center;margin:0">謝謝你！今天已經收購過了。</p>':`<button class="btn gold" id="vsell" ${have>=w.qty?'':'aria-disabled="true"'}>賣給商人 +${w.qty*w.each} 金幣</button>${have<w.qty?'<p class="small" style="margin:0;text-align:center">倉庫不夠，去魔法花園種一些，收成時選「收進倉庫」</p>':''}`}`;
+    if(body.querySelector('#vsell'))body.querySelector('#vsell').onclick=async()=>{if(have<w.qty){toast('倉庫的作物不夠');return}
+      let amt=w.qty*w.each;
+      if(ONLINE){const r=await cloud.rpc('visitor_trade');if(!r)return;syncWallet(r.wallet);amt=r.amount;await loadFarm()}
+      else{S.farm.items[w.crop]-=w.qty;S.tx=(S.tx||0)+amt;S.visitorDone.list.push({kind:'merchant',amount:amt});save()}
+      visitorCache.done=[...(visitorCache.done||[]),{kind:'merchant'}];m.remove();toast(`賣給旅行商人 +${amt} 金幣！`)};
+  }else{
+    const used=done.some(x=>x.kind==='cat');
+    body.innerHTML=used?'<p style="text-align:center;margin:0">今天已經摸過了，明天再來～</p>':'<button class="btn gold" id="vcat">摸摸幸運貓</button>';
+    if(body.querySelector('#vcat'))body.querySelector('#vcat').onclick=async()=>{let r;
+      if(ONLINE){r=await cloud.rpc('visitor_cat');if(!r)return;syncWallet(r.wallet);if(r.tickets!=null)gstate().tickets=r.tickets}
+      else{const x=Math.random();r=x<.15?{ticket:1,coins:0}:{ticket:0,coins:x<.25?100:x<.5?50:x<.75?30:10};if(r.ticket)gstate().tickets++;else S.tx=(S.tx||0)+r.coins;S.visitorDone.list.push({kind:'cat'});save()}
+      visitorCache.done=[...(visitorCache.done||[]),{kind:'cat'}];
+      body.innerHTML=`<p style="text-align:center;margin:0;font-size:20px;color:var(--gold)">${r.ticket?'喵～抽到盲盒券 1 張！':`喵～+${r.coins} 金幣！`}</p>`};
+  }
+}
+/* ---------- 成就：15 種、每種 3 級（20／60／150 金幣），數字由資料庫 achievement_metrics 統計 ---------- */
+const ACH=[
+ ['answers','答題',['答題新手','答題達人','答題大師'],[10,50,200],'題'],
+ ['correct','答對',['小聰明','英文高手','答對王'],[10,50,200],'題'],
+ ['focus_hours','專注讀書',['開始專注','讀書蟲','讀書魔人'],[5,30,100],'小時'],
+ ['streak','連續打卡',['三天不間斷','一週勇者','整月傳說'],[3,7,30],'天'],
+ ['cards','單字卡',['單字收藏家','單字圖書館','單字百科'],[20,100,300],'張'],
+ ['buys','購物',['第一次購物','購物達人','百貨 VIP'],[5,20,50],'件'],
+ ['harvests','農夫',['小農夫','大農夫','農場主'],[5,30,100],'次賣出作物'],
+ ['fish','釣魚',['釣魚新手','釣魚高手','釣魚大師'],[10,50,200],'隻'],
+ ['fish_kinds','魚圖鑑',['認識五種魚','魚類專家','圖鑑全收集'],[5,10,14],'種'],
+ ['friends','交朋友',['第一個朋友','好人緣','人氣王'],[1,5,10],'位'],
+ ['gifts','送禮',['送出心意','大方的人','禮物天使'],[1,10,30],'次'],
+ ['waters','幫忙澆水',['好鄰居','熱心園丁','花園守護神'],[5,30,100],'次'],
+ ['dishes','下廚',['小廚師','料理達人','魔法主廚'],[3,20,60],'道'],
+ ['games','小遊戲',['愛玩小遊戲','遊戲高手','遊樂場之王'],[10,50,200],'場'],
+ ['login','連續登入',['一週報到','月月報到','百日傳說'],[7,30,100],'天']
+];
+const ACH_COIN=[20,60,150];
+let achData=null;
+function achLocal(){const vals=o=>Object.values(o||{});
+  return {answers:Object.keys(S.answers).length,correct:vals(S.answers).filter(a=>a.ok).length,focus_hours:Math.floor(vals(S.minutes).reduce((a,b)=>a+b,0)/60),
+    streak:bestStreak(),cards:Object.keys(S.cards).length,buys:vals(S.owned).filter(p=>p>0).length,harvests:S.harvests||0,
+    fish:Object.values((S.fish&&S.fish.counts)||{}).reduce((a,b)=>a+b,0),fish_kinds:Object.keys((S.fish&&S.fish.counts)||{}).length,
+    friends:0,gifts:0,waters:Object.values((S.garden&&S.garden.helped)||{}).reduce((a,b)=>a+b,0),dishes:Object.values((S.farm&&S.farm.cooked)||{}).reduce((a,b)=>a+b,0),
+    games:S.gamesPlayed||0,login:S.loginStreak||0}}
+async function loadAch(){
+  if(ONLINE){const r=await cloud.run(()=>sb.rpc('my_achievements'));if(r)achData={metrics:r.metrics||{},claimed:r.claimed||[]}}
+  else achData={metrics:achLocal(),claimed:S.achClaims||[]};
+  return achData||{metrics:{},claimed:[]};
+}
+const achCount=a=>a.claimed.length;
+async function openAch(){
+  const a=await loadAch();
+  const ready=ACH.reduce((n,[k,,,t])=>n+t.filter((v,i)=>(a.metrics[k]||0)>=v&&!a.claimed.includes(k+':'+(i+1))).length,0);
+  const m=modal(`<h2 style="text-align:center;color:var(--gold)">成就 ${achCount(a)}／${ACH.length*3}</h2><p class="small" style="margin:0;text-align:center">每達成一級可以領 20／60／150 金幣${ready?`・<b style="color:var(--gold)">現在有 ${ready} 個可以領！</b>`:''}</p>
+    <div class="flist">${ACH.map(([k,label,names,t,unit])=>{const v=a.metrics[k]||0,lv=t.filter(x=>v>=x).length,next=t[Math.min(lv,2)],cl=[1,2,3].filter(i=>a.claimed.includes(k+':'+i)).length;
+      const can=[1,2,3].find(i=>v>=t[i-1]&&!a.claimed.includes(k+':'+i));
+      return `<div class="frow" style="padding:8px 10px;flex-direction:column;align-items:stretch;gap:4px"><div class="bar"><span>${'★'.repeat(cl)}<span style="color:var(--dim)">${'★'.repeat(3-cl)}</span> <b>${lv?names[lv-1]:label}</b></span><span class="small">${v}／${next} ${unit}</span></div>
+        <div class="bar" style="gap:8px"><span class="lock" style="flex:1;height:8px"><i style="width:${Math.min(100,Math.round(100*v/next))}%;background:var(--gold)"></i></span>${can?`<button class="btn gold mini" data-ach="${k}" data-t="${can}">領「${names[can-1]}」+${ACH_COIN[can-1]}</button>`:lv===3&&cl===3?'<span class="pill ok">全部完成</span>':''}</div></div>`}).join('')}</div>
+    <button class="btn ghost" data-close>關閉</button>`);
+  m.querySelectorAll('[data-ach]').forEach(b=>b.onclick=async()=>{const k=b.dataset.ach,t=+b.dataset.t;b.disabled=true;
+    if(ONLINE){const r=await cloud.rpc('claim_achievement',{p_metric:k,p_tier:t});if(!r){b.disabled=false;return}syncWallet(r.wallet)}
+    else{S.achClaims=[...(S.achClaims||[]),k+':'+t];S.tx=(S.tx||0)+ACH_COIN[t-1];save()}
+    toast(`成就達成「${ACH.find(x=>x[0]===k)[2][t-1]}」！+${ACH_COIN[t-1]} 金幣`);m.remove();openAch()});
+}
+/* ---------- 房間評分：家具稀有度＋成套主題，1～5 星，每週領一次（線上版由資料庫 room_score 算） ---------- */
+const ROOM_STAR=[100,300,600,1000,1500],ROOM_PRIZE=[20,50,100,200,300];
+function roomScore(room){let p=0,filled=0,hw=0,xm=0;
+  ['wall','floor','window','poster','bed','desk','chair','lamp','plant','rug','pet'].forEach(sl=>{const it=ITEM[room&&room[sl]];if(!it)return;
+    const pts=it.gacha?{SSR:300,SR:150,R:80,N:40}[it.gacha]:(it.bundle||it.cards)?120:it.price>0?Math.min(300,Math.floor(it.price/2)):0;
+    p+=pts;if(pts>0)filled++;if(it.from==='10-01')hw++;if(it.from==='12-01')xm++});
+  return p+(filled>=11?200:0)+(hw>=3?200:0)+(xm>=3?200:0)}
+const roomStars=sc=>ROOM_STAR.filter(x=>sc>=x).length;
+const starStr=n=>`<span style="color:var(--gold)">${'★'.repeat(n)}</span><span style="color:var(--dim)">${'★'.repeat(5-n)}</span>`;
+async function roomRatingBox(){
+  const box=$('#rrate');if(!box)return;const sc=roomScore(myLook().room),st=roomStars(sc);let claimed=false;
+  if(ONLINE){const r=await cloud.run(()=>sb.rpc('room_rating'));if(r)claimed=r.claimed}else claimed=S.roomClaim===weekStart();
+  if(!box.isConnected)return;
+  const next=ROOM_STAR[st];
+  box.innerHTML=`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:6px"><div class="bar"><span>房間評分 ${starStr(st)}</span><span style="color:var(--gold)">${sc} 分</span></div>
+    <span class="small">${next?`再 ${next-sc} 分就升 ${st+1} 星`:'已經是最高 5 星了！'}・稀有家具、盲盒家具分數高，同主題 3 件以上（例如萬聖節）、11 格全部布置滿都有加分</span>
+    ${st?claimed?'<span class="small" style="color:var(--mint)">這週的評分獎勵領過了，下週一再來</span>':`<button class="btn gold" id="rrclaim">領本週評分獎勵：${ROOM_PRIZE[st-1]} 金幣${st===5?'＋盲盒券':''}</button>`:'<span class="small">至少 100 分（1 星）就能每週領獎勵</span>'}</div>`;
+  if(box.querySelector('#rrclaim'))box.querySelector('#rrclaim').onclick=async()=>{
+    if(ONLINE){const r=await cloud.rpc('claim_room_rating');if(!r)return;syncWallet(r.wallet)}else{S.roomClaim=weekStart();S.tx=(S.tx||0)+ROOM_PRIZE[st-1];if(st===5)gstate().tickets++;save()}
+    toast(`房間 ${st} 星！+${ROOM_PRIZE[st-1]} 金幣`);roomRatingBox()};
+}
 /* ---------- 大頭菜市場：作物收購價每天中午和半夜各變一次（原價的 0.6～2 倍），線上版價格由資料庫 market_prices 算 ---------- */
 const MARKET_BASE={wheat:4,carrot:12,tomato:19,pumpkin:50,sunflower:85,starfruit:140};
 let marketCache=null;
@@ -3369,7 +3507,7 @@ async function openMarket(after){
   m.addEventListener('click',e=>{if(e.target.closest('[data-close]')&&after)after()});
   m.querySelectorAll('[data-ms]').forEach(b=>b.onclick=async()=>{const crop=b.dataset.ms,q=+b.dataset.q,pr=mk.prices.find(x=>x.crop===crop);b.disabled=true;let amt=pr.price*q;
     if(ONLINE){const r=await cloud.rpc('market_sell',{p_crop:crop,p_qty:q});if(!r){b.disabled=false;return}syncWallet(r.wallet);amt=r.amount;await loadFarm()}
-    else{S.farm.items[crop]-=q;S.tx=(S.tx||0)+amt;save()}
+    else{S.farm.items[crop]-=q;S.tx=(S.tx||0)+amt;S.harvests=(S.harvests||0)+1;save()}
     toast(`賣掉${CROP[crop].name} ×${q}，+${amt} 金幣`);m.remove();openMarket(after)});
 }
 async function marketTip(){const mk=await loadMarket();const best=mk.prices.slice().sort((a,b)=>b.mult-a.mult)[0];return best?{name:CROP[best.crop].name,mult:best.mult}:null}
@@ -3683,6 +3821,7 @@ function renderMe(){
    <button class="btn" id="mywrong">錯題本（${wrongs().length} 題）</button>
    <div id="mytrophy"></div>
    <button class="btn" id="mygarden" style="background:#3f8f5a;color:var(--paper)">我的魔法花園</button>
+   <button class="btn" id="myach" style="background:var(--gold);color:var(--night)">我的成就</button>
    <button class="btn" id="mysugg">建議箱（給老師建議）</button>
    <div class="row"><button class="btn" id="howto">玩法說明</button><button class="btn" id="mylog">更新紀錄</button></div>
    ${reminderBox()}
@@ -3695,7 +3834,7 @@ function renderMe(){
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
   $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=()=>showTutorial(true);$('#mylog').onclick=showChangelog;drawTrophies();
-  if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mysugg').onclick=openSuggest;$('#mywrong').onclick=()=>renderMistakes();
+  if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mysugg').onclick=openSuggest;$('#myach').onclick=openAch;loadAch().then(a=>{const b=$('#myach');if(b)b.textContent=`我的成就（${achCount(a)}／${ACH.length*3}）`});$('#mywrong').onclick=()=>renderMistakes();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
