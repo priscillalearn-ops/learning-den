@@ -54,6 +54,8 @@ loadBank(location.hash.slice(1).startsWith('kid')?'kid':'sage').then(function(){
    plots:[{slot:0,crop:'pumpkin',planted_at:new Date(now-13*H).toISOString(),waters:3},{slot:1,crop:'sunflower',planted_at:new Date(now-10*H).toISOString(),waters:2},{slot:2,crop:'carrot',planted_at:new Date(now-1*H).toISOString(),waters:1},
      {slot:3,crop:'tomato',planted_at:new Date(now-7*H).toISOString(),waters:2},{slot:4,crop:'wheat',planted_at:new Date(now-.2*H).toISOString(),waters:0}]};save();renderGarden()}
  if(sc==='gachanew'){SHOP.filter(x=>x.isNew).forEach(x=>S.owned[x.id]=0);save();gGacha();setTimeout(()=>{},0);const v=$('#view');v.scrollTop=v.querySelector('.shop').offsetTop-80}
+ if(sc==='fishdex'){S.fish={counts:{crucian:4,goldfish:2,loach:1,carp:3,salmon:1,koi:1,maple:2,starfish:1,jelly:1},days:{}};save();go('city');openFishDex()}
+ if(sc==='market'){go('city');openMarket()}
  if(sc==='guild'){S.cls='167';save();renderGuild()}
  if(sc==='board'){go('room');boardTab='all';drawBoard();const v=$('#view');v.scrollTop=$('#board').offsetTop-120}
  if(sc==='mistakes'){const p=pool();[0,3,5,8].forEach((i,k)=>{for(let j=0;j<=k%3;j++)addWrong(p[i])});S.wrongOk={[p[0].id]:2,[p[3].id]:1};save();renderMistakes();const dd=document.querySelector('#view details');if(dd)dd.open=true}

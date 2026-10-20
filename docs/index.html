@@ -545,6 +545,7 @@ const SHOP=[
  {id:'hat_cat',slot:'hat',name:'貓耳朵',price:150,hat:'catear',c:['#c98a3a']},
  {id:'hat_crown',slot:'hat',name:'金色皇冠',price:400,hat:'crown',c:['#ffd166']},
  {id:'hat_friend_crown',slot:'hat',name:'友情皇冠',price:9999,hat:'crown',c:['#f4a6c6'],bundle:'invite'},
+ {id:'hat_fisher',slot:'hat',name:'釣魚帽',price:9999,hat:'fisher',c:['#3f8f5a'],bundle:'fish'},
  {id:'acc_friendband',slot:'acc',name:'友情手環',price:9999,acc:'friendband',bundle:'friend'},
  {id:'acc_heartwings',slot:'acc',name:'愛心翅膀',price:9999,acc:'heartwings',bundle:'friend'},
  {id:'hat_straw',slot:'hat',name:'麥穗草帽',price:9999,hat:'straw',c:['#e8c35a'],bundle:'farm'},
@@ -626,7 +627,7 @@ const inWin=it=>!it.from||(mmdd()>=it.from&&mmdd()<=it.until);
 const buyable=it=>!it.cards&&!it.gacha&&!it.bundle&&inWin(it);
 
 /* 角色：帽子（0–2 列）＋臉（3–5）＋衣服（6）＋腳（7），配件疊在上面 */
-const HAT={beret:['........','.hhhhh..','hhhhhhh.'],galaxy:['...pp...','..pypp..','.pppppp.'],straw:['...hh...','.hhyyhh.','hhhhhhhh'],pumpkinhelm:['...G....','.OOOOOO.','OOOOOOOO'],hairlong:['..oooo..','.oooooo.','oooooooo'],ponytail:['..oooo..','.oooooo.','.oooooo.'],bun:['...oo...','..oooo..','.oooooo.'],spiky:['.o.o.o..','.oooooo.','.oooooo.'],curly:['.o.oo.o.','oooooooo','oooooooo'],bob:['..oooo..','.oooooo.','oooooooo'],
+const HAT={fisher:['........','..hhhh..','hhhyhhhh'],beret:['........','.hhhhh..','hhhhhhh.'],galaxy:['...pp...','..pypp..','.pppppp.'],straw:['...hh...','.hhyyhh.','hhhhhhhh'],pumpkinhelm:['...G....','.OOOOOO.','OOOOOOOO'],hairlong:['..oooo..','.oooooo.','oooooooo'],ponytail:['..oooo..','.oooooo.','.oooooo.'],bun:['...oo...','..oooo..','.oooooo.'],spiky:['.o.o.o..','.oooooo.','.oooooo.'],curly:['.o.oo.o.','oooooooo','oooooooo'],bob:['..oooo..','.oooooo.','oooooooo'],
   ninja:['..hhhh..','.hhhhhh.','hhhhhhhh'],astro:['..wwww..','.wBBBBw.','wBBBBBBw'],chef:['.wwwwww.','.wwwwww.','..wwww..'],detective:['...hh...','..hhhh..','hhhhhhhh'],pirate:['..kkkk..','.kkwkkk.','kkkkkkkk'],tiara:['...y.y..','..yyyy..','.oooooo.'],elf:['......h.','....hhh.','.hhhhhh.'],
   witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],horns:['.h....h.','.hooooh.','.oooooo.'],mummy:['..hhhh..','.hghhgh.','.hhhhhh.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
   cap:['........','..hhhh..','.hhhhhhh'],bunny:['.h....h.','.h....h.','.hhhhhh.'],catear:['.h....h.','.hh..hh.','.hhhhhh.'],crown:['........','.h.hh.h.','.hhhhhh.']};
@@ -769,7 +770,7 @@ function renderShop(cat,from){
        const on=(slot in L.room?L.room[slot]:L.outfit[slot])===it.id,own=owns(it.id);
        return `<button class="sitem${on?' on':''}" data-it="${it.id}">${itemThumb(it)}<span>${esc(it.name)}</span>
          ${it.gacha?`<span class="pill" style="background:${RARITY[it.gacha][1]};color:var(--night)">盲盒 ${it.gacha}</span>`:it.rare?'<span class="pill" style="background:var(--gold);color:var(--night)">稀有</span>':it.season?`<span class="pill" style="background:var(--coral);color:var(--night)">${it.season}限定・到 ${it.until.replace('-','/')}</span>`:''}
-         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':it.bundle==='friend'?'好感度獎勵':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
+         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':it.bundle==='friend'?'好感度獎勵':it.bundle==='fish'?'釣魚圖鑑獎勵':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
    <p class="demo" style="text-align:left;line-height:1.6">答今日一題 +10（答對再 +5）・專注每分鐘 +1（每天最多 ${FOCUS_CAP}）・連續打卡 3／7／15／30 天有額外獎勵。</p>`;
   paintSprites($('#view'));
   $('#sback').onclick=()=>shopFrom==='home'?renderHome():go(shopFrom);
@@ -785,7 +786,7 @@ function pickItem(it){
   if(owns(it.id)){equip(it);return}
   if(it.cards){const n=Object.keys(S.cards).length;modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div><h2 style="text-align:center">${esc(it.name)}</h2><p style="text-align:center;margin:0;line-height:1.6">收集 ${it.cards} 張單字卡就會自動得到，不能用金幣買。<br>你現在有 ${n} 張，還差 ${Math.max(0,it.cards-n)} 張。</p><button class="btn" data-close>好</button>`);return}
   if(it.gacha){toast(`${it.name}只能從遊樂場的魔法盲盒抽到（${it.gacha}）`);return}
-  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:it.bundle==='friend'?`${it.name}：和好友的好感度升級才拿得到`:`${it.name}是新手大禮包限定的`);return}
+  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:it.bundle==='friend'?`${it.name}：和好友的好感度升級才拿得到`:it.bundle==='fish'?`${it.name}：魚圖鑑 14 種全部收齊就送你`:`${it.name}是新手大禮包限定的`);return}
   if(!inWin(it)){toast('這個限定商品現在沒有販售');return}
   const bal=coins();
   const m=modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div>
@@ -923,13 +924,14 @@ async function fillGarden(box,uid,name){
     ${mine?`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:10px;padding:10px 12px">${scareSVG()}<span class="grow small" style="line-height:1.6">${g.scarecrow_until?`<b style="color:var(--mint)">稻草人守護中</b>・還有 ${timeLeft(new Date(g.scarecrow_until)-Date.now())}<br>小偷有 40% 會被抓到，賠你 5 金幣`:'作物成熟 30 分鐘後，同學可以來偷摘。放稻草人：小偷 40% 會被抓到、賠你 5 金幣。'}</span><button class="btn mini" id="gscare" style="flex:0 0 auto">${g.scarecrow_until?'續 24 小時':'放稻草人'}<br>${SCARE_COST} 金幣</button></div>`:''}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#3f8f5a;padding:10px;border:3px solid var(--ink)">${[0,1,2,3,4,5].map(cell).join('')}</div>
     ${mine?`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px;padding:10px 12px"><div class="bar"><span>倉庫</span><span class="small">${Object.entries(S.farm.items).filter(([,v])=>v>0).map(([k,v])=>`${cropIcon(k,20)}${v}`).join('　')||'空的'}</span></div>
-      <div class="row"><button class="btn gold mini" id="gexch" style="padding:8px">交換所（換限定配件）</button><button class="btn mini" id="gcook" style="padding:8px">去餐廳下廚</button></div></div>`:''}
+      <div class="row"><button class="btn gold mini" id="gexch" style="padding:8px">交換所（換限定配件）</button><button class="btn mini" id="gcook" style="padding:8px">去餐廳下廚</button><button class="btn mini" id="gmkt" style="padding:8px;background:#c98a3a;color:var(--night)">大頭菜市場</button></div></div>`:''}
     ${mine?`<div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 6px">最近來過花園的同學</p>${(g.helpers||[]).length?`<div class="flist">${g.helpers.map(h=>{const cn=h.crop&&CROP[h.crop]?CROP[h.crop].name:'作物';
       return `<div class="frow" style="padding:6px 10px"><span class="grow">${esc(h.name)}</span><span class="small" style="color:${h.kind==='steal'?(h.caught?'var(--mint)':'var(--coral)'):'var(--paper)'}">${h.kind!=='steal'?`幫你的${cn}澆水`:h.caught?`想偷${cn}，被稻草人抓到！+5`:`偷了你的${cn} −${h.amount}`}</span></div>`}).join('')}</div>`:'<p class="small" style="margin:0">還沒有人來過。去讀書房點同學的座位，參觀他們的花園吧！</p>'}</div>`:''}`;
   paintSprites(box);
   const reload=()=>fillGarden(box,uid,name);
   if(box.querySelector('#gexch'))box.querySelector('#gexch').onclick=()=>openExchange(reload);
   if(box.querySelector('#gcook'))box.querySelector('#gcook').onclick=()=>renderFood();
+  if(box.querySelector('#gmkt'))box.querySelector('#gmkt').onclick=()=>openMarket(reload);
   box.querySelectorAll('[data-plant]').forEach(b=>b.onclick=()=>{const slot=+b.dataset.plant;
     const m=modal(`<h2>選種子</h2><p class="small" style="margin:0">種下去之後，時間到就能收成（不用一直開著）。</p><div class="flist">${CROPS.map(c=>`<button class="frow" data-seed="${c.id}" style="padding:8px 10px">
       <svg viewBox="0 0 8 8" width="36" height="36" shape-rendering="crispEdges">${gridRects(c.g,0,0,{...RPAL,'1':c.c[0],'2':c.c[1]})}</svg>
@@ -1377,6 +1379,7 @@ function renderCity(){
    <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。<span style="color:var(--gold)">今天城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
    ${newbieCard()}
    ${suggOn()?`<button class="btn" id="suggbtn" style="background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="scroll" data-z="2"></span>上架建議箱：給建議最高拿 1000 金幣！</button>`:''}
+   <div class="row"><button class="btn" id="fishbtn" style="background:#3a7bd5;color:var(--paper)">湖邊釣單字</button><button class="btn" id="marketbtn" style="background:#c98a3a;color:var(--night)">大頭菜市場<span id="mktip" class="small" style="display:block;font-size:11px"></span></button></div>
    <button class="btn" id="gardenbtn" style="background:#3f8f5a;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px">${cropIcon('sunflower',22)}我的魔法花園（種菜、偷菜、換配件）</button>
    ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
    <div class="chips">${BUILDINGS.map(b=>`<button class="chip" data-b="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-b="notice">布告欄</button><button class="chip" data-b="quest">任務板</button></div>`;
@@ -1386,6 +1389,9 @@ function renderCity(){
   cv.onclick=e=>{const r=cv.getBoundingClientRect(),[cx,cy]=cityCam(),tx=Math.floor(((e.clientX-r.left)/r.width*VW*TS+cx)/TS),ty=Math.floor(((e.clientY-r.top)/r.height*VH*TS+cy)/TS);cityTap(tx,ty)};
   $('#cmap').onclick=openCityMap;
   $('#gardenbtn').onclick=openMyGarden;
+  $('#fishbtn').onclick=()=>cityTap(27,16);
+  $('#marketbtn').onclick=()=>openMarket();
+  marketTip().then(t=>{const e=$('#mktip');if(e&&t)e.textContent=`今天${t.name} ×${t.mult.toFixed(1)}${t.mult>=1.5?'！':''}`});
   if($('#suggbtn'))$('#suggbtn').onclick=openSuggest;
   if($('#nbcard'))$('#nbcard').onclick=openNewbie;
   if(!renderCity.nbLoading){renderCity.nbLoading=1;loadNewbie().then(st=>{renderCity.nbLoading=0;const had=!!$('#nbcard');if(curTab==='city'&&(!!st)!==had)renderCity();else if(st&&$('#nbcard'))$('#nbcard').outerHTML=newbieCard(),$('#nbcard').onclick=openNewbie,paintSprites($('#nbcard'))})}
@@ -1486,6 +1492,10 @@ function openCityMap(){
 }
 function cityTap(tx,ty){
   const me=city.me;
+  if(!city.hw&&((CITY[ty]&&CITY[ty][tx]==='w')||(tx===27&&ty===16))){let best=null;
+    for(let r=0;r<=3&&!best;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=tx+dx,y=ty+dy;
+      if(!best&&walk(x,y)&&!doorAt(x,y)&&[[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>CITY[y+b]&&CITY[y+b][x+a]==='w')){const p=bfs(me.x,me.y,x,y);if(p)best=p}}
+    if(best){me.path=best;me.goal='fish';if(!best.length){me.goal=null;openFishing()}}return}
   if(city.hw){const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal=null}return}
   if(halloween()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='hw';if(!p.length){me.goal=null;hwOpen()}}return}
   const npc=city.npcs.find(n=>n.x===tx&&n.y===ty);
@@ -1508,6 +1518,7 @@ function cityTick(dt){
     mapCoins().forEach(c=>{if(!c.got&&c.x===me.x&&c.y===me.y)pickCoin(c.i)});
     if(city.hw)me.armed=false;
     else if(!me.path.length&&me.goal==='hw'){me.goal=null;hwOpen()}
+    else if(!me.path.length&&me.goal==='fish'){me.goal=null;openFishing()}
     else{const door=doorAt(me.x,me.y);
     if(door&&me.armed&&(!me.path.length)){enterBuilding(door);return}
     if(!door)me.armed=true;
@@ -2120,6 +2131,9 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-21',title:'湖邊釣單字＋大頭菜市場',items:[
+  ['book','湖邊釣單字','到城市的湖邊拋竿，魚上鉤就答一題單字，答對才釣得上來！14 種魚，有的只在早上、晚上或秋天出現，收齊送釣魚帽。',()=>{go('city');setTimeout(()=>cityTap(27,16),300)}],
+  ['coin','大頭菜市場','作物收購價每天中午和半夜各變一次！價格好就賣，不好就先存在倉庫。',()=>openMarket()]]},
  {v:'2026-10-20',title:'Learning Den 準備上架了！',items:[
   ['scroll','給建議拿 1000 金幣','我們準備上架 App Store 和 Google Play！你覺得哪裡可以更好？寫在建議箱，被老師覺得很有幫助可以拿 100～1000 金幣！',()=>openSuggest()],
   ['me','訪客試玩、刪除帳號','還沒註冊的朋友可以先「試玩看看」；「我的」頁也可以自己刪除帳號。',()=>go('me')]]},
@@ -3243,6 +3257,122 @@ function focusDetail(t,name){
     <div class="flist">${days.map(k=>{const m=(t.days||{})[k]||0;return `<div class="frow" style="padding:4px 8px"><span style="width:54px" class="small">${tday(k)}</span><span class="grow"><span class="lock" style="height:10px"><i style="width:${Math.round(100*m/max)}%;background:var(--mint)"></i></span></span><span class="small" style="min-width:64px;text-align:right">${m?(m>=60?(m/60).toFixed(1)+' 小時':m+' 分'):'—'}</span></div>`}).join('')}</div>
     <p class="small" style="margin:0">如果某一天學生說有讀但這裡是空的，可以按「補登專注」補那一天。</p><button class="btn" data-close>關閉</button>`);
 }
+/* ---------- 湖邊釣單字 ----------
+   拋竿（線上版由資料庫 fish_cast 決定是哪種魚）→ 等魚上鉤 → 時間內按「拉！」→ 答對單字題才釣得上來（fish_reel 用 question_keys 判斷）。
+   有的魚只在早上／白天／傍晚／晚上出現，楓葉魚只在 10～11 月。每天前 15 隻有金幣；圖鑑 5 種 +50、10 種 +150、14 種送釣魚帽。 */
+const FISH_BODY=['........','...111..','.11111.2','1k111122','1111111.','.11111.2','...111..','........'];
+const FISH=[
+ {id:'crucian',name:'小鯽魚',r:'N',slot:'any',c:['#9aa3b5','#6e7a8c']},
+ {id:'goldfish',name:'金魚',r:'N',slot:'any',c:['#ff8a5c','#ffd166']},
+ {id:'loach',name:'泥鰍',r:'N',slot:'day',c:['#8b5e3c','#5a3d2b']},
+ {id:'carp',name:'鯉魚',r:'R',slot:'any',c:['#c98a3a','#8b5e3c']},
+ {id:'puffer',name:'河豚',r:'R',slot:'evening',c:['#ffd166','#c98a3a'],g:['........','..1.1.1.','.111111.','1k11111.','1111111.','.111111.','..1.1.1.','........']},
+ {id:'salmon',name:'鮭魚',r:'R',slot:'morning',c:['#f4a6c6','#d94f4f']},
+ {id:'jelly',name:'水母',r:'R',slot:'night',c:['#f4a6c6','#f4ecd8'],g:['..1111..','.111111.','.1k11k1.','.111111.','.2.2.2..','.2.2.2..','..2.2.2.','........']},
+ {id:'koi',name:'錦鯉',r:'SR',slot:'day',c:['#f4ecd8','#d94f4f']},
+ {id:'octopus',name:'章魚',r:'SR',slot:'evening',c:['#d94f4f','#ff8a5c'],g:['..1111..','.111111.','.1k11k1.','.111111.','1.1.1.1.','1.1.1.1.','.1.1.1.1','........']},
+ {id:'tuna',name:'鮪魚',r:'SR',slot:'morning',c:['#3a7bd5','#1d2a5c']},
+ {id:'maple',name:'楓葉魚',r:'SR',slot:'autumn',c:['#d94f4f','#ff8a5c']},
+ {id:'shark',name:'小鯊魚',r:'SSR',slot:'evening',c:['#9aa3b5','#6e7a8c'],g:['.....1..','....11..','.111111.','1k111111','11111112','.1wwww..','..1.....','........']},
+ {id:'moonfish',name:'月光魚',r:'SSR',slot:'night',c:['#c7b8e8','#ffd166']},
+ {id:'starfish',name:'星星魚',r:'SSR',slot:'any',c:['#ffd166','#ff8a5c'],g:['...1....','...1....','1111111.','.11k11..','..111...','.1...1..','1.....1.','........']}
+];
+const FISHI=Object.fromEntries(FISH.map(f=>[f.id,f]));
+const FISH_SLOT={any:'隨時',morning:'早上 5～11 點',day:'白天 11～17 點',evening:'傍晚 17～21 點',night:'晚上 21～5 點',autumn:'秋天（10～11 月）'};
+const FISH_COIN={N:3,R:6,SR:15,SSR:40},FISH_DAY=15;
+const fishSVG=(f,z=48)=>`<svg viewBox="0 0 8 8" width="${z}" height="${z}" shape-rendering="crispEdges">${gridRects(f.g||FISH_BODY,0,0,{...RPAL,'1':f.c[0],'2':f.c[1]})}</svg>`;
+function fishSlotNow(){const h=new Date().getHours();return h>=5&&h<11?'morning':h<17&&h>=11?'day':h>=17&&h<21?'evening':'night'}
+function fishLocalPick(){const r=Math.random(),rar=r<.03?'SSR':r<.15?'SR':r<.45?'R':'N',m=new Date().getMonth()+1,sl=fishSlotNow();
+  const ok=FISH.filter(f=>f.r===rar&&(f.slot==='any'||f.slot===sl||(f.slot==='autumn'&&(m===10||m===11))));return (ok.length?pick(ok):pick(FISH.filter(f=>f.r==='N'&&f.slot==='any'))).id}
+let fishData=null;
+async function loadFish(){
+  if(ONLINE){const r=await cloud.run(()=>sb.rpc('my_fish'));if(r)fishData={counts:r.counts||{},today:r.today||0}}
+  else{S.fish=S.fish||{counts:{},days:{}};fishData={counts:S.fish.counts,today:S.fish.days[today()]||0}}
+  return fishData||{counts:{},today:0};
+}
+async function openFishing(){
+  const fd=await loadFish();
+  const m=modal(`<h2 style="text-align:center">湖邊釣單字</h2>
+    <div id="fpond" style="height:150px;background:linear-gradient(#3a7bd5,#1d2a5c);border:3px solid var(--ink);position:relative;overflow:hidden"></div>
+    <p class="small" id="fmsg" style="margin:0;text-align:center;min-height:20px">拋竿後等魚上鉤，看到「上鉤了！」馬上按「拉！」</p>
+    <div id="fq"></div>
+    <div class="row"><button class="btn gold" id="fcast">拋竿</button><button class="btn" id="fdex">魚圖鑑（${Object.keys(fd.counts).length}/${FISH.length}）</button></div>
+    <p class="small" style="margin:0;text-align:center">今天釣了 ${fd.today} 隻・前 ${FISH_DAY} 隻有金幣・現在是${FISH_SLOT[fishSlotNow()]}</p>
+    <button class="btn ghost" data-close>回城市</button>`);
+  m.onclick=e=>{if(e.target===m)return};
+  const pond=m.querySelector('#fpond'),msg=m.querySelector('#fmsg'),fq=m.querySelector('#fq'),castB=m.querySelector('#fcast');
+  const ripple=on=>{pond.innerHTML=on?`<div style="position:absolute;left:46%;top:${on==='bite'?52:46}%;width:16px;height:16px;background:#f4ecd8;border:3px solid var(--ink);${on==='bite'?'animation:none;background:var(--coral)':''}"></div><div style="position:absolute;left:47%;top:0;width:2px;height:${on==='bite'?52:46}%;background:#f4ecd8"></div>`:''};
+  let busy=false,cast=null,timer=null;
+  m.querySelector('#fdex').onclick=()=>{m.remove();openFishDex()};
+  castB.onclick=async()=>{
+    if(busy)return;busy=true;fq.innerHTML='';castB.disabled=true;msg.textContent='拋竿了……等魚上鉤';ripple('wait');
+    if(ONLINE){const r=await cloud.rpc('fish_cast');if(!r){busy=false;castB.disabled=false;ripple(false);return}cast=r}else cast={cast:0,species:fishLocalPick()};
+    const wait=1500+Math.random()*2500;
+    timer=setTimeout(()=>{if(!m.isConnected)return;ripple('bite');msg.innerHTML='<b style="color:var(--coral);font-size:18px">上鉤了！快按「拉！」</b>';
+      castB.textContent='拉！';castB.disabled=false;const t0=Date.now();
+      castB.onclick=()=>{castB.onclick=null;castB.disabled=true;if(Date.now()-t0>1400){msg.textContent='太慢了，魚跑掉了…再拋一次吧';reset();return}ask()};
+      timer=setTimeout(()=>{if(castB.onclick){castB.onclick=null;msg.textContent='魚跑掉了…再拋一次吧';reset()}},1600)},wait);
+  };
+  const reset=()=>{clearTimeout(timer);m.remove();openFishing()};
+  const ask=()=>{const wasNew=!(fishData&&fishData.counts[cast.species]);const src=pool().filter(z=>z.q.length<=110),q=pick(src.filter(z=>!z.t||z.t==='v').length?src.filter(z=>!z.t||z.t==='v'):src);
+    msg.textContent='拉住了！答對才釣得上來：';
+    fq.innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px">${qPic(q,5)}<div class="qtext">${esc(q.q)}</div>
+      ${q.o.map((o,i)=>`<button class="btn opt" data-fo="${i}" style="padding:6px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
+    paintSprites(fq);
+    fq.querySelectorAll('[data-fo]').forEach(b=>b.onclick=async()=>{const c=+b.dataset.fo;fq.querySelectorAll('[data-fo]').forEach(x=>x.disabled=true);
+      let res;
+      if(ONLINE){res=await cloud.rpc('fish_reel',{p_cast:cast.cast,p_qid:q.id,p_choice:c});if(!res){reset();return}if(res.wallet!=null)syncWallet(res.wallet)}
+      else{if(c!==q.a)res={caught:false};else{S.fish=S.fish||{counts:{},days:{}};const n=S.fish.days[today()]||0,f=FISHI[cast.species];
+        const before=Object.keys(S.fish.counts).length;S.fish.counts[f.id]=(S.fish.counts[f.id]||0)+1;S.fish.days[today()]=n+1;
+        const kinds=Object.keys(S.fish.counts).length;let bonus=0;S.fish.bonus=S.fish.bonus||[];
+        [5,10,14].forEach(lv=>{if(kinds>=lv&&!S.fish.bonus.includes(lv)){S.fish.bonus.push(lv);if(lv===14)S.owned.hat_fisher=0;else bonus+=lv===5?50:150}});
+        const coins=n<FISH_DAY?FISH_COIN[f.r]:0;S.tx=(S.tx||0)+coins+bonus;save();res={caught:true,species:f.id,coins,bonus,kinds,hat:kinds>=14&&before<14,today:n+1}}}
+      if(c!==q.a)addWrong(q);
+      if(!res.caught){fq.innerHTML=`<p style="margin:0;text-align:center;line-height:1.7">答錯了，魚跑掉了…<br><span class="small">答案是 ${esc(q.o[q.a])}</span></p><button class="btn gold" id="fagain">再拋一次</button>`;fq.querySelector('#fagain').onclick=reset;return}
+      const f=FISHI[res.species],isNew=wasNew;
+      if(!q.t||q.t==='v'){giveCard(q.w,q.zh);cloud.card(q.w)}
+      fq.innerHTML=`<div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px">${fishSVG(f,80)}
+        <h2 style="margin:0;color:${RARITY[f.r][1]}">${f.name} <span class="pill" style="background:${RARITY[f.r][1]};color:var(--night)">${f.r}</span>${isNew?' <b style="color:var(--coral)">NEW</b>':''}</h2>
+        <p style="margin:0;line-height:1.6">${res.coins?`<b style="color:var(--gold)">+${res.coins} 金幣</b>`:'今天的釣魚金幣領滿了（還是會記進圖鑑）'}${res.bonus?`<br><b style="color:var(--gold)">圖鑑收集 ${res.kinds} 種！+${res.bonus} 金幣</b>`:''}${res.hat?'<br><b style="color:var(--gold)">14 種全部收齊！獲得「釣魚帽」</b>':''}${(!q.t||q.t==='v')?`<br><span class="small">也收到單字卡 ${esc(q.w)}</span>`:''}</p>
+        <button class="btn gold" id="fagain">再拋一次</button></div>`;
+      fq.querySelector('#fagain').onclick=reset;
+    })};
+}
+async function openFishDex(){
+  const fd=await loadFish(),n=Object.keys(fd.counts).length;
+  const m=modal(`<h2 style="text-align:center">魚圖鑑 ${n}/${FISH.length}</h2><p class="small" style="margin:0;text-align:center">收集 5 種 +50 金幣、10 種 +150 金幣、全部 14 種送「釣魚帽」</p>
+    <div class="shop">${FISH.map(f=>{const c=fd.counts[f.id]||0;return `<div class="sitem" style="border-color:${RARITY[f.r][1]};${c?'':'opacity:.55'}">${c?fishSVG(f,40):'<span style="font-size:28px;height:40px;line-height:40px">?</span>'}<span>${c?f.name:'？？？'}</span><span class="small">${FISH_SLOT[f.slot]}</span><span class="pill" style="background:${RARITY[f.r][1]};color:var(--night)">${f.r}${c?' ×'+c:''}</span></div>`}).join('')}</div>
+    <div class="row"><button class="btn" data-close>關閉</button><button class="btn gold" id="fgo">去釣魚</button></div>`);
+  m.querySelector('#fgo').onclick=()=>{m.remove();openFishing()};
+}
+/* ---------- 大頭菜市場：作物收購價每天中午和半夜各變一次（原價的 0.6～2 倍），線上版價格由資料庫 market_prices 算 ---------- */
+const MARKET_BASE={wheat:4,carrot:12,tomato:19,pumpkin:50,sunflower:85,starfruit:140};
+let marketCache=null;
+function marketHalf(){return new Date().getHours()<12?0:1}
+function marketLocal(){const d=today(),h=marketHalf(),y=new Date();y.setDate(y.getDate()-1);const yd=keyOf(y);
+  const mult=(c,dd,hh)=>Math.round((0.6+(mix(c+dd+hh)%141)/100)*100)/100;
+  return {day:d,half:h,prices:Object.keys(MARKET_BASE).map(c=>{const mm=mult(c,d,h);return {crop:c,base:MARKET_BASE[c],mult:mm,prev:h?mult(c,d,0):mult(c,yd,1),price:Math.round(MARKET_BASE[c]*mm)}})}}
+async function loadMarket(){
+  const key=today()+marketHalf();if(marketCache&&marketCache.key===key)return marketCache;
+  let r;if(ONLINE)r=await cloud.run(()=>sb.rpc('market_prices'));if(!r)r=marketLocal();
+  marketCache={...r,key};return marketCache;
+}
+async function openMarket(after){
+  const [mk]=await Promise.all([loadMarket(),loadFarm()]);
+  const arrow=p=>p.mult>p.prev?`<span style="color:var(--mint)">▲</span>`:p.mult<p.prev?`<span style="color:var(--coral)">▼</span>`:'';
+  const m=modal(`<h2 style="text-align:center">大頭菜市場</h2><p class="small" style="margin:0;text-align:center;line-height:1.6">收購價每天<b>中午 12 點</b>和<b>半夜 12 點</b>各變一次。價格好就賣，不好就先存著！</p>
+    <div class="flist">${mk.prices.map(p=>{const have=(S.farm.items[p.crop]||0);return `<div class="frow" style="padding:8px 10px">${cropIcon(p.crop,30)}<span class="grow">${CROP[p.crop].name}<br><span class="small">倉庫 ${have} 個・原價 ${p.base}</span></span>
+      <span style="text-align:right;min-width:80px"><b style="color:${p.mult>=1.5?'var(--gold)':p.mult<0.9?'var(--coral)':'var(--paper)'}">${p.price} 金幣</b> ${arrow(p)}<br><span class="small">×${p.mult.toFixed(2)}</span></span>
+      ${have?`<span style="display:flex;flex-direction:column;gap:4px"><button class="btn mini" data-ms="${p.crop}" data-q="1">賣 1</button><button class="btn gold mini" data-ms="${p.crop}" data-q="${have}">全賣</button></span>`:'<span class="small" style="min-width:44px;text-align:center">沒貨</span>'}</div>`}).join('')}</div>
+    <p class="small" style="margin:0">作物在「我的家」的魔法花園收成時，選「收進倉庫」就能拿來市場賣。</p>
+    <button class="btn ghost" data-close>關閉</button>`);
+  m.addEventListener('click',e=>{if(e.target.closest('[data-close]')&&after)after()});
+  m.querySelectorAll('[data-ms]').forEach(b=>b.onclick=async()=>{const crop=b.dataset.ms,q=+b.dataset.q,pr=mk.prices.find(x=>x.crop===crop);b.disabled=true;let amt=pr.price*q;
+    if(ONLINE){const r=await cloud.rpc('market_sell',{p_crop:crop,p_qty:q});if(!r){b.disabled=false;return}syncWallet(r.wallet);amt=r.amount;await loadFarm()}
+    else{S.farm.items[crop]-=q;S.tx=(S.tx||0)+amt;save()}
+    toast(`賣掉${CROP[crop].name} ×${q}，+${amt} 金幣`);m.remove();openMarket(after)});
+}
+async function marketTip(){const mk=await loadMarket();const best=mk.prices.slice().sort((a,b)=>b.mult-a.mult)[0];return best?{name:CROP[best.crop].name,mult:best.mult}:null}
 /* ---------- 新手任務：給 10/20 以後加入的新同學，每完成一個 +30，全部完成 +100 和 2 張盲盒券 ----------
    線上版由資料庫 newbie_status()／claim_newbie() 確認真的做到了才發；單機版（訪客試玩）用本機紀錄判斷。 */
 const NEWBIE_FROM='2026-10-20';

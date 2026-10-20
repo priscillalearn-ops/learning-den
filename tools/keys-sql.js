@@ -4,13 +4,13 @@
 const fs = require('fs');
 const path = require('path');
 const read = t => JSON.parse(fs.readFileSync(path.join(__dirname, '../banks', t + '.json'), 'utf8')).units;
-const box = { JH: read('teen'), HS: read('sage') };
+const box = { KID: read('kid'), JH: read('teen'), HS: read('sage') };
 const rows = [];
 const q = s => "'" + String(s).replace(/'/g, "''") + "'";
-// 國小題目太少，不開放雙倍挑戰，所以不放答案
-for (const [tier, units] of [['teen', box.JH], ['sage', box.HS]])
+// 國小也放答案（雙倍挑戰不開放國小，但釣單字會用到）
+for (const [tier, units] of [['kid', box.KID], ['teen', box.JH], ['sage', box.HS]])
   units.forEach(u => ['v', 'g', 'c'].forEach(t => (u[t] || []).forEach((r, i) => rows.push(`(${q(`${u.id}:${t}:${i}`)},${q(tier)},${q(u.id)},${r[2]})`))));
-let sql = '-- 雙倍挑戰答案表（由 tools/keys-sql.js 產生，不要手改）。整份貼到 Supabase SQL Editor 執行，重跑沒關係。\n';
+let sql = '-- 雙倍挑戰與釣單字答案表（由 tools/keys-sql.js 產生，不要手改）。整份貼到 Supabase SQL Editor 執行，重跑沒關係。\n';
 sql += 'delete from public.question_keys;\n';
 for (let i = 0; i < rows.length; i += 500)
   sql += 'insert into public.question_keys (qid, tier, unit, a) values\n' + rows.slice(i, i + 500).join(',\n') + ';\n';
