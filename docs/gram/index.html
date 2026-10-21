@@ -178,6 +178,17 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
 .stats b{display:block;font-family:var(--hand);font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
 .stats span{font-size:13px;color:var(--mute)}
 .newbest{text-align:center;color:var(--stamp)}
+.heroside{display:flex;flex-direction:column;gap:18px;align-items:flex-end}
+.boardbtn{border:none;text-align:left;background:var(--note-p);transform:rotate(-2deg);font:inherit;cursor:pointer}
+.boardbtn b{display:block;font-weight:400;font-size:18px}
+.boardbtn small{font-size:13px;color:var(--mute)}
+.boardbtn:hover{transform:rotate(0) scale(1.03)}
+.board li.tip{background:none;color:var(--mute);justify-content:center;border-bottom:none}
+.bseg{display:flex;flex-direction:column;gap:8px}
+.bseg .row{display:flex;flex-wrap:wrap;gap:6px}
+.sheet .pill{border-color:var(--rule);color:var(--ink);background:var(--paper);font-size:14px;padding:5px 12px}
+.sheet .pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.bnote{font-size:13px;color:var(--mute);line-height:1.6;margin-top:0;margin-bottom:0}
 .board .bd{color:var(--mute);font-size:12px;white-space:nowrap}
 .extra{white-space:pre-line;text-align:center;font-size:16px;background:var(--note-y);padding:6px 10px;transform:rotate(-1deg)}
 .board{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
@@ -214,7 +225,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
           <h1>英語<span class="u">遊戲</span>樂園</h1>
           <p>GRAM 2026 英檢練習 · 跑酷、賽車、釣魚、射氣球、打地鼠<br>一邊玩一邊練自己組別的題目</p>
         </div>
-        <a class="sticky listen" href="https://eschool.gram1980.com/web/2026gramept.php" target="_blank" rel="noopener"><b>🎧 聽力練習</b><small>打開聽力網站 →</small></a>
+        <div class="heroside">
+          <button class="sticky boardbtn" id="openBoard"><b>🏆 全班排行榜</b><small>看看誰最厲害 →</small></button>
+          <a class="sticky listen" href="https://eschool.gram1980.com/web/2026gramept.php" target="_blank" rel="noopener"><b>🎧 聽力練習</b><small>打開聽力網站 →</small></a>
+        </div>
       </header>
 
       <div class="step">
@@ -296,7 +310,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
         <div><b id="rAcc">0/0</b><span>答對</span></div>
         <div><b id="rCombo">0</b><span>最高連擊</span></div>
       </div>
-      <h4>本機排行榜</h4>
+      <h4 id="rOnlineH">🏆 全班排行榜</h4>
+      <ol class="board" id="rOnline"></ol>
+      <h4>這台裝置的紀錄</h4>
       <ol class="board" id="rBoard"></ol>
       <h4 id="rWrongH">答錯的題目</h4>
       <div class="wrongs" id="rWrongs"></div>
@@ -305,6 +321,21 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
         <button class="btn alt" id="retryWrong">練這次的錯題</button>
         <button class="btn ghost" id="toHome">回大廳</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="boardModal" hidden>
+    <div class="sheet" role="dialog" aria-labelledby="bTitle">
+      <div class="bookhead"><b id="bTitle">🏆 全班排行榜</b><span id="bGroupLbl"></span></div>
+      <div class="bseg">
+        <div class="row" id="bGrp"></div>
+        <div class="row" id="bGame"></div>
+        <div class="row" id="bDiff"></div>
+        <div class="row" id="bPeriod"></div>
+      </div>
+      <ol class="board" id="bList"></ol>
+      <p class="bnote">寫上名字、玩完一局，分數就會自動上榜。每週一重新開始排名；同一台裝置的同一個名字只算最高分。</p>
+      <div class="acts"><button class="btn ghost" id="bClose">關閉</button></div>
     </div>
   </div>
 </div>
@@ -1045,7 +1076,74 @@ function endGame(){
   $("#again").onclick = () => startGame(G.game, G.onlyIds);
   $("#rDate").textContent = classDate();
   $("#result").hidden = false;
+  submitAndShowBoard({grp:S.group, game:G.game, diff:DIFFS[S.diff] ? S.diff : "normal", name:(S.name||"").trim(), score:G.score, correct:G.correct, answered:G.answered, level:G.level});
 }
+/* ===================== 全班排行榜（Supabase，與 learning-den 同一個資料庫） ===================== */
+const SB_URL = "https://kvqbjkgzziidwulsjols.supabase.co", SB_KEY = "sb_publishable_bxPfQ8PsqEAoqxlswoLhBQ_gPtNBivo";
+const GAME_NAME = {run:"跑酷闖關", race:"極速賽車", fish:"海底釣魚", balloon:"射氣球", mole:"打地鼠"};
+let DEVICE = "";
+function deviceId(){
+  if (DEVICE) return DEVICE;
+  DEVICE = store.get("device", "");
+  if (!DEVICE){ const a = new Uint8Array(12); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_,i) => a[i] = rand(256)); DEVICE = Array.from(a, b => b.toString(16).padStart(2, "0")).join(""); store.set("device", DEVICE); }
+  return DEVICE;
+}
+async function rpc(fn, body){
+  const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 8000);
+  try{
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {method:"POST", headers:{apikey:SB_KEY, "Content-Type":"application/json"}, body:JSON.stringify(body), signal:ctl.signal});
+    const j = await r.json().catch(() => null);
+    if (!r.ok) throw new Error((j && (j.message || j.hint)) || ("HTTP " + r.status));
+    return j;
+  } finally { clearTimeout(tm); }
+}
+const tipRow = t => `<li class="tip">${esc(t)}</li>`;
+const onlineRows = rows => rows.map(e => `<li class="${e.is_me ? "me" : ""}"><span>${e.rank}.</span><span>${esc(e.name)}</span><span class="bd">${DIFFS[e.diff] ? DIFFS[e.diff].name : ""}・第${e.level}關</span><span>${e.correct}/${e.answered}</span><b>${e.score}</b></li>`).join("");
+async function submitAndShowBoard(rec){
+  const ob = $("#rOnline");
+  $("#rOnlineH").textContent = `🏆 全班排行榜・本週・${rec.grp} 組${GAME_NAME[rec.game]}（${DIFFS[rec.diff].name}）`;
+  if (!rec.name){ ob.innerHTML = tipRow("在大廳寫上名字，分數就會登上全班排行榜！"); return; }
+  ob.innerHTML = tipRow(rec.answered ? "上傳分數中…" : "讀取排行榜中…");
+  let note = "";
+  if (rec.answered){
+    try{ await rpc("gram_submit", {p_grp:rec.grp, p_game:rec.game, p_diff:rec.diff, p_name:rec.name, p_score:rec.score, p_correct:rec.correct, p_answered:rec.answered, p_level:rec.level, p_device:deviceId()}); }
+    catch(e){ note = /fetch|network|abort|Failed|HTTP 4|HTTP 5/i.test(e.message) ? "" : `（這局沒有上傳：${e.message}）`; if (!note){ ob.innerHTML = tipRow("現在連不上全班排行榜，先看下面這台裝置的紀錄。"); return; } }
+  }
+  try{
+    const rows = await rpc("gram_board", {p_grp:rec.grp, p_game:rec.game, p_diff:rec.diff, p_period:"week", p_device:deviceId()});
+    ob.innerHTML = (rows && rows.length ? onlineRows(rows) : tipRow("這週還沒有人上榜，快來搶第一！")) + (note ? tipRow(note) : "");
+  } catch(e){ ob.innerHTML = tipRow("現在連不上全班排行榜，先看下面這台裝置的紀錄。"); }
+}
+const BV = {grp:"A", game:"run", diff:"all", period:"week"};
+function pills(el, items, key){
+  el.innerHTML = "";
+  items.forEach(([v,t]) => { const b = document.createElement("button"); b.className = "pill"; b.dataset.v = v; b.textContent = t; b.onclick = () => { BV[key] = v; pressedGroup(el, "v", v); loadBoard(); }; el.appendChild(b); });
+  pressedGroup(el, "v", BV[key]);
+}
+let boardReq = 0;
+async function loadBoard(){
+  const id = ++boardReq, list = $("#bList");
+  $("#bGroupLbl").textContent = `${BV.grp} 組・${GAME_NAME[BV.game]}`;
+  list.innerHTML = tipRow("讀取中…");
+  try{
+    const rows = await rpc("gram_board", {p_grp:BV.grp, p_game:BV.game, p_diff:BV.diff, p_period:BV.period, p_device:deviceId()});
+    if (id !== boardReq) return;
+    list.innerHTML = rows && rows.length ? onlineRows(rows) : tipRow(BV.period === "week" ? "這週還沒有人上榜，快來搶第一！" : "還沒有人上榜，快來搶第一！");
+  } catch(e){ if (id === boardReq) list.innerHTML = tipRow("現在連不上排行榜，請確認有網路後再試一次。"); }
+}
+function openBoard(game){
+  BV.grp = S.group; BV.game = game || BV.game; BV.diff = "all";
+  pills($("#bGrp"), GROUPS.map(g => [g, g + " 組"]), "grp");
+  pills($("#bGame"), Object.entries(GAME_NAME), "game");
+  pills($("#bDiff"), [["all","全部難度"],["easy","簡單"],["normal","普通"],["hard","挑戰"]], "diff");
+  pills($("#bPeriod"), [["week","本週"],["all","全部時間"]], "period");
+  $("#boardModal").hidden = false; loadBoard();
+}
+$("#openBoard").onclick = () => openBoard();
+$("#bClose").onclick = () => { $("#boardModal").hidden = true; };
+$("#boardModal").addEventListener("click", e => { if (e.target.id === "boardModal") $("#boardModal").hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("#boardModal").hidden = true; });
+
 $("#toHome").onclick = () => { stopClip(); $("#result").hidden = true; G = null; show("home"); renderHome(); };
 $("#quit").onclick = () => { if (G && !G.over) endGame(); };
 $("#mute").onclick = () => { muted = !muted; store.set("muted", muted); $("#mute").textContent = muted ? "🔇" : "🔊"; };
