@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GRAM 英語遊戲樂園</title>
-<meta name="description" content="GRAM 2026 英檢 A、B、C、D 四組聽力與閱讀練習：跑酷、賽車、釣魚、射氣球、打地鼠，邊玩邊練。">
-<meta property="og:title" content="GRAM 英語遊戲樂園">
+<title>太平格蘭 英語遊戲樂園</title>
+<meta name="description" content="太平格蘭 GRAM 2026 英檢 A、B、C、D 四組聽力與閱讀練習：跑酷、賽車、釣魚、射氣球、打地鼠，邊玩邊練。">
+<meta property="og:title" content="太平格蘭 英語遊戲樂園">
 <meta property="og:description" content="英檢 A、B、C、D 四組聽力與閱讀練習遊戲，手機打開就能玩。">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#2E4C40">
@@ -42,6 +42,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
 .wrap{max-width:900px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:30px}
 .hero{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:18px}
 .hero .date{font-family:var(--hand);font-size:18px;color:var(--chalk-dim)}
+.hero .brand{display:inline-block;margin-bottom:6px;font-size:18px;letter-spacing:5px;color:var(--ink);background:var(--note-y);padding:3px 12px 3px 16px;transform:rotate(-2deg);box-shadow:2px 4px 8px rgba(0,0,0,.25)}
 .hero h1{font-family:var(--zh);font-weight:400;font-size:clamp(34px,7vw,56px);line-height:1.1;margin:2px 0 6px;letter-spacing:2px;text-wrap:balance;
   text-shadow:0 0 1px rgba(255,255,255,.9),1px 1px 0 rgba(255,255,255,.18),-1px 0 0 rgba(255,255,255,.12)}
 .hero h1 .u{background:linear-gradient(transparent 72%,rgba(255,226,122,.75) 72%,rgba(255,226,122,.75) 88%,transparent 88%)}
@@ -199,6 +200,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
     <div class="wrap">
       <header class="hero">
         <div>
+          <div class="brand">太平格蘭</div>
           <div class="date" id="today"></div>
           <h1>英語<span class="u">遊戲</span>樂園</h1>
           <p>GRAM 2026 英檢練習 · 跑酷、賽車、釣魚、射氣球、打地鼠<br>一邊玩一邊練自己組別的題目</p>
@@ -271,7 +273,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
 
   <div class="modal" id="result" hidden>
     <div class="sheet" role="dialog" aria-labelledby="rTitle">
-      <div class="bookhead"><b>今日聯絡簿</b><span id="rDate"></span></div>
+      <div class="bookhead"><b>太平格蘭｜今日聯絡簿</b><span id="rDate"></span></div>
       <h3 id="rTitle">完成！</h3>
       <div class="stars" id="rStars"></div>
       <div class="extra" id="rExtra" hidden></div>

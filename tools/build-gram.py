@@ -10,9 +10,9 @@ head = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GRAM 英語遊戲樂園</title>
-<meta name="description" content="GRAM 2026 英檢 A、B、C、D 四組聽力與閱讀練習：跑酷、賽車、釣魚、射氣球、打地鼠，邊玩邊練。">
-<meta property="og:title" content="GRAM 英語遊戲樂園">
+<title>太平格蘭 英語遊戲樂園</title>
+<meta name="description" content="太平格蘭 GRAM 2026 英檢 A、B、C、D 四組聽力與閱讀練習：跑酷、賽車、釣魚、射氣球、打地鼠，邊玩邊練。">
+<meta property="og:title" content="太平格蘭 英語遊戲樂園">
 <meta property="og:description" content="英檢 A、B、C、D 四組聽力與閱讀練習遊戲，手機打開就能玩。">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#2E4C40">
@@ -22,6 +22,7 @@ out = head + body + "\n</html>\n"
 os.makedirs("docs/gram", exist_ok=True)
 open("docs/gram/index.html", "w", encoding="utf-8").write(out)
 dst = "docs/gram/listen"
-if os.path.isdir(dst): shutil.rmtree(dst)
-shutil.copytree(listen, dst)
+if os.path.abspath(listen) != os.path.abspath(dst):
+    if os.path.isdir(dst): shutil.rmtree(dst)
+    shutil.copytree(listen, dst)
 print("ok", len(out), len(os.listdir(dst)))
