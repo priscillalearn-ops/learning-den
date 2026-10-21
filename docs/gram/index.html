@@ -150,6 +150,14 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
 .toast.bad{color:var(--stamp-b);border:6px double var(--stamp-b)}
 .toast.on{opacity:.95;transform:scale(1) rotate(-12deg)}
 .rush{position:absolute;right:max(14px,env(safe-area-inset-right,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));border:none;background:var(--note-y);color:var(--ink);padding:10px 14px;box-shadow:2px 5px 8px rgba(0,0,0,.3);transform:rotate(-3deg);font-size:15px}
+.chip.lvl{background:var(--ink);color:#fff}
+.lvlup{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) rotate(-3deg);background:var(--note-y);color:var(--ink);padding:16px 26px 14px;text-align:center;box-shadow:3px 10px 18px rgba(0,0,0,.35);pointer-events:none;animation:pop .45s cubic-bezier(.2,1.5,.5,1)}
+.lvlup b{display:block;font-weight:400;font-size:34px;letter-spacing:4px}
+.lvlup span{display:block;white-space:pre-line;font-size:15px;color:var(--mute);margin-top:2px}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(.3) rotate(-15deg);opacity:0}}
+.pickbar{position:absolute;left:50%;bottom:max(12px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:10px;background:rgba(255,254,248,.92);padding:8px 10px;box-shadow:2px 6px 12px rgba(0,0,0,.3)}
+.pickbar button{border:none;width:58px;height:52px;color:#fff;font-family:var(--hand);font-size:30px;line-height:1;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.pickbar button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.25)}
 .hint{position:absolute;left:max(14px,env(safe-area-inset-left,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));background:var(--note-b);color:var(--ink);padding:8px 12px;font-size:14px;pointer-events:none;max-width:60%;box-shadow:2px 5px 8px rgba(0,0,0,.25);transform:rotate(1.5deg)}
 
 /* ---------- Result: 聯絡簿 ---------- */
@@ -170,7 +178,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
 .stats b{display:block;font-family:var(--hand);font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
 .stats span{font-size:13px;color:var(--mute)}
 .newbest{text-align:center;color:var(--stamp)}
-.extra{text-align:center;font-size:16px;background:var(--note-y);padding:6px 10px;transform:rotate(-1deg)}
+.board .bd{color:var(--mute);font-size:12px;white-space:nowrap}
+.extra{white-space:pre-line;text-align:center;font-size:16px;background:var(--note-y);padding:6px 10px;transform:rotate(-1deg)}
 .board{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
 .board li{display:flex;gap:10px;font-size:15px;padding:4px 6px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
 .board li.me{background:linear-gradient(transparent 50%,rgba(255,226,122,.8) 50%)}
@@ -225,6 +234,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
         <div class="opts">
           <div class="seg"><span>題數</span><div class="row" id="optCount"></div></div>
           <div class="seg"><span>題型</span><div class="row" id="optKind"></div></div>
+          <div class="seg"><span>難度</span><div class="row" id="optDiff"></div></div>
           <div class="seg"><span>錯題本</span><div class="row" id="optWrong"></div></div>
         </div>
       </div>
@@ -241,7 +251,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
         <div class="msg" id="homeMsg" role="status"></div>
       </div>
 
-      <p class="note"><b>題目從哪裡來？</b>來自 A、B、C、D 四組題本兩回模擬考：聽力四個部分（看圖、問答、對話、短文，每組 100 題，附原版錄音），以及閱讀的文法填空、克漏字和不需要看圖的閱讀理解。聽力答案依照官方解答。聽力題出現時會自動播放錄音，播放時遊戲會暫停倒數，可以按「再聽一次」重聽。答錯的題目會自動收進這台裝置的錯題本，選「只練錯題」就能再挑戰。</p>
+      <p class="note"><b>難度和關卡：</b>「簡單」目標較慢較大、時間較多，釣魚、射氣球、打地鼠下方還會出現字母按鈕；「挑戰」速度快、答錯扣比較多。每答對 5 題就升一關，最多到第 5 關，越後面越快。<br><b>題目從哪裡來？</b>來自 A、B、C、D 四組題本兩回模擬考：聽力四個部分（看圖、問答、對話、短文，每組 100 題，附原版錄音），以及閱讀的文法填空、克漏字和不需要看圖的閱讀理解。聽力答案依照官方解答。聽力題出現時會自動播放錄音，播放時遊戲會暫停倒數，可以按「再聽一次」重聽。答錯的題目會自動收進這台裝置的錯題本，選「只練錯題」就能再挑戰。</p>
     </div>
   </section>
 
@@ -251,6 +261,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
       <span class="chip grp" id="hGroup">A 組</span>
       <span class="chip" id="hProg">1 / 15</span>
       <span class="sp"></span>
+      <span class="chip lvl" id="hLvl">第 1 關</span>
       <span class="chip combo" id="hCombo" hidden>連擊 ×2</span>
       <span class="chip life" id="hLife"></span>
       <span class="chip score" id="hScore">0</span>
@@ -268,6 +279,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(
       <div class="toast" id="toast"></div>
       <div class="hint" id="hint"></div>
       <button class="rush" id="rush" hidden>我選好了 ⏩</button>
+      <div class="lvlup" id="lvlup" hidden><b></b><span></span></div>
+      <div class="pickbar" id="pickbar" hidden></div>
     </div>
   </section>
 
@@ -589,6 +602,15 @@ for (const g of GROUPS) FLAT[g] = ["g","c","r"].flatMap(k => BANK[g][k].map(r =>
 const $ = s => document.querySelector(s);
 const LET = ["A","B","C","D"];
 const NOPT = () => (G && G.nopt) || 3;
+/* 難易度：spd=目標移動速度、run=跑酷/賽車速度、hit=點擊判定放大、size=目標大小、pen=答錯扣秒、read=跑酷/賽車讀題時間倍數 */
+const DIFFS = {
+  easy:   {name:"簡單", spd:.55, run:.8,  hit:1.7, size:1.2,  time:{fish:120, mole:100, balloon:100}, pen:1, hearts:5, read:1.5,  rival:.97, life:1.6,  btn:true},
+  normal: {name:"普通", spd:.8,  run:.92, hit:1.35,size:1.05, time:{fish:100, mole:80,  balloon:80},  pen:3, hearts:4, read:1.15, rival:1.04, life:1.15, btn:false},
+  hard:   {name:"挑戰", spd:1.15,run:1.1, hit:1,   size:.95,  time:{fish:80,  mole:65,  balloon:65},  pen:5, hearts:3, read:.9,   rival:1.1, life:.85,  btn:false}
+};
+const DF = () => DIFFS[S.diff] || DIFFS.normal;
+const LEVEL_SIZE = 5, MAX_LEVEL = 5;
+const LVL = () => 1 + .12*(((G && G.level) || 1) - 1);
 const COL = ["#E8553E","#2E6FD8","#2F9A4C","#E39A1F"];
 const COL_D = ["#A8361F","#1C4C9E","#1D6A31","#A66A08"];
 const INK = "#26314B";
@@ -712,7 +734,7 @@ function drawHero(c, id, x, y, size){
   else { c.fillStyle = "#FBF7F0"; c.beginPath(); c.arc(x, y, size*.35, 0, Math.PI*2); c.fill(); }
 }
 
-const S = Object.assign({group:"A", avatar:"🐰", name:"", count:15, kind:"all", wrongOnly:false}, store.get("settings", {}));
+const S = Object.assign({group:"A", avatar:"🐰", name:"", count:15, kind:"all", wrongOnly:false, diff:"normal"}, store.get("settings", {}));
 if (!GROUPS.includes(S.group)) S.group = "A";
 function saveSettings(){ store.set("settings", S); }
 const getWrong = g => store.get("wrong."+g, []);
@@ -750,6 +772,10 @@ function renderHome(){
   [["all","全部"],["l","聽力"],["g","文法"],["c","克漏字"],["r","閱讀"]].forEach(([v,t]) => { const b=document.createElement("button"); b.className="pill"; b.dataset.v=v; b.textContent=t; b.onclick=()=>{S.kind=v;saveSettings();pressedGroup(kEl,"v",v);}; kEl.appendChild(b); });
   pressedGroup(kEl, "v", S.kind);
 
+  const dEl = $("#optDiff"); dEl.innerHTML = "";
+  if (!DIFFS[S.diff]) S.diff = "normal";
+  [["easy","簡單 🐢"],["normal","普通"],["hard","挑戰 🔥"]].forEach(([v,t]) => { const b=document.createElement("button"); b.className="pill"; b.dataset.v=v; b.textContent=t; b.onclick=()=>{S.diff=v;saveSettings();pressedGroup(dEl,"v",v);}; dEl.appendChild(b); });
+  pressedGroup(dEl, "v", S.diff);
   const wn = getWrong(S.group).length;
   if (!wn) S.wrongOnly = false;
   const wEl = $("#optWrong"); wEl.innerHTML = "";
@@ -851,9 +877,13 @@ function startGame(game, onlyIds){
   const qs = buildRound(onlyIds);
   if (!qs.length){ $("#homeMsg").textContent = "這個設定下沒有題目，換一個題型或關掉「只練錯題」試試。"; return; }
   $("#result").hidden = true;
-  G = {game, qs, qi:0, score:0, combo:0, maxCombo:0, correct:0, answered:0, log:[], locked:false, t:0, shake:0, parts:[], floats:[], timers:[], countdown:3.2, over:false, paused:false, onlyIds, nopt: Math.max(...qs.map(q => q.opts.length))};
+  G = {game, qs, qi:0, score:0, combo:0, maxCombo:0, correct:0, answered:0, log:[], locked:false, t:0, shake:0, parts:[], floats:[], timers:[], countdown:3.2, over:false, paused:false, onlyIds, level:1, nopt: Math.max(...qs.map(q => q.opts.length))};
   GAME = GAMES[game];
   show("play");
+  const pb = $("#pickbar"); pb.hidden = !(DF().btn && GAME.pick && ["fish","balloon","mole"].includes(game));
+  pb.innerHTML = Array.from({length:G.nopt}, (_,i) => `<button style="background:${COL[i]}" aria-label="選 ${LET[i]}">${LET[i]}</button>`).join("");
+  pb.querySelectorAll("button").forEach((b,i) => b.onclick = () => { if (G && !G.over && G.countdown<=0 && GAME.pick) GAME.pick(i); });
+  $("#lvlup").hidden = true;
   $("#hGroup").textContent = S.group+" 組"; $("#hGroup").style.background = COL[GROUPS.indexOf(S.group)];
   resize(); GAME.init(); renderQ();
   $("#hint").textContent = GAME.hint; $("#hint").hidden = false;
@@ -869,6 +899,8 @@ function answer(choice, bonus=0){
     const pts = 100 + Math.min(G.combo-1, 10)*20 + bonus;
     G.score += pts; toast(G.combo>=3 ? "超厲害" : ["好棒","很棒","答對","讚喔"][rand(4)], G.combo>=3 ? `×${G.combo} +${pts}` : `+${pts}`, true);
     sfx.ok(); removeWrong(q.id);
+    const nl = Math.min(MAX_LEVEL, 1 + Math.floor(G.correct / LEVEL_SIZE));
+    if (nl > G.level){ G.level = nl; after(.9, levelUp); }
   } else {
     G.combo = 0; addWrong(q.id); sfx.bad(); toast("再想想", `答案 ${LET[q.correct]}`, false);
   }
@@ -876,6 +908,18 @@ function answer(choice, bonus=0){
   GAME.onAnswer && GAME.onAnswer(ok, choice);
   after(ok ? .8 : 1.7, nextQ);
   return ok;
+}
+function levelUp(){
+  if (!G || G.over) return;
+  const bonus = GAME.timed ? 10 : 0; if (bonus) G.time += bonus;
+  if (GAME.hasHearts && G.hearts < G.maxHearts && G.level % 2 === 1) G.hearts++;
+  const el = $("#lvlup");
+  el.querySelector("b").textContent = G.level >= MAX_LEVEL ? `最終關！` : `第 ${G.level} 關`;
+  el.querySelector("span").textContent = (G.level >= MAX_LEVEL ? "最快的速度，加油！" : "速度變快囉！") + (bonus ? `\n時間 +${bonus} 秒` : "");
+  el.hidden = false; el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
+  tone(523,.12,"triangle",.12); tone(659,.12,"triangle",.12,.12); tone(784,.12,"triangle",.12,.24); tone(1047,.35,"triangle",.12,.36);
+  setTimeout(() => { el.hidden = true; }, 1800);
+  setHud();
 }
 function nextQ(){
   if (!G || G.over) return;
@@ -890,12 +934,13 @@ function toast(word, sub, good){
 }
 function setHud(){
   if (!G) return;
+  $("#hLvl").textContent = G.level >= MAX_LEVEL ? "最終關" : `第 ${G.level} 關`;
   $("#hProg").textContent = `${Math.min(G.qi+1, G.qs.length)} / ${G.qs.length}`;
   $("#hScore").textContent = "⭐ " + G.score;
   const cb = $("#hCombo"); cb.hidden = G.combo < 2; cb.textContent = `連擊 ×${G.combo}`;
   const life = $("#hLife");
   if (GAME.lifeText){ const t = GAME.lifeText(); life.textContent = t.text; life.classList.remove("time"); life.classList.toggle("low", !!t.low); }
-  else if (GAME.hasHearts){ life.textContent = "❤".repeat(Math.max(0,G.hearts)) + "♡".repeat(Math.max(0,3-G.hearts)); life.classList.remove("time","low"); }
+  else if (GAME.hasHearts){ life.textContent = "❤".repeat(Math.max(0,G.hearts)) + "♡".repeat(Math.max(0,(G.maxHearts||3)-G.hearts)); life.classList.remove("time","low"); }
   else { const s = Math.max(0, Math.ceil(G.time)); life.textContent = `⏱ ${s} 秒`; life.classList.add("time"); life.classList.toggle("low", s<=10); }
 }
 function burst(x,y,colors,n=18){
@@ -969,13 +1014,14 @@ function draw(){
 
 function endGame(){
   if (!G || G.over) return;
-  stopClip();
+  stopClip(); $("#pickbar").hidden = true; $("#lvlup").hidden = true;
   G.over = true; try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){}
-  const extraMsg = GAME.finish ? GAME.finish() : "";
+  const raceMsg = GAME.finish ? GAME.finish() : "";
+  const extraMsg = `${DF().name}模式・闖到${G.level >= MAX_LEVEL ? "最終關" : `第 ${G.level} 關`}` + (raceMsg ? `\n${raceMsg}` : "");
   const key = `board.${S.group}.${G.game}`;
   const board = store.get(key, []);
   const name = S.name || "玩家";
-  const entry = {name, score:G.score, acc:`${G.correct}/${G.answered}`, at:Date.now()};
+  const entry = {name, score:G.score, acc:`${G.correct}/${G.answered}`, at:Date.now(), d:DF().name, lv:G.level};
   const prevBest = board.length ? board[0].score : -1;
   board.push(entry); board.sort((a,b) => b.score-a.score); const top = board.slice(0,8); store.set(key, top);
 
@@ -986,7 +1032,7 @@ function endGame(){
   $("#rScore").textContent = G.score; $("#rAcc").textContent = `${G.correct}/${G.answered}`; $("#rCombo").textContent = G.maxCombo;
   $("#rNew").hidden = !(G.score > prevBest && G.score > 0);
   $("#rExtra").hidden = !extraMsg; $("#rExtra").textContent = extraMsg;
-  $("#rBoard").innerHTML = top.map((e,i) => `<li class="${e===entry?"me":""}"><span>${i+1}.</span><span>${esc(e.name)}</span><span>${e.acc}</span><b>${e.score}</b></li>`).join("");
+  $("#rBoard").innerHTML = top.map((e,i) => `<li class="${e===entry?"me":""}"><span>${i+1}.</span><span>${esc(e.name)}</span><span class="bd">${e.d ? `${e.d}・第${e.lv}關` : ""}</span><span>${e.acc}</span><b>${e.score}</b></li>`).join("");
   const wrongs = G.log.filter(l => !l.ok);
   $("#rWrongH").textContent = wrongs.length ? `答錯的題目（${wrongs.length}）` : G.answered ? "全部答對，沒有錯題！" : "這次還沒有作答喔";
   $("#rWrongs").innerHTML = wrongs.map(l => {
@@ -1032,21 +1078,21 @@ const Runner = {
   laneX(i){ const tw = this.trackW(); return (V.w-tw)/2 + tw*(i+.5)/NOPT(); },
   laneOf(x){ let best=0, d=1e9; for (let i=0;i<NOPT();i++){ const dd = Math.abs(x-this.laneX(i)); if (dd<d){ d=dd; best=i; } } return best; },
   py(){ return V.h*.84; },
-  readTime(q){ if (q.audio) return 3.5; const n = (q.ctx+q.q).length + q.opts.reduce((s,o)=>s+o.t.length,0); return clamp(3 + n*.045, 4, 11); },
+  readTime(q){ if (q.audio) return 3.5*DF().read; const n = (q.ctx+q.q).length + q.opts.reduce((s,o)=>s+o.t.length,0); return clamp(3 + n*.045, 4, 11)*DF().read; },
   init(){
-    Object.assign(G, {hearts:3, lane:1, px:this.laneX(1), ents:[], scroll:0, phase:"read", phaseT:this.readTime(cur()), phaseMax:0, spawnC:.4, spawnR:2, stun:0, speedMul:1});
+    Object.assign(G, {hearts:DF().hearts, maxHearts:DF().hearts, lane:1, px:this.laneX(1), ents:[], scroll:0, phase:"read", phaseT:this.readTime(cur()), phaseMax:0, spawnC:.4, spawnR:2, stun:0, speedMul:1});
     G.phaseMax = G.phaseT; $("#rush").hidden = false;
   },
   layout(){ if (G) G.px = this.laneX(G.lane); },
   dead(){ return G.hearts <= 0; },
   onNext(){ G.phase = "read"; G.phaseT = G.phaseMax = this.readTime(cur()); $("#rush").hidden = false; },
-  onAnswer(ok){ if (ok) G.speedMul = Math.min(1.8, G.speedMul+.05); else { G.hearts--; G.shake = .35; setHud(); } },
+  onAnswer(ok){ if (ok) G.speedMul = Math.min(1.25, G.speedMul+.02); else { G.hearts--; G.shake = .35; setHud(); } },
   rush(){ if (G && G.phase==="read" && G.countdown<=0){ stopClip(); G.phaseT = Math.min(G.phaseT, .05); } },
   tap(x){ G.lane = this.laneOf(x); },
   key(k){ if (k==="arrowleft"||k==="arrowright"){ G.lane = clamp(G.lane + (k==="arrowleft"?-1:1), 0, 2); return true; } if (k===" "||k==="arrowup"){ this.rush(); return true; } return false; },
   pick(i){ G.lane = i; },
   update(dt){
-    const h = V.h, sp = h*.42*G.speedMul*(G.stun>0 ? .45 : 1), py = this.py();
+    const h = V.h, sp = h*.42*DF().run*LVL()*G.speedMul*(G.stun>0 ? .45 : 1), py = this.py();
     G.scroll += sp*dt; G.stun = Math.max(0, G.stun-dt);
     G.px += (this.laneX(G.lane) - G.px) * Math.min(1, dt*14);
     for (const e of G.ents) e.y += sp*dt;
@@ -1149,7 +1195,7 @@ const Fishing = {
   fishSize(){ return clamp(Math.min(V.w,V.h)*.075, 24, 46); },
   rodTip(){ return {x:V.w/2 + Math.min(V.w*.12, 70), y:this.waterY() - Math.min(V.h*.13, 70)}; },
   init(){
-    Object.assign(G, {time:90, fish:[], hook:{ph:"idle"}, bubbles:[]});
+    Object.assign(G, {time:DF().time.fish, fish:[], hook:{ph:"idle"}, bubbles:[]});
     for (let i=0;i<14;i++) G.bubbles.push({x:Math.random()*V.w, y:this.waterY()+Math.random()*(V.h-this.waterY()), r:2+Math.random()*4, s:20+Math.random()*30});
     this.spawn(); $("#rush").hidden = true;
   },
@@ -1161,7 +1207,7 @@ const Fishing = {
     for (let i=0;i<2*NOPT();i++){
       const L = i % NOPT(), dir = Math.random()<.5 ? -1 : 1;
       const y = top + (bot-top) * (ys[i] + .5) / rows;
-      G.fish.push({L, x: V.w*(.1 + Math.random()*.8), y, baseY:y, dir, sp: V.w*(.06 + Math.random()*.09), s: this.fishSize()*(.85 + Math.random()*.35), ph: Math.random()*6, fade:0, flee:false, caught:false});
+      G.fish.push({L, x: V.w*(.1 + Math.random()*.8), y, baseY:y, dir, sp: V.w*(.06 + Math.random()*.09), s: this.fishSize()*DF().size*(.85 + Math.random()*.35), ph: Math.random()*6, fade:0, flee:false, caught:false});
     }
   },
   onNext(){ this.spawn(); },
@@ -1176,7 +1222,7 @@ const Fishing = {
   tap(x,y){
     if (G.hook.ph !== "idle" || G.locked) return;
     let best = null, bd = 1e9;
-    for (const f of G.fish){ if (f.flee) continue; const d = Math.hypot(f.x-x, f.y-y); if (d < f.s*1.6 && d < bd){ bd = d; best = f; } }
+    for (const f of G.fish){ if (f.flee) continue; const d = Math.hypot(f.x-x, f.y-y); if (d < f.s*1.6*DF().hit && d < bd){ bd = d; best = f; } }
     if (y < this.waterY()) return;
     this.cast(best, x, y);
   },
@@ -1190,7 +1236,7 @@ const Fishing = {
     for (const f of G.fish){
       f.fade = Math.min(1, f.fade + dt*3);
       if (f.caught) continue;
-      const sp = f.flee ? f.sp*6 : f.sp;
+      const sp = f.flee ? f.sp*6 : f.sp*DF().spd*LVL();
       f.x += f.dir*sp*dt; f.ph += dt*3; f.y = f.baseY + Math.sin(f.ph)*6;
       if (!f.flee){ if (f.x < -f.s*2) f.x = V.w + f.s*2; if (f.x > V.w + f.s*2) f.x = -f.s*2; }
     }
@@ -1206,7 +1252,7 @@ const Fishing = {
           else {
             const f = hk.fish, ok = answer(f.L, this.depthBonus(f));
             if (ok){ G.hook = {ph:"up", t:0, dur:.5, fish:f, from:{...hk.pos}, to:this.rodTip()}; burst(f.x, f.y, ["#fff","#9FE3FF","#FFC43A"], 14); }
-            else { f.caught = false; f.flee = true; f.dir = f.x < V.w/2 ? -1 : 1; G.time = Math.max(0, G.time - 3); floatText(f.x, f.y-30, "-3 秒", "#E5484D"); G.hook = {ph:"up", t:0, dur:.3, fish:null, from:{...hk.pos}, to:this.rodTip()}; setHud(); }
+            else { f.caught = false; f.flee = true; f.dir = f.x < V.w/2 ? -1 : 1; G.time = Math.max(0, G.time - DF().pen); floatText(f.x, f.y-30, `-${DF().pen} 秒`, "#E5484D"); G.hook = {ph:"up", t:0, dur:.3, fish:null, from:{...hk.pos}, to:this.rodTip()}; setHud(); }
           }
         }
       } else if (hk.ph === "up"){
@@ -1275,7 +1321,7 @@ const Mole = {
   hasHearts: false, timed: true,
   hint: "敲舉著正確字母的地鼠（電腦可按字母鍵）",
   init(){
-    Object.assign(G, {time:75, holes:[], spawnT:.3, hammer:null, hero:{x:V.w/2, y:V.h*.88, tx:V.w/2, ty:V.h*.88}, cheer:0});
+    Object.assign(G, {time:DF().time.mole, holes:[], spawnT:.3, hammer:null, hero:{x:V.w/2, y:V.h*.88, tx:V.w/2, ty:V.h*.88}, cheer:0});
     for (let i=0;i<9;i++) G.holes.push({m:null});
     this.layout(); $("#rush").hidden = true;
   },
@@ -1296,7 +1342,7 @@ const Mole = {
     if (!hasCorrect && Math.random() < .6) L = q.correct;
     else L = rand(NOPT());
     const hl = empty[rand(empty.length)];
-    hl.m = {L, st:"up", h:0, life: Math.max(1.2, 2.2 - G.correct*.05)};
+    hl.m = {L, st:"up", h:0, life: Math.max(.9, 2.2*DF().life/LVL())};
   },
   hit(hl){
     const m = hl.m; m.st = "bonk"; m.bonkT = .5;
@@ -1304,7 +1350,7 @@ const Mole = {
     sfx.bonk();
     const ok = answer(m.L);
     if (ok){ burst(hl.cx, hl.cy - hl.rx, ["#FFC43A","#fff",COL[m.L]], 16); G.cheer = .8; }
-    else { G.time = Math.max(0, G.time - 3); floatText(hl.cx, hl.cy - hl.rx*1.6, "-3 秒", "#E5484D"); setHud(); }
+    else { G.time = Math.max(0, G.time - DF().pen); floatText(hl.cx, hl.cy - hl.rx*1.6, `-${DF().pen} 秒`, "#E5484D"); setHud(); }
   },
   tap(x,y){
     if (G.locked) return;
@@ -1312,7 +1358,8 @@ const Mole = {
     for (const hl of G.holes){
       const m = hl.m; if (!m || m.st !== "up" || m.h < .35) continue;
       const mw = hl.rx*.85, mh = hl.rx*1.5*m.h;
-      if (x > hl.cx - mw - 8 && x < hl.cx + mw + 8 && y > hl.cy - mh - 12 && y < hl.cy + hl.ry + 8){ this.hit(hl); return; }
+      const pad = 8 + (DF().hit-1)*30;
+      if (x > hl.cx - mw - pad && x < hl.cx + mw + pad && y > hl.cy - mh - 12 - pad && y < hl.cy + hl.ry + pad){ this.hit(hl); return; }
     }
   },
   pick(i){
@@ -1321,7 +1368,7 @@ const Mole = {
     if (hl) this.hit(hl);
   },
   update(dt){
-    if (!G.locked){ G.spawnT -= dt; if (G.spawnT <= 0){ G.spawnT = Math.max(.4, .8 - G.correct*.02); this.spawnOne(); } }
+    if (!G.locked){ G.spawnT -= dt; if (G.spawnT <= 0){ G.spawnT = Math.max(.4, .85/LVL()/Math.min(1.15,DF().spd+.3)); this.spawnOne(); } }
     for (const hl of G.holes){
       const m = hl.m; if (!m) continue;
       if (m.st === "up"){ m.h = Math.min(1, m.h + dt*6); m.life -= dt; if (m.life <= 0) m.st = "down"; }
@@ -1416,10 +1463,10 @@ const Race = {
   keyup(k){ if ((k==="arrowleft" && G.steer<0) || (k==="arrowright" && G.steer>0)) G.steer = 0; },
   pick(i){ G.auto = this.laneX(i); G.drag = null; },
   update(dt){
-    const h = V.h, base = h*.5, py = this.py(), cw = this.carW(), ch = cw*1.7;
+    const h = V.h, base = h*.5*DF().run*LVL(), py = this.py(), cw = this.carW(), ch = cw*1.7;
     G.boost = Math.max(0, G.boost-dt); G.spin = Math.max(0, G.spin-dt); G.bump = Math.max(0, G.bump-dt);
     const sp = base * G.mul * (G.boost>0 ? 1.6 : 1) * (G.spin>0 ? .4 : 1) * (G.bump>0 ? .55 : 1);
-    G.me += sp*dt; G.rival += base*1.07*dt; G.scroll += sp*dt;
+    G.me += sp*dt; G.rival += base*DF().rival*dt; G.scroll += sp*dt;
     const tw = this.trackW(), tl = (V.w-tw)/2;
     if (G.drag != null) G.x += (G.drag-G.x) * Math.min(1, dt*10);
     else if (G.steer) G.x += G.steer*tw*1.3*dt;
@@ -1517,10 +1564,10 @@ const Race = {
 const Balloon = {
   hasHearts: false, timed: true,
   hint: "點寫著正確字母的氣球，射飛鏢戳破它！（電腦按 A / B / C）",
-  bR(){ return clamp(Math.min(V.w,V.h)*.07, 22, 44); },
+  bR(){ return clamp(Math.min(V.w,V.h)*.07*DF().size, 22, 50); },
   origin(){ return {x:V.w/2, y:V.h - Math.min(60, V.h*.14)}; },
   init(){
-    Object.assign(G, {time:75, bal:[], spawnT:.2, darts:[], clouds:[0,1,2].map(i => ({x:Math.random()*V.w, y:V.h*(.08+i*.16), s:.7+Math.random()*.6}))});
+    Object.assign(G, {time:DF().time.balloon, bal:[], spawnT:.2, darts:[], clouds:[0,1,2].map(i => ({x:Math.random()*V.w, y:V.h*(.08+i*.16), s:.7+Math.random()*.6}))});
     $("#rush").hidden = true;
   },
   layout(){},
@@ -1532,7 +1579,7 @@ const Balloon = {
     if (live.length >= 7) return;
     const has = live.some(b => b.L === q.correct);
     const L = (!has && Math.random() < .65) ? q.correct : rand(NOPT());
-    G.bal.push({L, x: r + Math.random()*(V.w-2*r), y: V.h + r*1.6, v: V.h*(.11+Math.random()*.07)*(1+Math.min(G.correct,15)*.02), ph: Math.random()*6, pop:0});
+    G.bal.push({L, x: r + Math.random()*(V.w-2*r), y: V.h + r*1.6, v: V.h*(.11+Math.random()*.07)*DF().spd*LVL(), ph: Math.random()*6, pop:0});
   },
   shoot(b){
     if (G.darts.length || G.locked) return;
@@ -1542,7 +1589,7 @@ const Balloon = {
   },
   tap(x,y){
     const r = this.bR(); let best = null, bd = 1e9;
-    for (const b of G.bal){ if (b.pop || b.target) continue; const d = Math.hypot(b.x-x, (b.y-y)*.85); if (d < r*1.3 && d < bd){ bd = d; best = b; } }
+    for (const b of G.bal){ if (b.pop || b.target) continue; const d = Math.hypot(b.x-x, (b.y-y)*.85); if (d < r*1.3*DF().hit && d < bd){ bd = d; best = b; } }
     if (best) this.shoot(best);
   },
   pick(i){
@@ -1552,7 +1599,7 @@ const Balloon = {
   },
   update(dt){
     const r = this.bR();
-    if (!G.locked){ G.spawnT -= dt; if (G.spawnT <= 0){ G.spawnT = Math.max(.45, .75 - G.correct*.015); this.spawnOne(); } }
+    if (!G.locked){ G.spawnT -= dt; if (G.spawnT <= 0){ G.spawnT = Math.max(.45, .8/LVL()/Math.min(1.15,DF().spd+.3)); this.spawnOne(); } }
     for (const b of G.bal){
       if (b.pop){ b.pop += dt; continue; }
       b.y -= b.v*dt*(b.target ? .3 : 1); b.ph += dt*2; b.x += Math.sin(b.ph)*12*dt;
@@ -1565,7 +1612,7 @@ const Balloon = {
         d.done = true; const b = d.b; b.pop = .001;
         tone(200,.12,"square",.1,0,80); burst(b.x, b.y, [COL[b.L],"#fff","#FFC43A"], 20);
         const ok = answer(b.L);
-        if (ok === false){ G.time = Math.max(0, G.time-3); floatText(b.x, b.y-r, "-3 秒", "#E5484D"); setHud(); }
+        if (ok === false){ G.time = Math.max(0, G.time-DF().pen); floatText(b.x, b.y-r, `-${DF().pen} 秒`, "#E5484D"); setHud(); }
       }
     }
     G.darts = G.darts.filter(d => !d.done);
