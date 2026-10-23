@@ -1,0 +1,12 @@
+{
+  "appId": "io.github.priscillalearn_ops.learningden",
+  "appName": "Learning Den",
+  "webDir": "www",
+  "server": {
+    "url": "https://priscillalearn-ops.github.io/learning-den/",
+    "allowNavigation": ["priscillalearn-ops.github.io", "*.supabase.co"]
+  },
+  "backgroundColor": "#2b2140",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "always" }
+}

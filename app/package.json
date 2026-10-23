@@ -1,0 +1,18 @@
+{
+  "name": "learning-den-app",
+  "private": true,
+  "description": "Learning Den 的 iPhone／Android App 外殼（Capacitor），畫面直接開網站版，網站更新 App 就跟著更新",
+  "scripts": {
+    "sync": "cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}

@@ -1,0 +1,42 @@
+# 產生 Android App：每次 app/ 有改、或在 Actions 頁面按「Run workflow」就會做一次。
+# 做好的檔案在這次執行頁面最下面的 Artifacts：
+#   learning-den-apk：可以直接裝在 Android 手機上測試
+#   learning-den-aab：上傳到 Google Play 用（要先在 Secrets 放好簽名金鑰才會有）
+name: Android App
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['app/**', '.github/workflows/android.yml']
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - run: npm ci && npx cap sync android
+        working-directory: app
+      - name: 測試用 APK
+        run: ./gradlew assembleDebug
+        working-directory: app/android
+        env: { VERSION_CODE: '${{ github.run_number }}' }
+      - uses: actions/upload-artifact@v4
+        with: { name: learning-den-apk, path: app/android/app/build/outputs/apk/debug/*.apk }
+      - name: 上架用 AAB（有簽名金鑰才做）
+        if: ${{ env.KS != '' }}
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          VERSION_CODE: '${{ github.run_number }}'
+        run: |
+          echo "$KS" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          KEYSTORE_FILE="$RUNNER_TEMP/upload.jks" ./gradlew bundleRelease
+        working-directory: app/android
+      - uses: actions/upload-artifact@v4
+        if: ${{ hashFiles('app/android/app/build/outputs/bundle/release/*.aab') != '' }}
+        with: { name: learning-den-aab, path: app/android/app/build/outputs/bundle/release/*.aab }

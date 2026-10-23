@@ -2458,16 +2458,33 @@ function renderLogin(){
    <p class="small" style="text-align:center;margin:0">陪你一起讀書啦｜每天一題，一起專注</p>
    <div style="display:flex;justify-content:center;gap:18px;margin:18px 0"><span data-s="kid" data-z="6"></span><span data-s="teen" data-z="6"></span><span data-s="sage" data-z="6"></span></div>
    <button class="btn gold" id="gl">用 Google 帳號登入</button>
+   ${IOS?'<button class="btn" id="al" style="background:#000;color:#fff">用 Apple 登入</button>':''}
    <button class="btn" id="guest">先試玩看看（不用登入）</button>
    <p class="small" style="margin:0;line-height:1.6">登入只用來記住你的打卡和單字卡。同學只看得到你自己取的暱稱，看不到你的 email。</p>
    <p class="demo">免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>`;
   paintSprites($('#view'));
   $('#guest').onclick=()=>{try{localStorage.setItem('wordden.guest','1')}catch(e){}location.reload()};
-  $('#gl').onclick=async()=>{
-    const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
-    if(error)toast('登入沒成功，再試一次');
-  };
+  $('#gl').onclick=()=>oauth('google');
+  if($('#al'))$('#al').onclick=()=>oauth('apple');
 }
+/* App 版（Capacitor）：Google 不准在 App 的內嵌網頁登入，所以改開系統瀏覽器登入，
+   登入完 Supabase 轉到 learningden://login，App 接到後把登入資料交給 sb。
+   iPhone 版依 Apple 規定要同時提供「用 Apple 登入」。 */
+const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+const IOS=NATIVE&&Capacitor.getPlatform()==='ios',APP_CB='learningden://login';
+async function oauth(provider){
+  const {data,error}=await sb.auth.signInWithOAuth({provider,options:NATIVE?{redirectTo:APP_CB,skipBrowserRedirect:true}:{redirectTo:location.origin+location.pathname}});
+  if(error){toast('登入沒成功，再試一次');return}
+  if(NATIVE)await Capacitor.Plugins.Browser.open({url:data.url,presentationStyle:'popover'});
+}
+if(NATIVE&&sb)Capacitor.Plugins.App.addListener('appUrlOpen',async({url})=>{
+  if(!url.startsWith(APP_CB))return;
+  Capacitor.Plugins.Browser.close().catch(()=>{});
+  const u=new URL(url.replace(/^learningden:/,'https:')),h=new URLSearchParams(u.hash.slice(1)),code=u.searchParams.get('code');
+  const {error}=code?await sb.auth.exchangeCodeForSession(code):h.get('access_token')?await sb.auth.setSession({access_token:h.get('access_token'),refresh_token:h.get('refresh_token')}):{error:true};
+  if(error){toast('登入沒成功，再試一次');return}
+  boot();
+});
 /* 學生自己刪除帳號（商店規定）：要輸入「刪除」確認，刪掉後所有資料都消失 */
 function deleteAccount(){
   const m=modal(`<h2 style="color:var(--coral)">刪除帳號？</h2>
