@@ -305,7 +305,15 @@ function pool(){
 /* 今日一題：同等級每個人同一題（不看個人範圍），留言和統計才對得起來 */
 /* 今日一題跟著自己選的範圍；沒選範圍時從全部題庫出，但不出多益題。
    同一天、同一題的人共用留言和答對率。 */
-const DAILY_SKIP=['TOEIC'];
+const DAILY_SKIP=['TOEIC','VQK','VQT','VQS'];
+/* 釣魚、貓頭鷹用的題目：一半出自己範圍的題目、一半出這個等級的「單字意思」自動題，最近出過的 30 題先不出，比較不會重複 */
+const isVQ=q=>/^VQ/.test(q.u),recentQ=[];
+function quizPick(){
+  const p=pool().filter(z=>z.q.length<=110),v=BANK[S.tier].filter(isVQ);
+  const own=p.filter(z=>!isVQ(z)),all=!own.length||(v.length&&Math.random()<.5)?v.length?v:p:own;
+  const fresh=all.filter(z=>!recentQ.includes(z.id)),q=pick(fresh.length?fresh:all);
+  recentQ.push(q.id);if(recentQ.length>30)recentQ.shift();return q;
+}
 const dailyPool=()=>scope().length?pool():BANK[S.tier].filter(q=>!DAILY_SKIP.includes(q.u));
 const todayQ=()=>{const p=dailyPool();return p[(dayNum()*7919)%p.length]};
 const pick=p=>p[Math.floor(Math.random()*p.length)];
@@ -2139,6 +2147,9 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-23',title:'釣魚和貓頭鷹題目變多了',items:[
+  ['fish','題目大擴充','釣魚和貓頭鷹博士多了上千題「單字意思」題，最近答過的題目也不會馬上又出現！',()=>openFishing()],
+ ]},
  {v:'2026-10-22',title:'每日訪客、成就、房間評分',items:[
   ['owl','每日特別訪客','廣場每天會來一位訪客：貓頭鷹博士出題送金幣、旅行商人高價收作物、幸運貓每天抽一次！',()=>{go('city');setTimeout(()=>cityTap(VISITOR_AT[0],VISITOR_AT[1]),300)}],
   ['coin','45 個成就','答題、讀書、釣魚、交朋友、下廚…每達成一級都有金幣，到「我的」看看你已經完成幾個！',()=>openAch()],
@@ -3326,7 +3337,7 @@ async function openFishing(){
       timer=setTimeout(()=>{if(castB.onclick){castB.onclick=null;msg.textContent='魚跑掉了…再拋一次吧';reset()}},1600)},wait);
   };
   const reset=()=>{clearTimeout(timer);m.remove();openFishing()};
-  const ask=()=>{const wasNew=!(fishData&&fishData.counts[cast.species]);const src=pool().filter(z=>z.q.length<=110),q=pick(src.filter(z=>!z.t||z.t==='v').length?src.filter(z=>!z.t||z.t==='v'):src);
+  const ask=()=>{const wasNew=!(fishData&&fishData.counts[cast.species]);const q=quizPick();
     msg.textContent='拉住了！答對才釣得上來：';
     fq.innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px">${qPic(q,5)}<div class="qtext">${esc(q.q)}</div>
       ${q.o.map((o,i)=>`<button class="btn opt" data-fo="${i}" style="padding:6px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
@@ -3388,7 +3399,7 @@ async function openVisitor(){
   if(v.kind==='owl'){
     let n=done.filter(x=>x.kind==='owl').length;
     const ask=()=>{if(n>=3){body.innerHTML='<p style="text-align:center;margin:0">今天的 3 題答完了，明天換別的訪客喔！</p>';return}
-      const src=pool().filter(z=>z.q.length<=110),q=pick(src);
+      const q=quizPick();
       body.innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">第 ${n+1}／3 題</p>${qPic(q,5)}<div class="qtext">${esc(q.q)}</div>${q.o.map((o,i)=>`<button class="btn opt" data-vo="${i}" style="padding:6px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
       paintSprites(body);
       body.querySelectorAll('[data-vo]').forEach(b=>b.onclick=async()=>{const c=+b.dataset.vo;body.querySelectorAll('[data-vo]').forEach(x=>x.disabled=true);let ok=c===q.a;
