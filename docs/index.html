@@ -118,7 +118,11 @@ input[type=text]{font-family:inherit;font-size:15px;width:100%;padding:10px;bord
 .sitem .price{display:inline-flex;align-items:center;gap:3px;color:var(--gold);font-size:12px}
 .swatch{width:30px;height:30px;border:3px solid var(--ink);padding:0}
 .swatch[aria-pressed="true"]{outline:3px solid var(--gold);outline-offset:1px}
-.seat{background:none;border:0;color:inherit;padding:0;cursor:pointer}
+.seat{background:none;border:0;color:inherit;padding:0;cursor:pointer;position:relative}
+.rpop{position:absolute;left:50%;top:-8px;font-size:22px;line-height:1;pointer-events:none;animation:rpop 2s ease-out forwards}
+@keyframes rpop{0%{opacity:0;transform:translate(-50%,8px) scale(.6)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-20px)}}
+.dtable{display:flex;flex-direction:column;gap:6px;padding:8px 4px;border:2px solid var(--ink);background:#5a3d2b;min-width:0}
+.dtable .dwho{display:flex;flex-wrap:wrap;gap:2px;min-height:26px;align-items:flex-end;justify-content:center}
 .clabel{position:absolute;transform:translate(-50%,-50%);font-size:11px;background:rgba(15,10,26,.78);color:var(--paper);padding:1px 5px;white-space:nowrap;pointer-events:none;border:1px solid var(--ink)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -820,8 +824,9 @@ async function visitRoom(who,uid,tier){
     look=lookOf({room,outfit:botOutfit(who)},tier);
   }
   const back=curTab==='city'?()=>go('city'):()=>go('room');
-  const m=modal(`<h2>${esc(who)} 的房間</h2><p style="margin:0">${starStr(roomStars(roomScore(look.room)))} <span class="small">${roomScore(look.room)} 分</span></p>${roomSVG(look,look.outfit,who+' 的房間')}<div class="row"><button class="btn" data-close>回去</button><button class="btn gold" id="vgarden">看${esc(who)}的花園</button></div>`);
+  const m=modal(`<h2>${esc(who)} 的房間</h2><p style="margin:0">${starStr(roomStars(roomScore(look.room)))} <span class="small">${roomScore(look.room)} 分</span></p>${roomSVG(look,look.outfit,who+' 的房間')}${uid&&uid!==ME||!uid&&!ONLINE?`<button class="btn" id="vwave" style="background:var(--mint);color:var(--night)">👋 對 ${esc(who)} 揮手</button>`:''}<div class="row"><button class="btn" data-close>回去</button><button class="btn gold" id="vgarden">看${esc(who)}的花園</button></div>`);
   m.querySelector('#vgarden').onclick=()=>{m.remove();gardenBack=back;renderGarden(uid||'bot',who)};
+  if(m.querySelector('#vwave'))m.querySelector('#vwave').onclick=()=>{m.remove();sendWave(uid,who)};
 }
 
 
@@ -1386,6 +1391,7 @@ function renderCity(){
      <canvas id="ccv" width="${VW*TS*CSC}" height="${VH*TS*CSC}" style="width:100%;height:100%;display:block;image-rendering:pixelated;cursor:pointer" aria-label="魔法城市地圖，點地面走路，點建築走進去"></canvas>
      <button class="chip" id="cmap" style="position:absolute;right:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--gold)">全圖</button>
    </div>
+   ${reactBar()}
    <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。<span style="color:var(--gold)">今天城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
    ${newbieCard()}
    ${suggOn()?`<button class="btn" id="suggbtn" style="background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="scroll" data-z="2"></span>上架建議箱：給建議最高拿 1000 金幣！</button>`:''}
@@ -1398,7 +1404,7 @@ function renderCity(){
   $('#ctasks').onclick=()=>renderQuests();loadAnn();loadQuests();
   const cv=$('#ccv');
   cv.onclick=e=>{const r=cv.getBoundingClientRect(),[cx,cy]=cityCam(),tx=Math.floor(((e.clientX-r.left)/r.width*VW*TS+cx)/TS),ty=Math.floor(((e.clientY-r.top)/r.height*VH*TS+cy)/TS);cityTap(tx,ty)};
-  $('#cmap').onclick=openCityMap;
+  $('#cmap').onclick=openCityMap;bindReacts();
   $('#gardenbtn').onclick=openMyGarden;
   $('#fishbtn').onclick=()=>cityTap(27,16);
   $('#visitbtn').onclick=()=>cityTap(VISITOR_AT[0],VISITOR_AT[1]);
@@ -1718,7 +1724,8 @@ function cityDraw(){
   c.font='7px "DotGothic16", sans-serif';
   if(city.hw){const h=city.hw;c.save();c.setTransform(CSC,0,0,CSC,0,0);const left=Math.max(0,Math.ceil((h.end-performance.now())/1000));c.fillStyle='rgba(15,10,26,.82)';c.fillRect(4,4,118,14);c.fillStyle='#ffd166';c.font='9px "DotGothic16",sans-serif';c.textAlign='left';c.fillText(`糖果 ${h.got}・剩 ${left} 秒・還有 ${h.candies.length} 顆`,8,14);c.restore();c.font='7px "DotGothic16", sans-serif'}
   drawVisitor(c,t);c.font='7px "DotGothic16", sans-serif';
-  city.bubbles.forEach(b=>{const w=c.measureText(b.txt).width+8,X=b.who.px-w/2,Y=b.who.py-34;c.fillStyle='#f4ecd8';c.fillRect(X,Y,w,12);c.fillStyle='#1a1026';c.textAlign='center';c.fillText(b.txt,b.who.px,Y+9)});
+  city.bubbles.forEach(b=>{if(b.emo){const k=Math.min(1,1-(b.until-performance.now())/2200);c.save();c.globalAlpha=k>.8?(1-k)*5:1;c.font='13px sans-serif';c.textAlign='center';c.fillText(b.txt,b.who.px,b.who.py-24-k*10);c.restore();return}
+    const w=c.measureText(b.txt).width+8,X=b.who.px-w/2,Y=b.who.py-34;c.fillStyle='#f4ecd8';c.fillRect(X,Y,w,12);c.fillStyle='#1a1026';c.textAlign='center';c.fillText(b.txt,b.who.px,Y+9)});
 }
 /* 寵物：跟在主人身後半格，走路時會一跳一跳 */
 const PETS=SHOP.filter(i=>i.slot==='pet'&&i.g);
@@ -1751,6 +1758,7 @@ function joinCity(){
     /* 有新同學進城：把自己的位置傳一次給他 */
     if(city&&Object.keys(seen).some(k=>!city.known||!city.known[k])){city.known=seen;city.lastX=null;city.sent=0}
   });
+  listenSocial(cityChan);
   cityChan.subscribe(st=>{if(st==='SUBSCRIBED')cityTrack()});
 }
 function cityTrack(){if(cityChan&&city)cityChan.track({name:S.name,tier:S.tier,outfit:myLook().outfit,pet:myLook().room.pet,x:Math.round(city.me.px),y:Math.round(city.me.py)})}
@@ -2148,6 +2156,11 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-23b',title:'表情、揮手、讀書小桌',items:[
+  ['coin','讀書小桌','讀書房多了 3 張小桌！跟同學坐同一桌一起專注，都讀完兩個人各 +20 金幣',()=>go('room')],
+  ['me','揮手打招呼','點同學就能對他揮手，他會聽到叮咚一聲；好友每天第一次揮手還加好感度',()=>go('city')],
+  ['scroll','表情反應','城市和讀書房按一下表情（👋❤️🎉💯…），頭上就會冒出來，大家都看得到',()=>go('city')],
+ ]},
  {v:'2026-10-23',title:'釣魚和貓頭鷹題目變多了',items:[
   ['fish','題目大擴充','釣魚和貓頭鷹博士多了上千題「單字意思」題，最近答過的題目也不會馬上又出現！',()=>openFishing()],
  ]},
@@ -2472,12 +2485,102 @@ function joinRoom(){
   chan=sb.channel(name,{config:{presence:{key:ME}}});
   chan.on('presence',{event:'sync'},()=>{
     peers=Object.entries(chan.presenceState()).filter(([k])=>k!==ME&&!isBlocked(k)).map(([k,v])=>({uid:k,...v[0]}));
-    if(curTab==='room')drawSeats();
+    if(curTab==='room'){drawSeats();drawTables()}
   });
+  listenSocial(chan);
   chan.subscribe(st=>{if(st==='SUBSCRIBED')trackMe()});
 }
 function leaveRoom(){if(chan){sb.removeChannel(chan);chan=null;chanName='';peers=[]}}
-function trackMe(){if(chan){tm.tracked=Date.now();chan.track({name:S.name,tier:S.tier,mins:myMins(),focus:tm.mode==='focus'&&!tm.paused,outfit:myLook().outfit})}}
+function trackMe(){if(chan){tm.tracked=Date.now();chan.track({name:S.name,tier:S.tier,mins:myMins(),focus:tm.mode==='focus'&&!tm.paused,outfit:myLook().outfit,table:myTable()})}}
+
+
+/* ---------- 表情反應、揮手、讀書小桌（參考 Gather 類的線上空間） ----------
+   表情：城市和讀書房按一下，自己頭上冒出表情，同一個地方的人都看得到（走即時連線，不存資料庫）。
+   揮手：點同學 → 揮手，對方會聽到「叮咚」；專注中不吵他，讀完才告訴他。好友每天第一次揮手 +1 好感度。
+   讀書小桌：讀書房有 3 張桌子，一桌 4 人。同桌一起專注（重疊 10 分鐘以上），雙方各 +20 金幣（每天 3 次）。 */
+const REACTS=['👋','❤️','🎉','👍','💯','😂','👏','💪'];
+let lastReact=0,waveQ=[];const waveAt={},waveIn={};
+const reactBar=()=>`<div class="chips" style="justify-content:center;gap:4px" aria-label="送出表情">${REACTS.map(e=>`<button class="chip" data-re="${e}" style="font-size:17px;padding:2px 7px;line-height:1.3" aria-label="送出 ${e}">${e}</button>`).join('')}</div>`;
+function bindReacts(){$('#view').querySelectorAll('[data-re]').forEach(b=>b.onclick=()=>sendReact(b.dataset.re))}
+function sendReact(e){
+  if(Date.now()-lastReact<1200)return;lastReact=Date.now();
+  showReact(ME||'me',e);
+  const ch=curTab==='city'?cityChan:chan;if(ONLINE&&ch)ch.send({type:'broadcast',event:'react',payload:{u:ME,e}});
+  /* 單機版：旁邊的 NPC 有時候也回個表情 */
+  if(!ONLINE&&Math.random()<.6)setTimeout(()=>{const n=curTab==='city'&&city?pick(city.npcs):pick(S.freeRoom?freeBots():roomBots());if(n)showReact(n.name||n[0],pick(REACTS))},700+Math.random()*1500);
+}
+function showReact(uid,e){
+  const mine=uid===ME||uid==='me';
+  if(curTab==='city'&&city){const who=mine?city.me:city.peers[uid]||city.npcs.find(n=>n.name===uid);if(who)city.bubbles.push({who,txt:e,emo:true,until:performance.now()+2200});return}
+  if(curTab!=='room')return;
+  const box=$('#seats');if(!box)return;
+  const el=mine?box.querySelector('[data-mine]'):[...box.querySelectorAll('[data-vn]')].find(x=>x.dataset.vu?x.dataset.vu===uid:x.dataset.vn===uid);
+  if(!el)return;const sp=document.createElement('span');sp.className='rpop';sp.textContent=e;el.appendChild(sp);setTimeout(()=>sp.remove(),2000);
+}
+function listenSocial(ch){
+  ch.on('broadcast',{event:'react'},({payload:p})=>{if(p&&p.u&&p.u!==ME&&!isBlocked(p.u)&&REACTS.includes(p.e))showReact(p.u,p.e)});
+  ch.on('broadcast',{event:'wave'},({payload:p})=>{if(p&&p.to===ME&&p.from!==ME&&!isBlocked(p.from))gotWave(p)});
+}
+function chime(){try{const A=chime.a||(chime.a=new (window.AudioContext||window.webkitAudioContext)()),t=A.currentTime;
+  [988,1319].forEach((f,i)=>{const o=A.createOscillator(),g=A.createGain(),s0=t+i*.14;o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,s0);g.gain.exponentialRampToValueAtTime(.18,s0+.02);g.gain.exponentialRampToValueAtTime(.0001,s0+.45);o.connect(g).connect(A.destination);o.start(s0);o.stop(s0+.5)})}catch(e){}}
+function sendWave(uid,name){
+  const k=uid||name;if(Date.now()-(waveAt[k]||0)<30000){toast('剛剛揮過手了，等一下再揮');return}waveAt[k]=Date.now();
+  showReact(ME||'me','👋');toast(`你對 ${name} 揮手了 👋`);
+  if(ONLINE&&uid){const p={from:ME,name:S.name,to:uid};[chan,cityChan].forEach(c=>c&&c.send({type:'broadcast',event:'wave',payload:p}));
+    cloud.run(()=>sb.rpc('wave_friend',{p_to:uid}))}
+  else if(!ONLINE)setTimeout(()=>gotWave({from:'bot:'+name,name,back:true}),1500+Math.random()*2000);
+}
+function gotWave(p){
+  if(Date.now()-(waveIn[p.from]||0)<30000)return;waveIn[p.from]=Date.now();
+  if(tm.mode==='focus'&&!tm.paused){if(!waveQ.includes(p.name))waveQ.push(p.name);return}
+  chime();
+  const m=modal(`<div style="text-align:center;font-size:44px;line-height:1">👋</div><h2 style="text-align:center">${esc(p.name)} ${p.back?'也':''}對你揮手！</h2>
+    ${p.back?'':`<p class="small" style="margin:0;text-align:center">揮手回去打個招呼吧</p>`}
+    <div class="row">${p.back?'':`<button class="btn gold" id="wback">👋 揮手回去</button>`}<button class="btn ghost" data-close>好</button></div>`);
+  if(!p.back)m.querySelector('#wback').onclick=()=>{m.remove();sendWave(p.from,p.name)};
+}
+function flushWaves(){if(!waveQ.length)return;const n=waveQ.splice(0);chime();toast(`剛剛專注時，${n.slice(0,3).join('、')}${n.length>3?` 等 ${n.length} 人`:''}對你揮手 👋`)}
+
+const TABLES=['星星桌','月亮桌','太陽桌'],TABLE_MAX=4,TABLE_DAY=3;
+const myTable=()=>S.table&&S.tableRoom===chatRoom()?S.table:0;
+const botTable=name=>mix(name+today()+'table')%4;
+function tableMembers(n){
+  if(ONLINE)return peers.filter(p=>p.table===n).map(p=>({uid:p.uid,name:p.name,outfit:lookOf({outfit:p.outfit},p.tier).outfit,focus:p.focus}));
+  return (S.freeRoom?freeBots():roomBots()).filter(b=>botTable(b[0])===n).map(b=>({name:b[0],outfit:lookOf({outfit:botOutfit(b[0])},b[1]).outfit,focus:true}));
+}
+function drawTables(){
+  const box=$('#tables');if(!box)return;const mt=myTable();
+  box.innerHTML=`<div class="bar"><span>讀書小桌</span><span class="small">${mt?`你在${TABLES[mt-1]}`:'還沒坐下'}</span></div>
+    <p class="small" style="margin:0">跟同學坐同一桌一起專注，都讀完（一起讀 10 分鐘以上）兩個人各 +20 金幣，每天 ${TABLE_DAY} 次；是好友還會加好感度。</p>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">${TABLES.map((t,i)=>{const n=i+1,mem=tableMembers(n).slice(0,TABLE_MAX-(mt===n?1:0)),full=mem.length>=TABLE_MAX&&mt!==n;
+      const all=(mt===n?[{name:'你',outfit:myLook().outfit,focus:tm.mode==='focus',me:true}]:[]).concat(mem);
+      return `<div class="dtable" style="${mt===n?'outline:3px solid var(--gold)':''}"><span class="small" style="text-align:center;color:var(--gold)">${t}・${all.length}/${TABLE_MAX}</span>
+        <div class="dwho">${all.map(p=>`<span title="${esc(p.name)}" style="opacity:${p.focus?1:.55}">${avatarSVG(p.outfit,3)}</span>`).join('')||'<span class="small" style="color:var(--dim)">空位</span>'}</div>
+        <button class="chip" data-tb="${n}" ${full?'aria-disabled="true"':''} style="align-self:center;font-size:12px">${mt===n?'離開':full?'坐滿了':'坐這桌'}</button></div>`}).join('')}</div>`;
+  box.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{const n=+b.dataset.tb;
+    if(myTable()===n){S.table=0;save();trackMe();drawTables();toast('離開讀書小桌了');return}
+    if(tableMembers(n).length>=TABLE_MAX){toast('這桌坐滿了，換一桌吧');return}
+    S.table=n;S.tableRoom=chatRoom();save();trackMe();drawTables();toast(`坐到${TABLES[n-1]}了！一起開始專注吧`)});
+  paintSprites(box);
+}
+async function claimTable(sid,mins){
+  const n=myTable();if(!n||mins<15)return;
+  if(!ONLINE){const mem=tableMembers(n);if(!mem.length)return;
+    S.tableDay=S.tableDay&&S.tableDay.d===today()?S.tableDay:{d:today(),n:0};
+    if(S.tableDay.n>=TABLE_DAY){toast('一起讀完了！（今天的小桌獎勵已經領滿）');return}
+    S.tableDay.n++;S.tx=(S.tx||0)+20;save();setTimeout(()=>toast(`和 ${mem.map(m=>m.name).join('、')} 一起讀完！讀書小桌 +20 金幣`),1200);return}
+  const mates=tableMembers(n).map(p=>p.uid).slice(0,3);if(!mates.length)return;
+  for(let i=0;i<20&&(S.pendingFocus||[]).some(p=>p.sid===sid);i++)await new Promise(r=>setTimeout(r,1000));
+  if((S.pendingFocus||[]).some(p=>p.sid===sid))return;
+  const r=await cloud.run(()=>sb.rpc('claim_table_bonus',{p_sid:sid,p_mates:mates}));if(!r)return;
+  if(r.wallet!=null)syncWallet(r.wallet);
+  const names=r.mates||[];
+  if(r.got)toast(`和 ${names.join('、')} 一起讀完！讀書小桌 +${r.got} 金幣`);
+  else if(names.length)toast('一起讀完了！（今天的小桌獎勵已經領滿）');
+  else toast('同桌的同學還在讀，等他讀完，你們兩個都會拿到小桌獎勵');
+  if(curTab==='room')renderRoom();
+}
 
 /* ---------- 開始畫面 ---------- */
 const STARTERS=[
@@ -2743,6 +2846,8 @@ function renderRoom(){
      <button class="chip" data-rm="free" aria-pressed="${!!S.freeRoom}" style="${S.freeRoom?'background:var(--gold);color:var(--night)':''}">自由房（不分年級）</button></div>
    <div class="bar"><span>${esc(roomLabel())}</span><span style="color:var(--mint)" id="cnt"></span></div>
    <div class="box room" id="seats"></div>
+   ${reactBar()}
+   <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px" id="tables"></div>
    <div class="timer" id="clock" aria-live="off">${fmt(tm.mode==='idle'?len*60:tm.left)}</div>
    <p class="small" id="mlabel" style="text-align:center;margin:0">${tm.mode==='break'?'休息時間・來一題快問快答':tm.mode==='idle'?'選好時間，按開始':'專注中…'}</p>
    <div class="prog"><i id="bar"></i></div>
@@ -2754,9 +2859,9 @@ function renderRoom(){
    <div class="box" style="background:var(--deep)" id="board"><p class="small" style="margin:0">載入排行中…</p></div>
    ${ONLINE?'':`<button class="chip" id="spd" style="align-self:center" aria-pressed="${tm.speed>1}">快轉 ×60</button>
    <p class="demo">單機版才有快轉，方便試玩。</p>`}`;
-  drawSeats();paintSprites($('#view'));
+  drawSeats();drawTables();bindReacts();paintSprites($('#view'));if(tm.mode!=='focus')flushWaves();
   $('#view').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const f=b.dataset.rm==='free';if(!!S.freeRoom===f)return;
-    S.freeRoom=f;save();if(ONLINE){leaveRoom();joinRoom()}rchat.room='';renderRoom();toast(`換到${roomLabel()}`)});
+    S.freeRoom=f;S.table=0;save();if(ONLINE){leaveRoom();joinRoom()}rchat.room='';renderRoom();toast(`換到${roomLabel()}`)});
   $('#view').querySelectorAll('[data-len]').forEach(b=>b.onclick=()=>{if(tm.mode!=='idle'){toast('專注中不能換時間');return}S.timerLen=+b.dataset.len;save();renderRoom()});
   if($('#spd'))$('#spd').onclick=()=>{tm.speed=tm.speed>1?1:60;if(tm.mode!=='idle'&&!tm.paused)tm.end=Date.now()+tm.left*1000/tm.speed;renderRoom()};
   const ctl=$('#ctl');
@@ -2981,6 +3086,7 @@ function finishFocus(){
     <p style="text-align:center;margin:0;color:var(--gold)">${gain?`+${gain} 金幣${evMult(today())>1?'（加成中）':''}`:`今天的專注金幣已經領滿了`}</p>
     <button class="btn gold" data-close>休息一下</button>`);
   milestoneCheck(before);if(mins>=25)eventRoll('focus');
+  flushWaves();claimTable(sid,mins);
 }
 function renderQuiz(){
   if(!tm.quiz){tm.quiz={q:pick(pool()),t0:Date.now(),done:null,rival:dayBots()[Math.floor(Math.random()*3)][0],rt:(2+Math.random()*4).toFixed(1)}}
