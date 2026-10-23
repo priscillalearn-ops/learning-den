@@ -22,7 +22,14 @@ self.addEventListener('fetch', e => {
   const cdn = /(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)$/.test(url.hostname);
   if (!mine && !cdn) return;
   e.respondWith(caches.open(VER).then(c => c.match(req).then(hit => {
-    const net = fetch(req).then(r => { if (r.ok || r.type === 'opaque') c.put(req, r.clone()); return r; }).catch(() => hit);
+    const net = fetch(req).then(r => {
+      if (r.ok || r.type === 'opaque') {
+        c.put(req, r.clone());
+        // 題庫換版本（?v= 不一樣）時，把同一個檔案的舊版本刪掉
+        if (mine && url.search) c.keys().then(ks => ks.forEach(k => { const u = new URL(k.url); if (u.pathname === url.pathname && u.search !== url.search) c.delete(k); }));
+      }
+      return r;
+    }).catch(() => hit);
     return hit || net;
   })));
 });

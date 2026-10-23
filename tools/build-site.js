@@ -2,7 +2,11 @@
 // 用法：在 Magic_World_App 資料夾執行  node learning-den/tools/build-site.js
 const fs = require('fs');
 const path = require('path');
-const src = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+const crypto = require('crypto');
+// 題庫內容指紋：題庫一改，網址就變（banks/sage.json?v=…），學生手機的離線快取會直接拿新題庫
+const bankVer = {};
+for (const t of ['kid', 'teen', 'sage']) bankVer[t] = crypto.createHash('sha1').update(fs.readFileSync(path.join(__dirname, '../banks', t + '.json'))).digest('hex').slice(0, 10);
+const src = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8').replace('const BANK_VER={};', 'const BANK_VER=' + JSON.stringify(bankVer) + ';');
 const out = path.join(__dirname, '../docs');
 fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(path.join(out, 'index.html'),

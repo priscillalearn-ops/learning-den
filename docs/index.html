@@ -213,6 +213,8 @@ function cardOf(ex,ans){
   if(n&&n[1].length<=30)return{w:n[1].trim(),zh:cut(n[2])};
   return{w:ans,zh:/[\u4e00-\u9fff]/.test(ex||'')?cut(ex):''};
 }
+/* 題庫版本：網站版由 build-site.js 填入各題庫的內容指紋，題庫一改網址就變，手機的離線快取會馬上換新題庫 */
+const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"9e50faeae5"};
 /* 題庫分成 banks/kid.json、teen.json、sage.json，選了等級才下載（高中題庫很大，國小國中生不用載）。
    由 tools/gept-kid.py、tools/jh-bank.py、tools/import-granny.js 產生。 */
 const SRCS={},QID={},bankLoading={};
@@ -226,7 +228,7 @@ function addBank(tier,data){
 }
 function loadBank(tier){
   if(!tier||SRCS[tier])return Promise.resolve(true);
-  if(!bankLoading[tier])bankLoading[tier]=fetch(`banks/${tier}.json`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})
+  if(!bankLoading[tier])bankLoading[tier]=fetch(`banks/${tier}.json${BANK_VER[tier]?'?v='+BANK_VER[tier]:''}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})
     .then(d=>{addBank(tier,d);return true}).catch(e=>{console.warn(e);delete bankLoading[tier];return false});
   return bankLoading[tier];
 }
