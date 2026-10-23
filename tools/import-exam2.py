@@ -1,9 +1,8 @@
-# 把老師的高一第二次段考講義／週作業本（Word 檔）轉成題庫單元，加進 banks/sage.json。
-#   龍騰 B1 L4–L6 → B1L4／B1L5／B1L6；三民乙版 B1 U4–U6（含 Review 2）→ SM1U4／SM1U5／SM1U6
-# 用法：python3 learning-den/tools/import-exam2.py [講義資料夾，預設 ~/Downloads]
-# 會讀：
-#   高一英文第二次段考講義_L4-L6_教師版.docx、115學年度高一週作業本（龍騰）二段.docx
-#   115A 高一英文 三民U4-U6_R2.docx、高一英文三民第二次段考_週作業本_U4-U6.docx
+# 把老師的第二次段考講義／週作業本／每週小考（Word 檔）轉成題庫單元，加進 banks/sage.json。
+#   b1（高一）：龍騰 B1 L4–L6 → B1L4／B1L5／B1L6；三民乙版 B1 U4–U6（含 Review 2）→ SM1U4／SM1U5／SM1U6
+#   b3（高二）：龍騰 B3 L4–L6 → B3L4／B3L5／B3L6（講義＋週作業本＋每週小考）
+# 用法：python3 learning-den/tools/import-exam2.py b1|b3 [講義資料夾，預設 ~/Downloads]
+# 讀哪些檔案寫在下面的 SETS。
 # 選擇題（中選英、英選中、單字選擇、詞彙題、文法選擇）直接用；文意字彙、詞類變化改成四選一；
 # 綜合測驗、文意選填取出題目那一句（其他空格填好答案）。閱讀測驗、篇章結構、翻譯題不收（要看整篇或要自己寫）。
 # 改完要重跑 node learning-den/tools/keys-sql.js，請老師在 Supabase 跑 question_keys.sql。
@@ -11,26 +10,44 @@ import json, os, random, re, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BANK = os.path.join(HERE, '..', 'banks', 'sage.json')
-SRC = os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else '~/Downloads')
+SET = sys.argv[1] if len(sys.argv) > 1 else 'b1'
+SRC = os.path.expanduser(sys.argv[2] if len(sys.argv) > 2 else '~/Downloads')
 CIRC = '①②③④⑤⑥⑦⑧⑨⑩'
 
-DOCS = [
-    # 檔名, 單元代碼對應, 標籤
-    ('高一英文第二次段考講義_L4-L6_教師版.docx', {'L4': 'B1L4', 'L5': 'B1L5', 'L6': 'B1L6'}, '講義'),
-    ('115學年度高一週作業本（龍騰）二段.docx', {'W1': 'B1L4', 'W2': 'B1L4', 'W3': 'B1L5', 'W4': 'B1L5', 'W5': 'B1L6', 'W6': 'B1L6'}, '週作業'),
-    ('115A 高一英文 三民U4-U6_R2.docx', {'U4': 'SM1U4', 'U5': 'SM1U5', 'U6': 'SM1U6', 'R2': 'SM1U6'}, '講義'),
-    ('高一英文三民第二次段考_週作業本_U4-U6.docx', {'W1': 'SM1U4', 'W2': 'SM1U4', 'W3': 'SM1U5', 'W4': 'SM1U5', 'W5': 'SM1U6', 'W6': 'SM1U6'}, '週作業'),
-]
-UNITS = [
-    ('B1L4', '龍騰', '龍騰 B1 L4　Sniffing Out More Than Just Bones', 'B1 L4', '關係代名詞（限定／非限定用法）'),
-    ('B1L5', '龍騰', '龍騰 B1 L5　The Life of a Plastic Bag', 'B1 L5', '使役動詞 make／have／let、because／because of'),
-    ('B1L6', '龍騰', '龍騰 B1 L6　Built for Freedom: The Statue of Liberty', 'B1 L6', '強調句 It is/was...that、so／such...that'),
-    ('SM1U4', '三民乙版', '三民乙版 B1 U4　The Sugar Feast and More: Welcome to Eid al-Fitr', '三民 B1U4', '冠詞、N, + which/who（非限定用法）'),
-    ('SM1U5', '三民乙版', '三民乙版 B1 U5　Creative Traffic Signals Around the World', '三民 B1U5', '現在完成式、現在完成進行式'),
-    ('SM1U6', '三民乙版', '三民乙版 B1 U6　Reaching for Space（含 Review 2）', '三民 B1U6', '疑問詞引導的名詞子句、轉折語'),
-]
-PRESETS = [('龍騰高一第二次段考（L4–L6）', ['B1L4', 'B1L5', 'B1L6'], '龍騰高一第一次段考'),
-           ('三民乙版 B1 U4–U6（第二次段考）', ['SM1U4', 'SM1U5', 'SM1U6'], '三民乙版 B1 U1–U3')]
+SETS = {'b1': {
+    'docs': [
+        # 檔名, 單元代碼對應, 標籤
+        ('高一英文第二次段考講義_L4-L6_教師版.docx', {'L4': 'B1L4', 'L5': 'B1L5', 'L6': 'B1L6'}, '講義'),
+        ('115學年度高一週作業本（龍騰）二段.docx', {'W1': 'B1L4', 'W2': 'B1L4', 'W3': 'B1L5', 'W4': 'B1L5', 'W5': 'B1L6', 'W6': 'B1L6'}, '週作業'),
+        ('115A 高一英文 三民U4-U6_R2.docx', {'U4': 'SM1U4', 'U5': 'SM1U5', 'U6': 'SM1U6', 'R2': 'SM1U6'}, '講義'),
+        ('高一英文三民第二次段考_週作業本_U4-U6.docx', {'W1': 'SM1U4', 'W2': 'SM1U4', 'W3': 'SM1U5', 'W4': 'SM1U5', 'W5': 'SM1U6', 'W6': 'SM1U6'}, '週作業'),
+    ],
+    'units': [
+        ('B1L4', '龍騰', '龍騰 B1 L4　Sniffing Out More Than Just Bones', 'B1 L4', '關係代名詞（限定／非限定用法）'),
+        ('B1L5', '龍騰', '龍騰 B1 L5　The Life of a Plastic Bag', 'B1 L5', '使役動詞 make／have／let、because／because of'),
+        ('B1L6', '龍騰', '龍騰 B1 L6　Built for Freedom: The Statue of Liberty', 'B1 L6', '強調句 It is/was...that、so／such...that'),
+        ('SM1U4', '三民乙版', '三民乙版 B1 U4　The Sugar Feast and More: Welcome to Eid al-Fitr', '三民 B1U4', '冠詞、N, + which/who（非限定用法）'),
+        ('SM1U5', '三民乙版', '三民乙版 B1 U5　Creative Traffic Signals Around the World', '三民 B1U5', '現在完成式、現在完成進行式'),
+        ('SM1U6', '三民乙版', '三民乙版 B1 U6　Reaching for Space（含 Review 2）', '三民 B1U6', '疑問詞引導的名詞子句、轉折語'),
+    ],
+    'presets': [('龍騰高一第二次段考（L4–L6）', ['B1L4', 'B1L5', 'B1L6'], '龍騰高一第一次段考'),
+               ('三民乙版 B1 U4–U6（第二次段考）', ['SM1U4', 'SM1U5', 'SM1U6'], '三民乙版 B1 U1–U3')],
+    'after': {'B1L4': 'B1L2', 'B1L5': 'B1L4', 'B1L6': 'B1L5', 'SM1U4': 'SM1U3', 'SM1U5': 'SM1U4', 'SM1U6': 'SM1U5'}},
+'b3': {
+    'docs': [
+        ('115A高二英文L4-L6(龍騰).docx', {'L4': 'B3L4', 'L5': 'B3L5', 'L6': 'B3L6'}, '講義'),
+        ('高二英文龍騰版 第二次段考_週作業本.docx', {'W1': 'B3L4', 'W2': 'B3L4', 'W3': 'B3L5', 'W4': 'B3L5', 'W5': 'B3L6', 'W6': 'B3L6'}, '週作業'),
+        ('高二英文第二次段考_每週小考_L4-L6.docx', {'Q1': 'B3L4', 'Q2': 'B3L5', 'Q3': 'B3L5', 'Q4': 'B3L6', 'Q5': 'B3L6'}, '小考'),
+    ],
+    'units': [
+        ('B3L4', '龍騰', '龍騰 B3 L4　Day of the Dead: A Joyous Celebration of Death', 'B3 L4', 'be thought/said/believed + to VR／to have p.p.、would rather...than'),
+        ('B3L5', '龍騰', '龍騰 B3 L5　Kyoto: The Heart of Japan', 'B3 L5', 'be seen/heard + V-ing／to VR、no/not/never...without'),
+        ('B3L6', '龍騰', '龍騰 B3 L6　The Country of the Blind', 'B3 L6', 'It is/was not until...that、either...or／neither...nor'),
+    ],
+    'presets': [('龍騰高二第二次段考（L4–L6）', ['B3L4', 'B3L5', 'B3L6'], '高二第一次段考總複習（課文＋題本）')],
+    'after': {'B3L4': 'B3L3', 'B3L5': 'B3L4', 'B3L6': 'B3L5'}}}
+CFG = SETS[SET]
+DOCS, UNITS, PRESETS = CFG['docs'], CFG['units'], CFG['presets']
 
 def text_of(name):
     p = os.path.join(SRC, name)
@@ -40,9 +57,9 @@ def text_of(name):
         return open(out, encoding='utf-8').read()
 
 def unit_key(line):
-    m = re.match(r'^(Lesson|Unit|Week|Review)\s*(\d+)(?:\s*[　（(]|$)', line)
+    m = re.match(r'^(?:\S*英文[　 ]+)?(Lesson|Unit|Week|Review|Quiz)\s*(\d+)(?:\s*[　（(]|$)', line)
     if not m: return None
-    return {'Lesson': 'L', 'Unit': 'U', 'Week': 'W', 'Review': 'R'}[m.group(1)] + m.group(2)
+    return {'Lesson': 'L', 'Unit': 'U', 'Week': 'W', 'Review': 'R', 'Quiz': 'Q'}[m.group(1)] + m.group(2)
 
 def split_doc(txt):
     """回傳 (題目區, 答案區)，各自是 {(單元, 大題名稱): [行]}"""
@@ -221,9 +238,9 @@ def build():
             uid = umap.get(u)
             if not uid: continue
             key = A.get((u, sec), [])
-            lab = {'W': f'W{u[1]} ', 'R': 'Review 2 '}.get(u[0], '')
-            tag = lab + ('週作業・' if kind == '週作業' else '')
-            if sec in ('中選英', '英選中', '單字選擇', '詞彙題', '詞彙複習') or sec.startswith('文法選擇') or sec == '文法複習':
+            lab = {'W': f'W{u[1]} ', 'Q': f'Quiz {u[1]} ', 'R': 'Review 2 '}.get(u[0], '')
+            tag = lab + ({'週作業': '週作業・', '小考': '小考・'}.get(kind, ''))
+            if sec in ('中選英', '英選中', '單字選擇', '詞彙題', '詞彙複習', '詞彙選擇') or sec.startswith('文法選擇') or sec == '文法複習':
                 ks = mc_keys(key)
                 for n, stem, o in numbered_mc(ls):
                     if n not in ks: continue
@@ -238,18 +255,18 @@ def build():
                     else:
                         full = fill(stem, o[a])
                         units[uid]['v'].append([f'【{tag}單字】{stem}', o, a, gloss_for(g, o[a]) or (f'完整句：{full}' if full else '')])
-            elif sec in ('文意字彙',):
+            elif sec in ('文意字彙', '單字拼寫'):
                 kw, it = keyed_words(key), keyed_items(ls)
                 ans = list(kw.values())
                 pool = list(dict.fromkeys([x.lower() for x in ans] + words))
                 for stem, a in ((it[n], kw[n]) for n in kw if n in it):
                     s2 = re.sub(r'[A-Za-z]*_{3,}[A-Za-z]*', '____', stem, count=1)
                     if '____' not in s2: continue
-                    a = a.strip()
+                    alts = {x.strip().lower() for x in a.split('/')}; a = a.split('/')[0].strip()  # 有兩種答案時用第一種，另一種不當錯的選項
                     suf = lambda w: w[-2:] if len(w) > 3 else w
-                    cands = [w for w in pool if w != a.lower() and suf(w) == suf(a.lower())] or [w for w in pool if w != a.lower()]
+                    cands = [w for w in pool if w not in alts and suf(w) == suf(a.lower())] or [w for w in pool if w not in alts]
                     rnd.shuffle(cands)
-                    if len(cands) < 3: cands += [w for w in pool if w != a.lower() and w not in cands]
+                    if len(cands) < 3: cands += [w for w in pool if w not in alts and w not in cands]
                     o = cands[:3] + [a]; rnd.shuffle(o)
                     if a[0].isupper(): o = [x[0].upper() + x[1:] for x in o]
                     units[uid]['v'].append([f'【{tag}文意字彙】{s2}', o, o.index(a), gloss_for(g, a) or f'答案：{a}'])
@@ -258,9 +275,10 @@ def build():
                 for stem, a in ((it[n], kw[n]) for n in kw if n in it):
                     m = re.search(r'_{3,}\s*\(([A-Za-z]+)\)', stem)
                     if not m: continue
-                    base = m.group(1).lower(); a = a.strip()
-                    fam = [w for w in g if re.fullmatch(r'[a-z]+', w) and w[:4] == base[:4] and w != a.lower()]
-                    fam = list(dict.fromkeys([base] + fam if base != a.lower() else fam))
+                    alts = {x.strip().lower() for x in a.split('/')}; a = a.split('/')[0].strip()
+                    base = m.group(1).lower()
+                    fam = [w for w in g if re.fullmatch(r'[a-z]+', w) and w[:4] == base[:4] and w not in alts]
+                    fam = list(dict.fromkeys([base] + fam if base not in alts else fam))
                     if len(fam) < 3: continue
                     rnd.shuffle(fam)
                     o = fam[:3] + [a.lower()]; rnd.shuffle(o)
@@ -289,7 +307,7 @@ def main():
         lab = short.replace('三民 ', '')
         unit = {'id': uid, 'pub': pub, 'grade': '高一', 'name': name, 'short': short,
                 'src': {'v': f'{lab} 單字・片語', 'g': f'{lab} 文法：{gram}', 'c': f'{lab} 綜合測驗・文意選填'}, **q}
-        after = {'B1L4': 'B1L2', 'B1L5': 'B1L4', 'B1L6': 'B1L5', 'SM1U4': 'SM1U3', 'SM1U5': 'SM1U4', 'SM1U6': 'SM1U5'}[uid]
+        after = CFG['after'][uid]
         i = next(i for i, u in enumerate(d['units']) if u['id'] == after)
         d['units'].insert(i + 1, unit)
         print(uid, {t: len(q[t]) for t in 'vgc'})
