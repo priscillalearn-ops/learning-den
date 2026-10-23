@@ -1,0 +1,1759 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>太平格蘭 英語遊戲樂園</title>
+<meta name="description" content="太平格蘭 GRAM 2026 英檢 A、B、C、D 四組聽力與閱讀練習：跑酷、賽車、釣魚、射氣球、打地鼠，邊玩邊練。">
+<meta property="og:title" content="太平格蘭 英語遊戲樂園">
+<meta property="og:description" content="英檢 A、B、C、D 四組聽力與閱讀練習遊戲，手機打開就能玩。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#2E4C40">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}*,*::before,*::after{box-sizing:border-box}img{max-width:100%}</style>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Gaegu:wght@700&family=Huninn&display=swap">
+<style>
+/* Layout: an elementary classroom. Lobby = chalkboard with sticky notes, stickers and a name tag; play = wooden chalk tray HUD, exercise-book question page, the game stage; results = 聯絡簿 page with the teacher's reward stamps. Single look by choice. */
+:root{
+  --board:#2E4C40; --board-2:#25403A; --chalk:#F3F0E6; --chalk-dim:rgba(243,240,230,.72);
+  --wood:#B67C47; --wood-d:#875628;
+  --paper:#FFFEF8; --rule:#C3DAF3; --margin:#EE8C8C; --ink:#26314B; --mute:#5F6987;
+  --note-y:#FFE27A; --note-p:#FFC2D1; --note-b:#B4DCFF; --note-g:#C5EBA9;
+  --a:#E8553E; --b:#2E6FD8; --c:#2F9A4C; --stamp:#D8343A; --stamp-b:#2B62C9;
+  --hand:"Gaegu","Huninn","PingFang TC","Microsoft JhengHei",cursive;
+  --zh:"Huninn","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --en:"Andika","Huninn",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{margin:0;background:var(--board);color:var(--chalk);font-family:var(--zh);font-size:15px;overflow:hidden;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 20% 15%,rgba(255,255,255,.07),transparent 45%),
+    radial-gradient(ellipse at 80% 60%,rgba(255,255,255,.05),transparent 50%);}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px dashed var(--note-y);outline-offset:3px}
+#app{height:100%;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column}
+
+/* ---------- Lobby: the chalkboard ---------- */
+#home{overflow-y:auto;padding-block:22px 44px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:900px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:30px}
+.hero{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:18px}
+.hero .date{font-family:var(--hand);font-size:18px;color:var(--chalk-dim)}
+.hero .brand{display:inline-block;margin-bottom:6px;font-size:18px;letter-spacing:5px;color:var(--ink);background:var(--note-y);padding:3px 12px 3px 16px;transform:rotate(-2deg);box-shadow:2px 4px 8px rgba(0,0,0,.25)}
+.hero h1{font-family:var(--zh);font-weight:400;font-size:clamp(34px,7vw,56px);line-height:1.1;margin:2px 0 6px;letter-spacing:2px;text-wrap:balance;
+  text-shadow:0 0 1px rgba(255,255,255,.9),1px 1px 0 rgba(255,255,255,.18),-1px 0 0 rgba(255,255,255,.12)}
+.hero h1 .u{background:linear-gradient(transparent 72%,rgba(255,226,122,.75) 72%,rgba(255,226,122,.75) 88%,transparent 88%)}
+.hero p{margin:0;color:var(--chalk-dim);font-size:15px;line-height:1.6}
+.sticky{position:relative;display:inline-block;background:var(--note-y);color:var(--ink);padding:16px 18px 14px;box-shadow:2px 6px 10px rgba(0,0,0,.28);transform:rotate(2.5deg);text-decoration:none}
+.sticky::before{content:"";position:absolute;top:-10px;left:50%;width:62px;height:20px;transform:translateX(-50%) rotate(-4deg);background:rgba(255,255,255,.55);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.listen b{display:block;font-size:18px}
+.listen small{font-size:13px;color:var(--mute)}
+.listen:hover{transform:rotate(0deg) scale(1.03)}
+.step{display:flex;flex-direction:column;gap:14px}
+.step h2{margin:0;font-weight:400;font-size:21px;display:flex;align-items:center;gap:10px;letter-spacing:1px}
+.step h2 .n{font-family:var(--hand);display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px dashed var(--chalk);font-size:22px;line-height:1}
+.groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;padding-top:8px}
+.gcard:nth-child(4){background:var(--note-y);transform:rotate(2deg)}
+@media (max-width:640px){.groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}}
+.gcard{position:relative;border:none;padding:18px 12px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;color:var(--ink);box-shadow:2px 6px 10px rgba(0,0,0,.25);transition:transform .2s}
+.gcard::before{content:"";position:absolute;top:-9px;left:50%;width:54px;height:18px;transform:translateX(-50%) rotate(3deg);background:rgba(255,255,255,.55)}
+.gcard:nth-child(1){background:var(--note-p);transform:rotate(-2deg)}
+.gcard:nth-child(2){background:var(--note-b);transform:rotate(1.5deg)}
+.gcard:nth-child(3){background:var(--note-g);transform:rotate(-1deg)}
+.gcard .big{font-family:var(--hand);font-size:52px;line-height:.9;color:var(--gc)}
+.gcard b{font-weight:400;font-size:17px}
+.gcard .meta{font-size:13px;color:var(--mute);line-height:1.5}
+.gcard[aria-pressed="true"]{transform:rotate(0deg) translateY(-6px) scale(1.04);box-shadow:3px 12px 16px rgba(0,0,0,.35)}
+.gcard[aria-pressed="true"]::after{content:"就是我";position:absolute;right:6px;top:8px;font-size:13px;color:var(--stamp);border:2px solid var(--stamp);border-radius:50%;width:46px;height:46px;display:grid;place-items:center;transform:rotate(-14deg);opacity:.85}
+.picked{display:flex;align-items:center;gap:12px;color:var(--chalk);font-size:16px}
+.picked .big{width:64px;height:64px;flex:none;filter:drop-shadow(0 3px 0 rgba(0,0,0,.25))}
+.picked .big svg,.av .face svg{width:100%;height:100%;display:block}
+.av .face svg{width:58px;height:58px;margin-top:6px}
+.avatars{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:14px 10px}
+.av{border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0}
+.av .face{width:66px;height:66px;border-radius:50%;background:var(--paper);display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 4px #fff,0 5px 8px rgba(0,0,0,.35);transition:transform .2s}
+.av .nm{font-size:14px;color:var(--chalk-dim)}
+.av:hover .face{transform:rotate(-8deg)}
+.av[aria-pressed="true"] .face{box-shadow:0 0 0 4px #fff,0 0 0 8px var(--note-y),0 6px 10px rgba(0,0,0,.4);animation:hop .55s ease-in-out infinite alternate}
+.av[aria-pressed="true"] .nm{color:var(--note-y)}
+@keyframes hop{to{transform:translateY(-5px) rotate(-6deg)}}
+.nametag{display:flex;flex-direction:column;width:min(260px,100%);background:var(--paper);box-shadow:2px 6px 10px rgba(0,0,0,.28);transform:rotate(-1deg)}
+.nametag span{background:var(--stamp);color:#fff;font-size:13px;padding:5px 12px;letter-spacing:3px}
+.nametag input{font:inherit;font-size:22px;color:var(--ink);border:none;border-bottom:2px dashed var(--rule);background:transparent;margin:10px 14px 14px;padding:4px 2px;min-width:0}
+.opts{display:flex;flex-wrap:wrap;gap:18px 30px}
+.seg{display:flex;flex-direction:column;gap:8px}
+.seg>span{font-size:14px;color:var(--chalk-dim)}
+.seg .row{display:flex;flex-wrap:wrap;gap:8px}
+.pill{border:2px solid var(--chalk-dim);background:transparent;padding:6px 14px;border-radius:20px 16px 22px 14px;font-size:15px;color:var(--chalk)}
+.pill[aria-pressed="true"]{background:var(--chalk);color:var(--board);border-color:var(--chalk)}
+.pill:disabled{opacity:.4;cursor:not-allowed}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px 18px;padding-top:6px}
+.game{position:relative;border:none;background:var(--paper);color:var(--ink);padding:16px 16px 14px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:200px;
+  box-shadow:2px 7px 12px rgba(0,0,0,.3);border-top:10px solid var(--gc);transition:transform .2s}
+.game:nth-child(odd){transform:rotate(-1.2deg)}
+.game:nth-child(even){transform:rotate(1deg)}
+.game:hover{transform:rotate(0) translateY(-4px)}
+.game:active{transform:scale(.98)}
+.game .ill{font-size:52px;line-height:1;align-self:flex-end;margin:-6px -2px -14px 0;transform:rotate(8deg)}
+.game b{font-weight:400;font-size:24px;background:linear-gradient(transparent 62%,color-mix(in srgb,var(--gc) 35%,transparent) 62%);align-self:flex-start;padding:0 2px}
+.game small{font-size:14px;line-height:1.6;color:var(--mute)}
+.game .best{margin-top:auto;font-size:13px;color:var(--stamp);border:2px solid var(--stamp);border-radius:4px;padding:2px 8px;align-self:flex-start;transform:rotate(-2deg)}
+.g-run{--gc:#F07A2E}.g-race{--gc:#7A55D9}.g-fish{--gc:#2E8FD8}.g-balloon{--gc:#E5508A}.g-mole{--gc:#3C9A4E}
+.note{margin:0;font-size:14px;color:var(--ink);line-height:32px;background:var(--paper);padding:4px 16px 6px 54px;box-shadow:2px 6px 10px rgba(0,0,0,.25);
+  background-image:linear-gradient(90deg,transparent 40px,var(--margin) 40px,var(--margin) 42px,transparent 42px),repeating-linear-gradient(var(--paper) 0 31px,var(--rule) 31px 32px)}
+.note b{font-weight:400;color:var(--stamp)}
+.msg{color:var(--note-y);min-height:1em}
+
+/* ---------- Play ---------- */
+#play{background:transparent}
+.hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-block:8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));
+  background:linear-gradient(var(--wood),var(--wood-d));box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.hud .x{border:none;background:var(--paper);color:var(--ink);border-radius:4px;padding:6px 12px;font-size:14px;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.chip{background:var(--chalk);color:var(--ink);border-radius:10px 4px 10px 4px;padding:4px 11px;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.chip.grp{color:#fff}
+.hud .sp{flex:1}
+.chip.score{font-family:var(--hand);font-size:22px;padding:0 12px;line-height:1.3}
+.chip.combo{background:var(--note-y)}
+.chip.life{color:var(--stamp)}
+.chip.low{background:var(--stamp);color:#fff}
+.icon-btn{border:none;background:var(--chalk);border-radius:4px;padding:5px 9px;font-size:15px;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.qcard{position:relative;margin:12px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));color:var(--ink);max-height:42vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
+  padding:6px 14px 10px 50px;box-shadow:2px 6px 10px rgba(0,0,0,.3);line-height:32px;
+  background:var(--paper);background-image:linear-gradient(90deg,transparent 36px,var(--margin) 36px,var(--margin) 38px,transparent 38px),repeating-linear-gradient(var(--paper) 0 31px,var(--rule) 31px 32px);background-attachment:local}
+.qtop{display:flex;align-items:center;gap:8px}
+.kind{font-size:13px;color:var(--stamp);border:1.5px solid var(--stamp);border-radius:3px;padding:0 7px;line-height:22px}
+.qtop .sp{flex:1}
+.say{border:none;background:var(--note-b);border-radius:3px;padding:0 10px;font-size:13px;line-height:26px;box-shadow:1px 2px 0 rgba(0,0,0,.15)}
+.qimg{display:block;max-width:100%;max-height:min(19vh,170px);width:auto;margin:4px 0;border:3px solid #fff;box-shadow:1px 3px 6px rgba(0,0,0,.25);transform:rotate(-1deg)}
+.replay{float:right;border:none;background:var(--note-b);padding:2px 10px;font-size:13px;margin-left:8px}
+.wimg{float:right;max-width:110px;max-height:90px;margin:0 0 4px 8px}
+.ctx{font-family:var(--en);font-size:16px;line-height:32px;color:var(--mute);margin:0;font-style:italic}
+.qtext{font-family:var(--en);font-size:clamp(19px,2.8vw,24px);font-weight:700;line-height:32px;margin:0}
+.blank{display:inline-block;min-width:3.4em;border-bottom:3px solid var(--stamp);margin:0 4px;height:1em;vertical-align:-3px}
+.options{display:flex;flex-direction:column;gap:0;margin:0;padding:0;list-style:none}
+.options.row{flex-direction:row;flex-wrap:wrap;gap:4px 18px}
+.options li{display:flex;align-items:center;gap:10px;font-family:var(--en);font-size:18px;line-height:32px;min-height:32px;padding-right:6px}
+.options .L{flex:none;width:26px;height:26px;border-radius:50% 45% 50% 42%;color:#fff;display:grid;place-items:center;font-family:var(--hand);font-size:20px;line-height:1}
+.options li.ok{background:linear-gradient(transparent 55%,rgba(47,154,76,.28) 55%)}
+.options li.ok::after{content:"✓";margin-left:auto;color:var(--stamp);font-family:var(--hand);font-size:30px}
+.options li.bad span:last-child{text-decoration:line-through;text-decoration-color:var(--stamp);text-decoration-thickness:2px}
+.stage{position:relative;flex:1;min-height:180px;overflow:hidden;touch-action:manipulation;border-top:6px solid var(--wood-d)}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.toast{position:absolute;left:50%;top:14%;width:128px;height:128px;margin-left:-64px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;opacity:0;transform:scale(2.2) rotate(-30deg);transition:transform .22s cubic-bezier(.2,1.4,.5,1),opacity .15s;background:rgba(255,255,255,.88);text-align:center}
+.toast .w{font-size:30px;line-height:1.1;letter-spacing:2px}
+.toast .s{font-family:var(--hand);font-size:19px;line-height:1.1;margin-top:2px}
+.toast.good{color:var(--stamp);border:6px double var(--stamp)}
+.toast.bad{color:var(--stamp-b);border:6px double var(--stamp-b)}
+.toast.on{opacity:.95;transform:scale(1) rotate(-12deg)}
+.rush{position:absolute;right:max(14px,env(safe-area-inset-right,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));border:none;background:var(--note-y);color:var(--ink);padding:10px 14px;box-shadow:2px 5px 8px rgba(0,0,0,.3);transform:rotate(-3deg);font-size:15px}
+.chip.lvl{background:var(--ink);color:#fff}
+.lvlup{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) rotate(-3deg);background:var(--note-y);color:var(--ink);padding:16px 26px 14px;text-align:center;box-shadow:3px 10px 18px rgba(0,0,0,.35);pointer-events:none;animation:pop .45s cubic-bezier(.2,1.5,.5,1)}
+.lvlup b{display:block;font-weight:400;font-size:34px;letter-spacing:4px}
+.lvlup span{display:block;white-space:pre-line;font-size:15px;color:var(--mute);margin-top:2px}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(.3) rotate(-15deg);opacity:0}}
+.pickbar{position:absolute;left:50%;bottom:max(12px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:10px;background:rgba(255,254,248,.92);padding:8px 10px;box-shadow:2px 6px 12px rgba(0,0,0,.3)}
+.pickbar button{border:none;width:58px;height:52px;color:#fff;font-family:var(--hand);font-size:30px;line-height:1;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.pickbar button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.hint{position:absolute;left:max(14px,env(safe-area-inset-left,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));background:var(--note-b);color:var(--ink);padding:8px 12px;font-size:14px;pointer-events:none;max-width:60%;box-shadow:2px 5px 8px rgba(0,0,0,.25);transform:rotate(1.5deg)}
+
+/* ---------- Result: 聯絡簿 ---------- */
+.modal{position:fixed;inset:0;background:rgba(20,36,30,.6);display:grid;place-items:center;padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));z-index:20}
+.sheet{position:relative;background:var(--paper);color:var(--ink);width:min(560px,100%);max-height:100%;overflow-y:auto;padding:0 0 18px;display:flex;flex-direction:column;gap:12px;box-shadow:3px 10px 20px rgba(0,0,0,.4)}
+.sheet .bookhead{background:#5BA6D9;color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:baseline;letter-spacing:2px}
+.sheet .bookhead b{font-weight:400;font-size:18px}
+.sheet .bookhead span{font-size:13px;opacity:.9}
+.sheet>*:not(.bookhead){margin-left:18px;margin-right:18px}
+.sheet h3{margin:4px 18px 0;font-weight:400;font-size:28px;text-align:center}
+.stars{display:flex;justify-content:center;gap:10px}
+.stars span{width:58px;height:58px;border-radius:50%;border:4px double var(--stamp);color:var(--stamp);display:grid;place-items:center;font-size:20px;transform:rotate(-10deg)}
+.stars span:nth-child(2){transform:rotate(6deg)}
+.stars span.off{border-color:#D5D9E3;color:#D5D9E3}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:2px solid var(--rule);border-bottom:2px solid var(--rule);text-align:center}
+.stats div{padding:8px 4px}
+.stats div+div{border-left:2px dashed var(--rule)}
+.stats b{display:block;font-family:var(--hand);font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stats span{font-size:13px;color:var(--mute)}
+.newbest{text-align:center;color:var(--stamp)}
+.heroside{display:flex;flex-direction:column;gap:18px;align-items:flex-end}
+.boardbtn{border:none;text-align:left;background:var(--note-p);transform:rotate(-2deg);font:inherit;cursor:pointer}
+.boardbtn b{display:block;font-weight:400;font-size:18px}
+.boardbtn small{font-size:13px;color:var(--mute)}
+.boardbtn:hover{transform:rotate(0) scale(1.03)}
+.board li.tip{background:none;color:var(--mute);justify-content:center;border-bottom:none}
+.bseg{display:flex;flex-direction:column;gap:8px}
+.bseg .row{display:flex;flex-wrap:wrap;gap:6px}
+.sheet .pill{border-color:var(--rule);color:var(--ink);background:var(--paper);font-size:14px;padding:5px 12px}
+.sheet .pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.bnote{font-size:13px;color:var(--mute);line-height:1.6;margin-top:0;margin-bottom:0}
+.board .bd{color:var(--mute);font-size:12px;white-space:nowrap}
+.extra{white-space:pre-line;text-align:center;font-size:16px;background:var(--note-y);padding:6px 10px;transform:rotate(-1deg)}
+.board{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.board li{display:flex;gap:10px;font-size:15px;padding:4px 6px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.board li.me{background:linear-gradient(transparent 50%,rgba(255,226,122,.8) 50%)}
+.board li span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet h4{margin:6px 18px 0;font-weight:400;font-size:16px;color:var(--stamp)}
+.wrongs{display:flex;flex-direction:column;gap:10px}
+.wr{border-left:4px solid var(--margin);padding:4px 10px;font-family:var(--en);font-size:15px;line-height:1.6;background:#FBF8EE}
+.wr .wq{font-weight:700}
+.wr .wa{color:var(--c);font-family:var(--zh)}
+.wr .wy{color:var(--stamp);font-family:var(--zh)}
+.acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding-top:4px}
+.btn{border:none;padding:11px 18px;font-size:16px;box-shadow:2px 4px 0 rgba(0,0,0,.2)}
+.btn.main{background:var(--stamp);color:#fff;transform:rotate(-1deg)}
+.btn.alt{background:var(--note-y);color:var(--ink);transform:rotate(1deg)}
+.btn.ghost{background:var(--note-b);color:var(--ink)}
+.btn:disabled{opacity:.4}
+@media (max-width:520px){
+  .groups{gap:10px}.gcard{padding:16px 9px 12px}.gcard .big{font-size:42px}.gcard .meta{font-size:12px}
+  .options li{font-size:17px}
+  .qcard{padding-left:44px;background-image:linear-gradient(90deg,transparent 30px,var(--margin) 30px,var(--margin) 32px,transparent 32px),repeating-linear-gradient(var(--paper) 0 31px,var(--rule) 31px 32px)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="app">
+  <section id="home" class="screen">
+    <div class="wrap">
+      <header class="hero">
+        <div>
+          <div class="brand">太平格蘭</div>
+          <div class="date" id="today"></div>
+          <h1>英語<span class="u">遊戲</span>樂園</h1>
+          <p>GRAM 2026 英檢練習 · 跑酷、賽車、釣魚、射氣球、打地鼠<br>一邊玩一邊練自己組別的題目</p>
+        </div>
+        <div class="heroside">
+          <button class="sticky boardbtn" id="openBoard"><b>🏆 全班排行榜</b><small>看看誰最厲害 →</small></button>
+          <a class="sticky listen" href="https://eschool.gram1980.com/web/2026gramept.php" target="_blank" rel="noopener"><b>🎧 聽力練習</b><small>打開聽力網站 →</small></a>
+        </div>
+      </header>
+
+      <div class="step">
+        <h2><span class="n">1</span>選你的組別</h2>
+        <div class="groups" id="groups"></div>
+      </div>
+
+      <div class="step">
+        <h2><span class="n">2</span>選你的角色、寫名字</h2>
+        <div class="picked" id="picked"></div>
+        <div class="avatars" id="avatars"></div>
+        <label class="nametag" for="pname"><span>姓 名 NAME</span><input id="pname" maxlength="12" placeholder="寫上你的名字" autocomplete="off"></label>
+      </div>
+
+      <div class="step">
+        <h2><span class="n">3</span>練習設定</h2>
+        <div class="opts">
+          <div class="seg"><span>題數</span><div class="row" id="optCount"></div></div>
+          <div class="seg"><span>題型</span><div class="row" id="optKind"></div></div>
+          <div class="seg"><span>難度</span><div class="row" id="optDiff"></div></div>
+          <div class="seg"><span>錯題本</span><div class="row" id="optWrong"></div></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <h2><span class="n">4</span>選遊戲開始玩</h2>
+        <div class="games">
+          <button class="game g-run" data-game="run"><span class="ill">🏃</span><b>跑酷闖關</b><small>看題目，跑進正確答案的門！沿路撿金幣、閃石頭，答錯會掉一顆愛心。</small><span class="best" data-best="run"></span></button>
+          <button class="game g-race" data-game="race"><span class="ill">🏎️</span><b>極速賽車</b><small>跟電腦對手比賽！開過正確答案的道具箱就能加速衝刺，答錯會打滑。</small><span class="best" data-best="race"></span></button>
+          <button class="game g-fish" data-game="fish"><span class="ill">🎣</span><b>海底釣魚</b><small>點正確字母的魚把牠釣上來，游得越深分數越高。答錯會被扣時間喔！</small><span class="best" data-best="fish"></span></button>
+          <button class="game g-balloon" data-game="balloon"><span class="ill">🎈</span><b>射氣球</b><small>氣球飄上天空，點寫著正確字母的那一顆，射飛鏢把它戳破！</small><span class="best" data-best="balloon"></span></button>
+          <button class="game g-mole" data-game="mole"><span class="ill">🔨</span><b>打地鼠</b><small>地鼠舉著字母牌冒出來，快敲舉著正確答案的那一隻！</small><span class="best" data-best="mole"></span></button>
+        </div>
+        <div class="msg" id="homeMsg" role="status"></div>
+      </div>
+
+      <p class="note"><b>難度和關卡：</b>「簡單」目標較慢較大、時間較多，釣魚、射氣球、打地鼠下方還會出現字母按鈕；「挑戰」速度快、答錯扣比較多。每答對 5 題就升一關，最多到第 5 關，越後面越快。<br><b>題目從哪裡來？</b>來自 A、B、C、D 四組題本兩回模擬考：聽力四個部分（看圖、問答、對話、短文，每組 100 題，附原版錄音），以及閱讀的文法填空、克漏字和不需要看圖的閱讀理解。聽力答案依照官方解答。聽力題出現時會自動播放錄音，播放時遊戲會暫停倒數，可以按「再聽一次」重聽。答錯的題目會自動收進這台裝置的錯題本，選「只練錯題」就能再挑戰。</p>
+    </div>
+  </section>
+
+  <section id="play" class="screen" hidden>
+    <div class="hud">
+      <button class="x" id="quit">✕ 結束</button>
+      <span class="chip grp" id="hGroup">A 組</span>
+      <span class="chip" id="hProg">1 / 15</span>
+      <span class="sp"></span>
+      <span class="chip lvl" id="hLvl">第 1 關</span>
+      <span class="chip combo" id="hCombo" hidden>連擊 ×2</span>
+      <span class="chip life" id="hLife"></span>
+      <span class="chip score" id="hScore">0</span>
+      <button class="icon-btn" id="mute" aria-label="音效開關">🔊</button>
+    </div>
+    <div class="qcard" id="qcard">
+      <div class="qtop"><span class="kind" id="qKind">文法</span><span class="sp"></span><button class="say" id="say">🗣 唸給我聽</button></div>
+      <p class="ctx" id="qCtx" hidden></p>
+      <img class="qimg" id="qImg" alt="聽力看圖題的圖片" hidden>
+      <p class="qtext" id="qText"></p>
+      <ul class="options" id="qOpts"></ul>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cv"></canvas>
+      <div class="toast" id="toast"></div>
+      <div class="hint" id="hint"></div>
+      <button class="rush" id="rush" hidden>我選好了 ⏩</button>
+      <div class="lvlup" id="lvlup" hidden><b></b><span></span></div>
+      <div class="pickbar" id="pickbar" hidden></div>
+    </div>
+  </section>
+
+  <div class="modal" id="result" hidden>
+    <div class="sheet" role="dialog" aria-labelledby="rTitle">
+      <div class="bookhead"><b>太平格蘭｜今日聯絡簿</b><span id="rDate"></span></div>
+      <h3 id="rTitle">完成！</h3>
+      <div class="stars" id="rStars"></div>
+      <div class="extra" id="rExtra" hidden></div>
+      <div class="newbest" id="rNew" hidden>🎉 新紀錄！</div>
+      <div class="stats">
+        <div><b id="rScore">0</b><span>分數</span></div>
+        <div><b id="rAcc">0/0</b><span>答對</span></div>
+        <div><b id="rCombo">0</b><span>最高連擊</span></div>
+      </div>
+      <h4 id="rOnlineH">🏆 全班排行榜</h4>
+      <ol class="board" id="rOnline"></ol>
+      <h4>這台裝置的紀錄</h4>
+      <ol class="board" id="rBoard"></ol>
+      <h4 id="rWrongH">答錯的題目</h4>
+      <div class="wrongs" id="rWrongs"></div>
+      <div class="acts">
+        <button class="btn main" id="again">再玩一次</button>
+        <button class="btn alt" id="retryWrong">練這次的錯題</button>
+        <button class="btn ghost" id="toHome">回大廳</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="boardModal" hidden>
+    <div class="sheet" role="dialog" aria-labelledby="bTitle">
+      <div class="bookhead"><b id="bTitle">🏆 全班排行榜</b><span id="bGroupLbl"></span></div>
+      <div class="bseg">
+        <div class="row" id="bGrp"></div>
+        <div class="row" id="bGame"></div>
+        <div class="row" id="bDiff"></div>
+        <div class="row" id="bPeriod"></div>
+      </div>
+      <ol class="board" id="bList"></ol>
+      <p class="bnote">寫上名字、玩完一局，分數就會自動上榜。每週一重新開始排名；同一台裝置的同一個名字只算最高分。</p>
+      <div class="acts"><button class="btn ghost" id="bClose">關閉</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== 題庫 =====================
+   每題：[題目, 選項A, 選項B, 選項C, 正確答案索引(0~2)]
+   閱讀題用「短文|問題」格式。 */
+const NONE = "✕（不用填）";
+const BANK = {
+A: {
+g: [
+["Three plus five is ___.","eight","five","three",0],
+["___ a chair.","They are","It’s","It",1],
+["___ is her brother.","I","She","He",2],
+["Tony is ___ a fat boy.","no","to","not",2],
+["It is ___ elephant.","an","a","not",0],
+["Let’s have a glass ___ apple juice.","at","of","on",1],
+["What ___ Jane like?","do","to do","does",2],
+["My brothers ___ play the piano on Sundays.","is not","does not","do not",2],
+["David does not play soccer ___.","good","fine","well",2],
+["Karen ___ the piano on Saturdays.","plays","to play","play",0],
+["My friends ___ want to eat bananas.","am not","don’t","does not",1],
+["My sister is ___ artist.","one of","a","an",2],
+["Do you walk ___ home after school?",NONE,"to","in",0],
+["She is ___ Japan.","to",NONE,"from",2],
+["Is ___ umbrella white?","Peters’","Peter","Peter’s",2],
+["___ is my mother.","I","She","He",1],
+["It is ___ umbrella.","an","a","not",0],
+["Jessica ___ play baseball very well.","is not","does not","do not",1],
+["I ___ want to swim.","am not","do not","does not",1],
+["Do you walk ___ school every day?","to","every","in",0],
+["The air ___ cool in fall.","gets","got","get",0]
+],
+c: [
+["May: ___ the weather like in America?","How’s","What’s","What",1],
+["Joe: In spring and fall the weather is very ___, but in summer it is very hot and humid.","hot","cold","nice",2],
+["May: ___ it snow in winter?","Does","Do","Is",0],
+["Joe: It usually only snows in some states. Do you ___ snow?","likes","eating","like",2],
+["May: Yes, I do. Let’s ___ a snowball fight someday.","have","go","eat",0],
+["Tony: Hi, Jane. Would you like ___ soccer this Sunday afternoon?","play","plays","to play",2],
+["Jane: Sure, I like soccer ___.","meet","a lot","very good",1],
+["Tony: Can we ___ at three thirty?","see","meet","plays",1],
+["Jane: OK. Let’s meet at ___ at three thirty.","the park","class","house",0],
+["Tony: See you ___.","to school","on Sunday","every Sunday",1],
+["The ___ people in my family are my father, my mother, my brother and I.","four","five","six",0],
+["The four people in my family are my father, my mother, my brother and ___.","mine","my","I",2],
+["My brother is a college student. ___ is tall. He is strong.","She","It","He",2],
+["My mother is a housewife. She is very beautiful. ___ hair is long and black.","His","Her","My",1],
+["I love everyone in my ___. I love my warm, sweet home.","school","family","class",1],
+["This is my father. He is ___ engineer.","a","an","not",1],
+["Every year, he ___ to America for work.","go","goes","rides",1],
+["He ___ a lot of friends there.","has","speaks","runs",0],
+["He often ___ lunch with them.","eats","goes","eat",0],
+["There ___ many kinds of fruit in the world.","am","are","is",1],
+["But I ___ watermelons the best.","like","likes","like to",0],
+["It is called watermelon because it ___ a lot of water.","has","have","does",0],
+["It looks ___ outside. But it is red inside.","green","yellow","red",0],
+["On a hot ___ day, I usually eat a lot of watermelons.","winter","fall","summer",2],
+["Ping-pong is very popular in China. ___ people are good at playing ping-pong.","American","Chinese","English",1],
+["Some people play ping-pong on ___.","Saturday and Sunday","every day","Saturdays and Sundays",2],
+["Students ___ to play ping-pong after school.","live","go to","like",2],
+["I ___ play ping-pong, too. But I like to play ping-pong every Friday evening.","don’t","can","can’t",1],
+["Peter: What does your father ___? Linda: He is a bus driver.","does","job","do",2],
+["Peter: Does he ___? Linda: Yes, he likes it very much.","like his job","works","engineer",0],
+["Peter: Does he like his job? Linda: Yes, he likes it ___.","ride his bike","to work","very much",2],
+["Peter: ___ he work? Linda: He works in Los Angeles.","What season","Where does","How many",1],
+["Peter: Is he very busy? Linda: Yes, he is ___.","humid","almost every","always busy",2]
+],
+r: [
+["Kevin is a student. He lives in a small town with his mother, father and a younger sister.|Where does Kevin live?","In a big city.","In a small town.","In another country.",1],
+["His dad is a doctor, and his mom is a teacher.|What does Kevin’s mom do?","She is a nurse.","She is a teacher.","She is a cook.",1],
+["Kevin gets up at 6:30 every morning. He eats breakfast, then walks to school.|How does Kevin go to school?","He takes the bus.","He rides a bike.","He walks to school.",2],
+["After school, Kevin usually does his homework first. Then he plays basketball with his friends at the park.|What does Kevin usually do after school?","He watches TV.","He does his homework.","He goes shopping.",1],
+["After school, Kevin usually does his homework first. Then he plays basketball with his friends at the park.|Where does Kevin play basketball after school?","At the park.","At home.","At school.",0],
+["Henry is a college student. He is from Taiwan. He lives in New Taipei City.|Where is Henry from?","He is from America.","He is from my class.","He is from Taiwan.",2],
+["Henry likes English a lot. He studies English every night. He likes to talk to his English teacher, Paul.|What does Henry like to do?","He likes to go to America.","He likes to speak English.","He likes to fight with Paul.",1],
+["Henry and Paul often play basketball or tennis together after school. On Sundays, Paul usually plays soccer with his friends and Henry usually plays baseball with his classmates.|Which statement is correct?","They play baseball on Sundays.","Henry and Paul often play soccer after school.","Henry plays basketball with Paul after school.",2]
+]
+},
+B: {
+g: [
+["Peggy ___ the newspaper every morning.","look","reading","reads",2],
+["They are ___ under the tree.","sitting","sits","sit",0],
+["I have to go to ___ doctor.",NONE,"the","an",1],
+["Can you help ___?","he","I","me",2],
+["Amy is the ___ person in the line.","twice","nine","sixth",2],
+["What are ___ doing in the classroom?","I","they","he",1],
+["The children ___ in the park now.","is play","is playing","are playing",2],
+["How ___ tables do you have?","many","much","are",0],
+["What ___ Jessie and her friend doing?","are","is","am",0],
+["We have to be in the classroom ___ time.","for","on","to",1],
+["Time is very important ___ everyone.","for","in","at",0],
+["___ do you have P.E. class? I have P.E. class at ten o’clock.","Where","What","When",2],
+["What does Helen ___ every month?","buy","buys","is buy",0],
+["We are doing ___ homework together.","us","we","our",2],
+["___ there three bedrooms upstairs?","Do","Is","Are",2]
+],
+c: [
+["I am from the country. In the country, class usually ___ at 9.","over","start","starts",2],
+["I can have ___ time for breakfast.","too","many","much",2],
+["I ___ go to school at 8:50. I am never late.","rarely","never","always",2],
+["After morning classes, I go home for ___. Then I sleep for a while.","breakfast","lunch","dinner",1],
+["There ___ no class in the afternoon, so I can have fun with my friends.","is","am","are",0],
+["This is a picture of my family. My father and my mother ___ cooking.","am","is","are",2],
+["My brother, Henry, ___ talking on the phone.","are","is","am",1],
+["My sisters ___ playing with toys on the sofa.","is","are","am",1],
+["Our little cat ___ sleeping on the floor.","are","am","is",2],
+["And I ___ doing my homework.","am","are","is",0],
+["My father loves rules. He says that we ___ stay up too late.","aren’t","can’t","don’t",1],
+["When we are ___, we are not allowed to talk.","eat","eats","eating",2],
+["If we talk, my father will ask ___ to be quiet.","our","us","we",1],
+["If we ___ listen, he will be angry.","doesn’t","don’t","aren’t",1],
+["When he ___ angry, we are afraid of him.","get","gets","getting",1],
+["Every morning when the alarm clock ___ off, Teddy wakes up.","went","goes","go",1],
+["He yawns, ___ and gets out of bed.","stretch","stretched","stretches",2],
+["He washes his face and ___ his teeth.","brushes","brushed","brush",0],
+["He takes ___ his pajamas. He puts on his clothes.","off","on","in",0],
+["He goes ___ school at seven o’clock.","at","to","of",1],
+["I live in a small town. My house is ___ the park. It’s about a two-minute walk.","in","on","near",2],
+["I often walk there after dinner ___ my family.","across from","with","on",1],
+["___ the park, there are many kinds of equipment for people to do sports.","In","Between","On",0],
+["For example, the basketball court is ___ the corner.","of","across from","on",2],
+["Next ___ it, people can play ping-pong.","behind","to","in front of",1],
+["I am a college student. I ___ at school.","lives","live","visit",1],
+["Today is my birthday. I get up ___ 9 o’clock.","at","in","on",0],
+["Then I wash ___ face.","your","my","me",1],
+["I go ___ the classroom. But no one is there.","on","into","to be",1],
+["Suddenly, there ___ some noises outside the classroom.","is","are","am",1],
+["There ___ a house for sale.","is","am","are",0],
+["There is a house ___ sale.","at","in","for",2],
+["It ___ five rooms: two bedrooms, one living room, one kitchen and one bathroom.","have","has","does",1],
+["It is near ___ school. It is very good for a family with children.","an","a","we",1],
+["They ___ need to ride to school. They can just walk to school.","don’t","do","doesn’t",0],
+["Amy usually ___ to school at 7:30, but today she is a little late.","come","comes","is coming",1],
+["When she arrives, her classmates ___ their homework with the teacher.","do","does","are doing",2],
+["Their English teacher, Mr. Brown, always ___ English in class.","speak","speaks","is speaking",1],
+["Right now, he ___ the students a new song.","teach","teaches","is teaching",2],
+["Amy likes English very much. She ___ English every day because she wants to speak it well.","study","studys","studies",2]
+],
+r: [
+["It is Sunday afternoon. We are all at home.|What day is today?","It’s Sunday.","It’s Saturday.","It’s Kenny’s birthday.",0],
+["My father is washing the car and my mother is fixing her bike in the yard.|Who is fixing the bike in the yard?","Mother is cooking in the kitchen.","Mother is fixing the bike in the yard.","I don’t like fixing my bike.",1],
+["My father is washing the car and my mother is fixing her bike. My brother, Kenny, is playing with his toys. My sister, Ruby, is drawing pictures. I am making a model airplane.|How many people are there in this family?","There are four people in this family.","There are five people in this family.","There are six people in this family.",1],
+["My brother, Kenny, is playing with his toys. My sister, Ruby, is drawing pictures.|Is Ruby Kenny’s sister?","Yes, she does.","Yes, she is.","No, she isn’t.",1],
+["I am making a model airplane. Everyone is so happy.|What is the writer doing?","What is the writer doing.","He is playing with his toys.","He is making a model airplane.",2],
+["It is Saturday morning. My family and I are at home.|What day is it?","Friday.","Saturday.","Sunday.",1],
+["My father is cooking breakfast in the kitchen, and my mother is watering the flowers in the garden.|What is the father doing?","He is cooking breakfast.","He is watering the flowers.","He is reading a comic book.",0],
+["My father is cooking breakfast in the kitchen, and my mother is watering the flowers in the garden.|Where is the mother?","In the kitchen.","In the garden.","In the bedroom.",1],
+["My brother, Jack, is reading a comic book. My sister, Amy, is playing with her dolls.|Who is playing with dolls?","Jack.","Amy.","The writer.",1],
+["We love Saturdays because we can relax and do the things we like.|Why does the family love Saturdays?","Because they can go to school.","Because they can clean the house.","Because they can relax and do the things they like.",2]
+]
+},
+C: {
+g: [
+["Tom’s ___ to go to the zoo tomorrow.","go","goes","going",2],
+["John is as ___ as Tom.","taller","tall","tallest",1],
+["Which classroom is ___?","the biggest","big one","bigger than",0],
+["Tom didn’t go to school yesterday because he ___ sick.","were","was","is",1],
+["___ are Tony’s toys.","Those","This","That",0],
+["John ___ visit his parents last weekend.","have to","has to","had to",2],
+["Last night, I ___ rope with my sister.","skip","skips","skipped",2],
+["I ___ visit Japan next year.","will","am","going to",0],
+["When ___ you get up yesterday morning?","did","do","will",0],
+["I am from Egypt, and he is, ___.","either","too","so",1],
+["David comes from Singapore, and so ___ Ann.","does","either","so",0],
+["Clara does not have ___ in her bag. It’s empty.","anything","nothing","something",0],
+["They didn’t ___ their homework yesterday.","finished","finish","finishing",1],
+["I like fall ___.","better than","the best","good",1],
+["We ___ to Japan last week.","go","gone","went",2],
+["These ___ my books.","are","is","am",0],
+["She ___ go to school yesterday.","will have to","had to","is going to",1],
+["What time ___ you going to go to bed?","is","am","are",2],
+["My father is ___ on special festivals.","the busiest","the busy","busier than",0],
+["He can run ___ than me.","as fast as","the fastest","faster",2],
+["___ David going to go to school this week?","Is","Am","Are",0],
+["Who is ___, you or your sister?","the happiest","happier than","happier",2],
+["I ___ stay home this evening.","had","have to","has to",1],
+["She ___ when she heard the sad news.","cries","cry","cried",2],
+["He is not Singaporean, ___.","either","also","neither",0],
+["I ___ to the library last week.","go","gone","went",2],
+["She ___ see a doctor yesterday.","will have to","had to","is going to",1]
+],
+c: [
+["Traveling around the city is easy. If you like to exercise and ride, you can go ___.","on foot","by bike","by subway",1],
+["If you are rich enough, you can even take a ___ to fly in the sky.","bike","bus","hot air balloon",2],
+["If you don’t like the street, you can take ___ because it goes under the street.","scooter","the subway","on foot",1],
+["If you like to walk, you can go ___.","on foot","by boat","by bike",0],
+["If you don’t like the sky or the street, you can take ___ to travel down the river.","a taxi","an airplane","a boat",2],
+["Like every year, I went for ___ overseas vacation this year.","a","the","an",2],
+["I went to Italy. I ___ a ten-day trip.","plan","plane","planned",2],
+["I went to a museum and parks. I ___ many pictures.","took","take","takes",0],
+["On the last day, I ___ many gifts and postcards.","sold","buy","bought",2],
+["And I ___ cards to many friends.","sent","sends","send",0],
+["___ Christmas Eve, Santa fills his bag with toys.","In","On","At",1],
+["He puts the bag into the sleigh. Nine flying ___ pull Santa and his sleigh.","reindeer","horses","sheep",0],
+["They pull Santa and his sleigh around the ___ with the Christmas gifts.","North Pole","world","playground",1],
+["He takes them to good children. He comes through the ___.","door","chimney","Christmas tree",1],
+["He leaves the gifts under the ___.","sofa","bag","Christmas tree",2],
+["This is a directory of the department store. ___ is a big supermarket in the basement.","There","It","He",0],
+["On the first floor, you can see the shoe department. You can buy some ___.","clothes","fruit","shoes",2],
+["___ the second floor, there is a toy department.","In","On","At",1],
+["The ___ department is on the third floor. You can buy different kinds of clothes.","clothing","furniture","jewelry",0],
+["___ is very easy and convenient here.","Shops","Shop","Shopping",2],
+["The chicken and the duck were friends. They ___ on a farm.","lives","lived","living",1],
+["They walked around together. They ___ in the river together.","swam","swim","swum",0],
+["They talked about the cat. They ___ the cat was tricky and dangerous.","thought","thinking","told",0],
+["The cat looked at ___ a lot.","it","us","them",2],
+["They ___ like the cat.","didn’t","do","doesn’t",0]
+],
+r: [
+["Hi, I am Jack. I am reading a book about dogs. I want to have a dog.|What is the writer writing about?","It’s about cats.","It’s about animals and people.","It’s about dogs.",2],
+["I think I want a small dog. I will try to get a small white dog. I will get a very cute dog.|Does the writer want a big dog?","Yes, the writer wants a big dog.","No, the writer wants a small black dog.","No, the writer wants a cute, small white dog.",2],
+["Tomorrow, I will ask my mother to buy a dog for me. We will go to the pet store.|Who will go to the pet store tomorrow?","The writer and his mother.","The writer and his classmate.","The writer and his dog.",0],
+["I will be so happy to have a cute, small white dog. My dog’s name will be Snowball.|What will the writer call his dog?","He will call his dog Snow White.","He will call his dog Snowball.","I don’t know.",1],
+["Small dogs don’t eat a lot. A small dog will sleep in my room. A big dog will not sleep in my room.|Why does the writer want a small dog?","Because a small dog can eat a lot.","Because a small dog can sleep outside.","Because a small dog can sleep in his room every night.",2]
+]
+},
+D: {
+g: [
+["My grandfather was a good man. He ___ hard every day of his life.","worked","to work","is working","works",0],
+["He studied hard in all his subjects, so his scores ___ very good.","were not","were","is","are not",1],
+["Nancy has read the books for two hours ___.","yet","lately","since","so far",3],
+["The more you eat, ___ you will be.","the best","the well","the heavier","the good",2],
+["I ___ out the online application, sent it, and they got it immediately.","am filling","was filling","fill","filled",3],
+["Jason has interactions ___ everything in the museum.","at","on","with","in",2],
+["The mice ___ eating cookies on the dining table this morning.","was","was not","were","is",2],
+["___ of people will join the music festival.","A thousand","Thousand","Thousands","A thousands",2],
+["The little boy was still ___ about his lost puppy.","is crying","was crying","cried","crying",3],
+["He ___ the jacket after he came into the classroom.","took on","took off","took after","took over",1],
+["I shared my happiness and sorrow with her because she ___ my best friend.","were","am","was","is not",2],
+["Jessica has taken piano lessons ___ three years.","since","with","for","to",2],
+["We traveled to the mountains last summer and ___ every morning.","hiking","to hike","hiked","hikes",2],
+["Its eyes changed ___ red if you made it angry.","for","at","to","with",2],
+["Johnny ___ to be a teacher, but now he is a cook.","uses","using","used","use",2],
+["Before, he ___ good in English, but now he is.","was not","were","is","is not",0],
+["Who ___ you talking to a few minutes ago?","do","did","was","were",3],
+["She ___ tired of doing the same homework again and again.","were","am","are","was",3],
+["They were ___ football when it started to rain.","play","played","plays","playing",3],
+["She was ___ for her exam when her friends called to invite her to a party.","to study","studies","studying","studied",2],
+["Devon was ___ so angry that the game didn’t work, he called the shop to complain.","feels","feeling","is","felt",1],
+["I have learned to play the guitar ___ five years.","with","for","during","since",1],
+["I ___ all the questions on my English test correctly.","answering","to answer","answered","answers",2],
+["___ some men repairing the road?","Did","Is","Was","Were",3],
+["When I was in elementary school, I ___ reading more than watching TV.","to enjoy","enjoys","am enjoying","enjoyed",3]
+],
+c: [
+["Devon: Hey Jason, what ___ you doing at 9:00 last Friday night?","were","are","was","is",0],
+["Jason: I was working ___ my school project that is due this week.","to","on","at","for",1],
+["Devon: ___ you go to the library to do it? Jason: No, I didn’t.","Do","Does","Did","Are",2],
+["Devon: The library has new books about your ___. You should make good use of it.","books","games","school","project",3],
+["Jason: Thank you for that ___.","information","gift","money","book",0],
+["Jimmy is my best friend. Every Sunday, he ___ with the boys’ choir at his church.","sang","sings","singing","was singing",1],
+["He ___ a good singing voice.","has been","have been","has","have",2],
+["He ___ since he was very young.","singing","has sung","have sung","sings",1],
+["He has sung since he ___ very young.","is","was","have been","has",1],
+["He ___ to sing with the choir. In conclusion, he is a wonderful singer.","like","likes","doesn’t like","liking",1],
+["My family is very different. Every family member plays ___ important role in all my family’s lives.","lives","the","an","a",2],
+["___ my family, there are four people: my father, my mother, my little brother and me.","On","In","With","For",1],
+["My father brings money home and plans very ___ for our family.","well","right","good","fine",0],
+["My mother is in charge of making meals and making sure everyone ___ at the right times.","eat","eats","eating","doesn’t eat",1],
+["My little brother is the pet of the family. He actually doesn’t have to do ___.","something","nothing","everything","anything",3],
+["Last Friday was a holiday. Steve and his classmates decided to ___ a hiking trip.","go from","go on","go out","go away",1],
+["They got up early and ___.","ate dinner","talked to the birds","caught a cold","made a picnic basket",3],
+["They left at half ___ seven.","pat","past","path","pass",1],
+["They hiked for about two hours to the top of the hill. They were all ___.","tire","tiring","retired","tired",3],
+["They were all tired, so they ___ and ate their picnic basket.","had a look","made a trip","took a rest","didn’t catch a taxi",2]
+],
+r: [
+["Paula used to live in New York, in the United States, when she was thirteen years old, but now she lives in London because she moved to England in 2024.|Where did Paula use to live?","London.","England.","The United States.","Taiwan.",2],
+["In New York, Paula and Rebecca used to go to school and do their homework together. On the weekends, they used to go diving, swimming, and camping.|What didn’t Paula and Rebecca use to do together?","Go to school.","Go camping.","Do their homework.","Go surfing.",3],
+["Six months ago, Rebecca sent Paula a computer game called “Operation Cure” as her birthday present.|What birthday present did Paula receive from Rebecca?","A book called Operation Cure.","A computer game called New York.","A computer game.","A visit to the United States.",2],
+["Paula lives in London now. Paula and Rebecca talk to each other on the Internet once a week. This year, Paula is going to go back to New York and visit Rebecca on Rebecca’s birthday.|Which sentence is true about Paula and Rebecca?","Now they talk on the Internet twice a week.","Paula lives in New York now.","Paula sent Rebecca a birthday present six months ago.","Rebecca lives in New York now.",3],
+["Sometimes your parents might worry about a movie’s content and may not let you see it. But you can have an honest conversation with your parents and see if you can change their minds.|What is the best title for this passage?","How to See a Movie","How to Ask Your Parents to Let You See a Movie","How to Ask Your Parents to See a Movie with You","How to Talk to Parents",1],
+["Sometimes your parents might worry about a movie’s content and may not let you see it.|Why might parents not let their children see a movie?","Because they don’t want their children to watch something bad for them.","Because their children have to do homework.","Because they want their children to have a conversation with them.","Because their children have no money.",0],
+["You can talk to your friend’s parents. Ask them what they think of the movie. If they have a good opinion of the movie, ask if they would be willing to share it with your parents.|What does the article encourage you to do if your parents don’t allow you to see a certain movie?","To talk to your friend’s parents.","To go without telling them.","To talk to your friend.","To talk to your parents’ friends.",0],
+["Although they may say “No” at first, you can still do something to increase your chances of a “Yes” later!|The word “increase” is closest in meaning to ___.","get more","refuse","destroy","receive",0],
+["The article tells you how to ask your parents to let you see a movie.|Who might be interested in this article?","People who live with classmates.","People who live with parents.","People who live with friends.","People who live on their own.",1],
+["Kevin usually sleeps until nine on weekends, but last Saturday he got up at seven because his family had planned a special trip. They were going to visit a farm.|Why did Kevin wake up early last Saturday?","He had to go to school.","His family was going on a trip.","He wanted to make breakfast.","He needed to help his grandmother.",1],
+["At noon, the family had lunch under a big tree. After lunch, they picked some strawberries.|What did Kevin’s family do after lunch?","They fed the cows.","They picked strawberries.","They drove home.","They made strawberry jam.",1],
+["Kevin learned that farmers have to work very hard to grow fruit and take care of animals.|What did Kevin learn from the trip?","Farmers have to work hard.","Rabbits only eat carrots.","Fruit is easy to grow.","Living in the countryside is boring.",0],
+["Before going home, Kevin bought a small jar of strawberry jam for his grandmother. He told his parents he wanted to visit the farm again. For Kevin, it was not only a fun trip but also a great chance to learn something new.|Which is TRUE about Kevin?","He did not enjoy the farm trip.","He bought some fruit for his mother.","He wanted to stay at the farm overnight.","He thought the trip was both fun and educational.",3]
+]
+}
+};
+
+/* 聽力題：[第幾回, 題號, 部分, 音檔, 圖片, 題目, 選項, 正確答案索引, 對話題號範圍]；答案依官方解答 */
+const LISTEN = {"A":[[1,1,1,"a1_01.mp3","a1_q1.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,2,1,"a1_02.mp3","a1_q2.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[1,3,1,"a1_03.mp3","a1_q3.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,4,1,"a1_04.mp3","a1_q4.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,5,1,"a1_05.mp3","a1_q5.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,6,1,"a1_06.mp3","a1_q6.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[1,7,1,"a1_07.mp3","a1_q7.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,8,1,"a1_08.mp3","a1_q8.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,9,1,"a1_09.mp3","a1_q9.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,10,1,"a1_10.mp3","a1_q10.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,11,2,"a1_11.mp3","","",["No, he is from Taiwan.","He is from Japan.","We are from England."],1,""],[1,12,2,"a1_12.mp3","","",["Yes, I do.","I play basketball every Sunday evening.","I play basketball in the morning."],1,""],[1,13,2,"a1_13.mp3","","",["I like tennis.","No, I don’t.","Yes, I can."],2,""],[1,14,2,"a1_14.mp3","","",["Yes, he is.","Thank you.","Yes, she is."],0,""],[1,15,2,"a1_15.mp3","","",["Yes, I am a short student.","No, I am a tall student.","Yes, I am very tall."],2,""],[1,16,2,"a1_16.mp3","","",["Doris is at school.","Doris is the tall girl.","Doris is sick."],1,""],[1,17,2,"a1_17.mp3","","",["They are the same height.","They are the same weight.","They are the same age."],0,""],[1,18,2,"a1_18.mp3","","",["I like it the best.","It’s a chair.","It’s green."],1,""],[1,19,2,"a1_19.mp3","","",["They are in my bag.","It’s on my desk.","My bag is at school."],1,""],[1,20,2,"a1_20.mp3","","",["Yes, he is tall.","Yes, he is.","No, she isn’t."],1,""],[1,21,2,"a1_21.mp3","","",["She is a teacher.","He likes to draw.","He is a doctor."],2,""],[1,22,2,"a1_22.mp3","","",["No, I can’t.","Yes, I do.","You like English."],1,""],[1,23,2,"a1_23.mp3","","",["Yes, I am.","No, I am not.","Sure, count me in."],2,""],[1,24,2,"a1_24.mp3","","",["No, she is not.","Yes, he is.","No, she is."],0,""],[1,25,2,"a1_25.mp3","","",["They are Jane’s shoes.","They are dirty shoes.","They are black."],2,""],[1,26,2,"a1_26.mp3","","",["It’s 203 Eastern Street.","6629-1000.","Singapore."],0,""],[1,27,2,"a1_27.mp3","","",["He is a teacher.","Yes, he is.","He is rich."],1,""],[1,28,2,"a1_28.mp3","","",["Yes, I am David.","Hello, David. I am Jack.","Yes, you do."],1,""],[1,29,2,"a1_29.mp3","","",["Me, too.","I am thirty years old.","She is happy."],0,""],[1,30,2,"a1_30.mp3","","",["Yes, I am.","Yes, she is.","Yes, he is."],1,""],[1,31,3,"a1_b31.mp3","","Where did Ruby go?",["America.","England.","Singapore."],1,"31–32"],[1,32,3,"a1_b31.mp3","","What does Ruby think of the weather in England?",["She likes the weather in England.","She does not like the weather in England.","She does not like the weather in America."],1,"31–32"],[1,33,3,"a1_b33.mp3","","Is Ruby a student?",["Yes, she is a student.","No, she is a teacher.","Yes, she is an old student."],0,"33–34"],[1,34,3,"a1_b33.mp3","","Where is Ruby from?",["She is not from America.","She is from England.","She is from America."],2,"33–34"],[1,35,3,"a1_b35.mp3","","Where is Jack from?",["He is from America.","He is from Singapore.","He is from China."],1,"35–36"],[1,36,3,"a1_b35.mp3","","Is Ruby Singaporean?",["Ruby is not from Singapore.","Yes, she is.","Ruby and Jack are from Singapore."],2,"35–36"],[1,37,3,"a1_b37.mp3","","Is the boy hungry?",["No, he isn’t.","Yes, he is thirsty and hungry.","He wants to drink tea."],1,"37–38"],[1,38,3,"a1_b37.mp3","","What does Mom want?",["She wants juice, milk and tea.","Mom wants cookies.","Just cold water."],2,"37–38"],[1,39,3,"a1_b39.mp3","","Where is Amy from?",["We don't know.","She is from England.","She is from America."],0,"39–40"],[1,40,3,"a1_b39.mp3","","What do they like?",["Dogs.","Cats.","Birds"],1,"39–40"],[1,41,4,"a1_b41.mp3","","How old is Emma?",["Seven.","Eight.","Nine."],1,"41–42"],[1,42,4,"a1_b41.mp3","","What does Jack do after school?",["He reads a book.","He plays soccer.","He eats lunch."],1,"41–42"],[1,43,4,"a1_b43.mp3","","What does Andy’s brother do?",["He is a teacher.","He is a writer.","He is a student."],0,"43–44"],[1,44,4,"a1_b43.mp3","","Who helps Andy’s mother cook in the family?",["Andy’s brother.","Andy.","Andy’s sister."],1,"43–44"],[1,45,4,"a1_b45.mp3","","What does his father do?",["He is a teacher.","He is a firefighter","He is a bus driver."],2,"45–46"],[1,46,4,"a1_b45.mp3","","Where does his mom work?",["In Tapei.","In a school.","In a bookstore."],0,"45–46"],[1,47,4,"a1_b47.mp3","","Why does the speaker’s brother like fall?",["Because it is not too cold.","Because it is not too hot.","Because the leaves fall from the trees."],2,"47–48"],[1,48,4,"a1_b47.mp3","","What can the speaker’s sister do in winter, according to the talk?",["She can enjoy sunshine.","She can have a snowball fight.","She can eat snow."],1,"47–48"],[1,49,4,"a1_b49.mp3","","Why are the children happy?",["The weather is good.","It is Saturday.","It is summer vacation."],2,"49–50"],[1,50,4,"a1_b49.mp3","","How is the weather today?",["The weather is cold.","It is hot and sunny.","We don’t know."],1,"49–50"],[2,1,1,"a2_01.mp3","a2_q1.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,2,1,"a2_02.mp3","a2_q2.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[2,3,1,"a2_03.mp3","a2_q3.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,4,1,"a2_04.mp3","a2_q4.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,5,1,"a2_05.mp3","a2_q5.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[2,6,1,"a2_06.mp3","a2_q6.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,7,1,"a2_07.mp3","a2_q7.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,8,1,"a2_08.mp3","a2_q8.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,9,1,"a2_09.mp3","a2_q9.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,10,1,"a2_10.mp3","a2_q10.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,11,2,"a2_11.mp3","","",["No, his nose is not small.","Yes, his nose is long.","No, his nose is dirty."],0,""],[2,12,2,"a2_12.mp3","","",["Yes, he is.","Thank you.","Yes, she is."],0,""],[2,13,2,"a2_13.mp3","","",["He likes purple.","Yes, he can play baseball very well.","Yes, he can."],2,""],[2,14,2,"a2_14.mp3","","",["Yes, I do.","I play basketball every Sunday evening.","I play basketball every morning."],1,""],[2,15,2,"a2_15.mp3","","",["Tony is my brother.","Tony plays the piano.","Tony is in the park."],2,""],[2,16,2,"a2_16.mp3","","",["Doris is at school.","Doris is the tall girl.","Doris is sick."],1,""],[2,17,2,"a2_17.mp3","","",["They are in my bag.","It’s on my desk.","My bag is at school."],1,""],[2,18,2,"a2_18.mp3","","",["I like it the best.","It’s a chair.","It’s green."],1,""],[2,19,2,"a2_19.mp3","","",["They are the same height.","They are the same weight.","They are the same age."],0,""],[2,20,2,"a2_20.mp3","","",["He is hungry.","He is tall.","He is noisy."],2,""],[2,21,2,"a2_21.mp3","","",["She is a beautiful woman.","She likes to draw.","She is a housewife."],2,""],[2,22,2,"a2_22.mp3","","",["No, I can’t.","Yes, I do.","You like Mary."],1,""],[2,23,2,"a2_23.mp3","","",["He is from America.","He is a rich man.","He is sick."],0,""],[2,24,2,"a2_24.mp3","","",["No, she is not.","Yes, he is.","No, she is."],0,""],[2,25,2,"a2_25.mp3","","",["They are Jane’s shoes.","They are dirty shoes.","They are black."],2,""],[2,26,2,"a2_26.mp3","","",["It’s No.203 Eastern Street.","6629-1000.","Singapore."],0,""],[2,27,2,"a2_27.mp3","","",["He is a teacher.","Yes, he is.","He is rich."],1,""],[2,28,2,"a2_28.mp3","","",["Yes, I am.","Yes, she is.","Yes, he is."],1,""],[2,29,2,"a2_29.mp3","","",["Today is sunny.","I play volleyball on Mondays.","Today is Monday."],2,""],[2,30,2,"a2_30.mp3","","",["Yes, I am David.","Hello, David. I am Jack.","Yes, you do."],1,""],[2,31,3,"a2_b31.mp3","","Where is Jack from?",["He is from America.","He is from Singapore.","He is from China."],1,"31–32"],[2,32,3,"a2_b31.mp3","","Is Ruby Singaporean?",["Ruby is not from Singapore.","Yes, she is.","Ruby and Jack are from Singapore."],1,"31–32"],[2,33,3,"a2_b33.mp3","","Is Ruby a student?",["Yes, she is a student.","No, she is a teacher.","Yes, she is an old student."],0,"33–35"],[2,34,3,"a2_b33.mp3","","Where is Ruby from?",["She is not from America.","She is from England.","She is from America."],2,"33–35"],[2,35,3,"a2_b33.mp3","","How is Mary?",["She is fine.","She is tall.","She is a girl."],0,"33–35"],[2,36,3,"a2_b36.mp3","","Where did Ruby go?",["America.","England.","Singapore."],1,"36–37"],[2,37,3,"a2_b36.mp3","","What does Ruby think of the weather in England?",["She likes the weather in England.","She does not like the weather in England.","She does not like the weather in America."],1,"36–37"],[2,38,3,"a2_b38.mp3","","Is the boy hungry?",["No, he isn’t.","Yes, he is thirsty and hungry.","He wants to drink tea."],1,"38–40"],[2,39,3,"a2_b38.mp3","","What does Mom want?",["She wants juice, milk and tea.","Mom wants cookies.","Just cold water."],2,"38–40"],[2,40,3,"a2_b38.mp3","","What are they talking about?",["Games.","Food.","TV"],1,"38–40"],[2,41,4,"a2_b41.mp3","","What is NOT in his bag?",["A water bottle.","His phone.","Books."],1,"41–42"],[2,42,4,"a2_b41.mp3","","What color is Jack’s bag?",["It’s green.","The blue one is Jack’s.","Both bags are green."],1,"41–42"],[2,43,4,"a2_b43.mp3","","Why are the children happy?",["The weather is good.","It is Saturday.","It is summer vacation."],2,"43–44"],[2,44,4,"a2_b43.mp3","","How is the weather today?",["The weather is cold.","It is hot and sunny.","We don’t know."],1,"43–44"],[2,45,4,"a2_b45.mp3","","Why does the speaker’s brother like fall?",["Because it is not too cold.","Because it is not too hot.","Because the leaves fall from the trees."],2,"45–46"],[2,46,4,"a2_b45.mp3","","What can the speaker’s sister do in winter?",["She can enjoy sunshine.","She can have a snowball fight.","She can eat snow."],1,"45–46"],[2,47,4,"a2_b47.mp3","","What does Andy like to do?",["He likes to read books.","He likes to read the newspaper.","He likes to play the piano."],0,"47–48"],[2,48,4,"a2_b47.mp3","","What does Andy’s father do?",["He is a bus driver.","He is a doctor.","He is a policeman."],2,"47–48"],[2,49,4,"a2_b49.mp3","","What does Andy’s brother do?",["He is a teacher.","He is a writer.","He is a student."],0,"49–50"],[2,50,4,"a2_b49.mp3","","Who helps Andy’s mother cook in the family?",["Andy’s brother.","Andy.","Andy’s sister."],1,"49–50"]],"B":[[1,1,1,"b1_01.mp3","b1_q1.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,2,1,"b1_02.mp3","b1_q2.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,3,1,"b1_03.mp3","b1_q3.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,4,1,"b1_04.mp3","b1_q4.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,5,1,"b1_05.mp3","b1_q5.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[1,6,1,"b1_06.mp3","b1_q6.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[1,7,1,"b1_07.mp3","b1_q7.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,8,1,"b1_08.mp3","b1_q8.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,9,1,"b1_09.mp3","b1_q9.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,10,1,"b1_10.mp3","b1_q10.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,11,2,"b1_11.mp3","","",["You are doing your homework in front of the television.","I am doing it at my desk in the bedroom.","I am playing the piano in the dining room."],1,""],[1,12,2,"b1_12.mp3","","",["She is playing the guitar.","You are cooking in the kitchen.","She does her homework every evening."],0,""],[1,13,2,"b1_13.mp3","","",["My favorite sport is golf.","Her favorite sport is bowling.","My favorite fruit is strawberries."],0,""],[1,14,2,"b1_14.mp3","","",["There are five rooms in the house.","I can see two rooms.","There is a kitchen in my house."],0,""],[1,15,2,"b1_15.mp3","","",["I often go swimming with my friends.","I am friendly.","No, I don’t have many friends here."],2,""],[1,16,2,"b1_16.mp3","","",["No, he is not.","Yes, he is.","No, they aren’t."],2,""],[1,17,2,"b1_17.mp3","","",["Yes, she is talking to her.","Yes, I am talking to him.","No, I am not talking to her."],2,""],[1,18,2,"b1_18.mp3","","",["You usually go to school at 7:00.","I usually go to school at half past seven.","I usually go to school on time."],1,""],[1,19,2,"b1_19.mp3","","",["Sure. How many do you want?","Sure. How much do you need?","No, I don’t need money."],1,""],[1,20,2,"b1_20.mp3","","",["She has a new car.","The books on her desk are mine.","She needs a bike."],0,""],[1,21,2,"b1_21.mp3","","",["Yes, I have.","Yes, I can.","No, I don’t."],2,""],[1,22,2,"b1_22.mp3","","",["No thanks.","You’re welcome.","I think so."],1,""],[1,23,2,"b1_23.mp3","","",["Yes, I am.","Yes, there is.","He is sick."],1,""],[1,24,2,"b1_24.mp3","","",["No, there are not any pictures.","He is looking for his pictures.","He is painting a picture."],0,""],[1,25,2,"b1_25.mp3","","",["Yes, he can.","Yes, I do.","Yes, I can."],0,""],[1,26,2,"b1_26.mp3","","",["I live in Taiwan.","There are ten floors..","I live on the first floor."],2,""],[1,27,2,"b1_27.mp3","","",["Just a few.","One hundred dollars.","Not many."],1,""],[1,28,2,"b1_28.mp3","","",["She goes to school.","She cooks dinner.","She is taking a shower."],2,""],[1,29,2,"b1_29.mp3","","",["Yes, it is at home.","It’s in the watch shop for repair.","It’s a clock."],1,""],[1,30,2,"b1_30.mp3","","",["I am sorry, I need to go to the doctor with my mother.","Yes, I need to go to the movie.","Yes, you can."],0,""],[1,31,3,"b1_b31.mp3","","What does Lucy want?",["She wants to have a birthday party.","She wants Jack to see her every day.","She wants to do it herself."],0,"31–33"],[1,32,3,"b1_b31.mp3","","Whose birthday is coming?",["Jack’s birthday is coming.","Lucy’s birthday is coming.","Lucy’s friend’s birthday is coming."],1,"31–33"],[1,33,3,"b1_b31.mp3","","How many friends may go to the birthday party with Lucy and Jack?",["2.","3.","4."],1,"31–33"],[1,34,3,"b1_b34.mp3","","What kind of movies does Ben like?",["Scary movies.","Funny movies.","Sad movies."],1,"34–35"],[1,35,3,"b1_b34.mp3","","What animal does Ben like in movies?",["Cats.","Birds.","Dogs."],2,"34–35"],[1,36,3,"b1_b36.mp3","","What does Kevin’s mom want him to do now?",["His homework.","Finish the game.","Eat dinner."],0,"36–38"],[1,37,3,"b1_b36.mp3","","What does Kevin want to do?",["He wants to eat dinner.","He wants to win the game.","He wants to do his homework."],1,"36–38"],[1,38,3,"b1_b36.mp3","","Does Kevin want to finish his homework?",["Almost.","No, he doesn’t.","Yes."],1,"36–38"],[1,39,3,"b1_b39.mp3","","What class does Ben like?",["Music.","Art.","Math."],1,"39–40"],[1,40,3,"b1_b39.mp3","","What does Ben eat?",["Noodles and fruit.","Soup and bread.","Rice and fish"],0,"39–40"],[1,41,4,"b1_b41.mp3","","Why does she have to study?",["Because she has to study for the test.","Because she likes English.","Because she wants to watch TV."],0,"41–43"],[1,42,4,"b1_b41.mp3","","What does Sandy want from Jane?",["She wants her help to study.","Jane is not at home.","Jane wants Sandy to watch TV with her."],0,"41–43"],[1,43,4,"b1_b41.mp3","","Where does Sandy want to study?",["English.","At Jane’s house.","At Sandy’s house."],2,"41–43"],[1,44,4,"b1_b44.mp3","","Where does the speaker like to watch movies?",["In the theater.","In the restaurant.","At home."],2,"44–45"],[1,45,4,"b1_b44.mp3","","Why do some people prefer to watch movies in the theater?",["Because they enjoy the popcorn there.","Because they enjoy staying away from other people.","Because they enjoy being with other people."],2,"44–45"],[1,46,4,"b1_b46.mp3","","What kind of movie does Kevin like?",["A love story.","A superhero movie.","An animal movie."],1,"46–47"],[1,47,4,"b1_b46.mp3","","What do they eat and drink at the theater?",["Candy and milk.","Popcorn and juice.","Cake and tea."],1,"46–47"],[1,48,4,"b1_b48.mp3","","Who is Amy’s English teacher?",["Mr. Brown.","Miss Kelly.","Miss Anna."],1,"48–50"],[1,49,4,"b1_b48.mp3","","What does Amy do in English class?",["Writes long stories.","Plays games and sing songs.","Does homework all the time."],1,"48–50"],[1,50,4,"b1_b48.mp3","","When does Amy watch English videos?",["On Mondays.","On Saturdays.","On Fridays."],2,"48–50"],[2,1,1,"b2_01.mp3","b2_q1.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,2,1,"b2_02.mp3","b2_q2.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[2,3,1,"b2_03.mp3","b2_q3.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,4,1,"b2_04.mp3","b2_q4.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[2,5,1,"b2_05.mp3","b2_q5.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[2,6,1,"b2_06.mp3","b2_q6.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,7,1,"b2_07.mp3","b2_q7.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,8,1,"b2_08.mp3","b2_q8.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,9,1,"b2_09.mp3","b2_q9.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,10,1,"b2_10.mp3","b2_q10.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[2,11,2,"b2_11.mp3","","",["I often go swimming with my friends.","I am friendly.","No, I don’t have many friends here."],2,""],[2,12,2,"b2_12.mp3","","",["You usually go to school at 7:00.","I usually go to school at half past seven.","I usually go to school on time."],1,""],[2,13,2,"b2_13.mp3","","",["Her favorite food is vegetables.","Her favorite sport is bowling.","Her favorite fruit is strawberries."],1,""],[2,14,2,"b2_14.mp3","","",["Yes, I do.","I can see three bags.","I can see five lamps."],2,""],[2,15,2,"b2_15.mp3","","",["You are doing your homework in front of the television.","I am doing it at my desk in the bedroom.","I am playing the piano in the dining room."],1,""],[2,16,2,"b2_16.mp3","","",["No, there are not any pictures.","He is looking for his pictures.","He is painting a picture."],0,""],[2,17,2,"b2_17.mp3","","",["Yes, you are listening to me.","Yes, I am listening to you.","No, he is not listening to us."],1,""],[2,18,2,"b2_18.mp3","","",["She is playing the guitar.","You are cooking in the kitchen.","She does her homework every evening."],0,""],[2,19,2,"b2_19.mp3","","",["Yes, I have.","Yes, I can.","No, I don’t."],2,""],[2,20,2,"b2_20.mp3","","",["No, thanks.","You’re welcome.","I think so."],1,""],[2,21,2,"b2_21.mp3","","",["Sure. How many do you want?","Sure. How much do you need?","No, I don’t need money."],1,""],[2,22,2,"b2_22.mp3","","",["She has a new car.","The books on her desk are mine.","She needs a bike."],0,""],[2,23,2,"b2_23.mp3","","",["Yes, I am.","Yes, there is.","He is sick."],1,""],[2,24,2,"b2_24.mp3","","",["No, he is not.","Yes, he is.","No, they aren’t."],2,""],[2,25,2,"b2_25.mp3","","",["Yes, he can.","Yes, I do.","Yes, I can."],0,""],[2,26,2,"b2_26.mp3","","",["No, I don’t.","Yes, there are.","Yes, there is."],2,""],[2,27,2,"b2_27.mp3","","",["Just a little.","Too much.","Not many."],0,""],[2,28,2,"b2_28.mp3","","",["He doesn’t shut his eyes because the movie is scary.","He is shutting his eyes because of the scary movie.","He shuts his eyes at scary movies."],1,""],[2,29,2,"b2_29.mp3","","",["Yes, I never eat first.","Yes, it is always late when I do it.","Yes, always do my homework."],0,""],[2,30,2,"b2_30.mp3","","",["The girl is sick.","The girl is painting.","Her favorite sport is soccer."],1,""],[2,31,3,"b2_b31.mp3","","What does Kevin’s mom want him to do now?",["His homework.","Finish the game.","Eat dinner."],0,"31–33"],[2,32,3,"b2_b31.mp3","","What does Kevin want to do?",["He wants to eat dinner.","He wants to win the game.","He wants to do his homework."],1,"31–33"],[2,33,3,"b2_b31.mp3","","Does Kevin finish his homework?",["Almost.","No, he doesn’t.","Maybe."],1,"31–33"],[2,34,3,"b2_b34.mp3","","How is Lucy?",["She feels sad.","She is fine.","She is a nice girl."],1,"34–35"],[2,35,3,"b2_b34.mp3","","Who lives with Lucy?",["She lives with her parents.","She lives with her friends.","She lives with no one."],2,"34–35"],[2,36,3,"b2_b36.mp3","","What does Lucy want?",["She wants to have a birthday party.","She wants Jack to see her every day.","She wants to do it herself."],0,"36–38"],[2,37,3,"b2_b36.mp3","","Whose birthday is coming?",["Jack’s birthday is coming.","Lucy’s birthday is coming.","Lucy’s friend’s birthday is coming."],1,"36–38"],[2,38,3,"b2_b36.mp3","","How many friends may go to the birthday party with Lucy and Jack?",["2.","3.","4."],1,"36–38"],[2,39,3,"b2_b39.mp3","","What kind of movies does Helen like?",["She wants to watch a movie with Paul.","She likes science fiction movies.","She likes romance movies."],1,"39–40"],[2,40,3,"b2_b39.mp3","","Why does Helen have to run?",["She likes to run.","She likes science fiction movies.","The movie is about to start"],2,"39–40"],[2,41,4,"b2_b41.mp3","","Where does Henry come from?",["England.","America.","Japan."],2,"41–42"],[2,42,4,"b2_b41.mp3","","Where does he learn English?",["At GRAM English.","At School.","At home."],0,"41–42"],[2,43,4,"b2_b43.mp3","","What can’t Frank do?",["Drive a car.","Ride a bicycle.","Play a musical instrument."],0,"43–45"],[2,44,4,"b2_b43.mp3","","What do the three friends do together?",["Everything.","Kung fu, video games and dancing.","Speak English, homework and video games."],2,"43–45"],[2,45,4,"b2_b43.mp3","","What are they very good at?",["Playing music and singing.","Speaking English.","Playing video games."],1,"43–45"],[2,46,4,"b2_b46.mp3","","Where does the speaker like to watch movies?",["In the theater.","In the restaurant.","At home."],2,"46–47"],[2,47,4,"b2_b46.mp3","","Why do some people prefer to watch movies in the theater?",["Because they enjoy the popcorn there.","Because they enjoy staying away from other people.","Because they enjoy being with other people."],2,"46–47"],[2,48,4,"b2_b48.mp3","","Why does she have to study?",["Because she has to study for the test.","Because she likes English.","Because she wants to watch TV."],0,"48–50"],[2,49,4,"b2_b48.mp3","","What does Sandy want from Jane?",["She wants her help to study.","Jane is not at home.","Jane wants Sandy to watch TV with her."],0,"48–50"],[2,50,4,"b2_b48.mp3","","Where does Sandy want to study?",["English.","At Jane’s house.","At Sandy’s house."],2,"48–50"]],"C":[[1,1,1,"c1_01.mp3","c1_q1.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[1,2,1,"c1_02.mp3","c1_q2.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,3,1,"c1_03.mp3","c1_q3.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[1,4,1,"c1_04.mp3","c1_q4.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,5,1,"c1_05.mp3","c1_q5.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,6,1,"c1_06.mp3","c1_q6.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[1,7,1,"c1_07.mp3","c1_q7.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[1,8,1,"c1_08.mp3","c1_q8.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[1,9,1,"c1_09.mp3","c1_q9.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,10,1,"c1_10.mp3","c1_q10.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[1,11,2,"c1_11.mp3","","",["Michael is not the most handsome boy in my class.","John is the most handsome boy in my class.","Jerry is the most interesting boy in my class."],1,""],[1,12,2,"c1_12.mp3","","",["Thank you very much.","Yes, I am looking for sunglasses.","Here you are."],1,""],[1,13,2,"c1_13.mp3","","",["I am 160 cm.","I am 45 kg.","You are very tall."],0,""],[1,14,2,"c1_14.mp3","","",["People hang lanterns.","People watch the moon together.","All the family members eat a big dinner together."],2,""],[1,15,2,"c1_15.mp3","","",["English is easier.","My favorite school subject is English.","Science is not easy."],0,""],[1,16,2,"c1_16.mp3","","",["They dress up and ask for candy.","They go on picnics and have fun outdoors.","They decorate their houses."],1,""],[1,17,2,"c1_17.mp3","","",["She needs nothing for her house.","She needs a new house.","We can buy a chair for her."],2,""],[1,18,2,"c1_18.mp3","","",["He will have to stay with his parents.","He had to walk the dog.","He is playing ping-pong."],0,""],[1,19,2,"c1_19.mp3","","",["I am going to visit my grandparents.","I am going to leave for Brazil on June 5th.","I am going to be late for my flight."],1,""],[1,20,2,"c1_20.mp3","","",["No, I am not.","Sure, let’s go.","Have a nice flight."],0,""],[1,21,2,"c1_21.mp3","","",["He is sleeping under a tree.","He finished his homework.","He is going to swim across the river."],1,""],[1,22,2,"c1_22.mp3","","",["No, she didn’t.","No, she doesn’t.","She likes dancing."],0,""],[1,23,2,"c1_23.mp3","","",["She travels to America every year.","America is a big country.","She went there by plane."],2,""],[1,24,2,"c1_24.mp3","","",["The weather is sunny.","I didn’t like the weather.","It was cloudy."],2,""],[1,25,2,"c1_25.mp3","","",["Me, either.","So do I.","I will come, too."],1,""],[1,26,2,"c1_26.mp3","","",["John is older than Mary.","Mary is older than John.","John is as old as Mary."],2,""],[1,27,2,"c1_27.mp3","","",["No, I have nothing in my pocket.","Yes, there is something on the radio.","Yes, there is something in the refrigerator."],2,""],[1,28,2,"c1_28.mp3","","",["Yes, they are, and they have wings, too.","No, they don’t, and neither do these cats.","No, they aren’t, and those chickens aren’t, either."],2,""],[1,29,2,"c1_29.mp3","","",["He has a new bike.","His father bought him the bike last year.","Last year."],2,""],[1,30,2,"c1_30.mp3","","",["Jack is going to England.","Jack is from England.","Jack did."],2,""],[1,31,3,"c1_b31.mp3","","What does the man want?",["A jacket and hiking boots.","A skirt and shoes.","A T-shirt and hiking boots."],0,"31–34"],[1,32,3,"c1_b31.mp3","","What color does the man want?",["Black.","Yellow.","Blue."],2,"31–34"],[1,33,3,"c1_b31.mp3","","How much are they?",["135 dollars.","125 dollars.","115 dollars."],0,"31–34"],[1,34,3,"c1_b31.mp3","","How does the man pay in the end?",["By credit card.","He pays cash.","By check."],1,"31–34"],[1,35,3,"c1_b35.mp3","","Why does the man want to buy a jacket and a pair of boots?",["Because he will go hiking with his friends.","Because he will go swimming with his friends.","Because he will go rock climbing with his friends."],0,"35–36"],[1,36,3,"c1_b35.mp3","","What does the man want to do when he sees the boots and jackets?",["He wants to know the price.","He wants to buy them.","He wants to try them on."],2,"35–36"],[1,37,3,"c1_b37.mp3","","Which sentence is true?",["They are going to Korea.","They have two suitcases as check-in luggage.","They are Korean."],0,"37–40"],[1,38,3,"c1_b37.mp3","","How many suitcases all together do they have?",["Only one.","Two each, so there are four.","Three."],2,"37–40"],[1,39,3,"c1_b37.mp3","","Where will they sit?",["They will sit in window seats.","One has a window seat and one has an aisle seat.","There are no more window seats, so they will sit in aisle seats."],1,"37–40"],[1,40,3,"c1_b37.mp3","","Where are they?",["At the airport.","At the hotel.","At the department store."],0,"37–40"],[1,41,4,"c1_b41.mp3","","What is the speaker talking about?",["People like to celebrate holidays.","People may celebrate holidays differently.","People like Mother’s Day."],1,"41–42"],[1,42,4,"c1_b41.mp3","","What don’t people do on Mother’s Day, according to the speaker?",["Cook for their mothers.","Give flowers to their mothers.","Give their mothers money."],2,"41–42"],[1,43,4,"c1_b43.mp3","","What does Lucy’s mother do in the country?",["Takes care of the animals.","Talks to the farmer.","Picks flowers."],2,"43–45"],[1,44,4,"c1_b43.mp3","","What are not on this farm?",["Roosters.","Dogs.","Goats"],2,"43–45"],[1,45,4,"c1_b43.mp3","","Why can Tom say woof-woof like a dog?",["Because he has a dog.","Because it is the easiest sound to make.","Because it is fun to sound like a dog ."],1,"43–45"],[1,46,4,"c1_b46.mp3","","How many people are there in Lucy’s family?",["4.","5.","6."],0,"46–47"],[1,47,4,"c1_b46.mp3","","Where do Lucy’s family never go when they are free?",["The zoo.","The movie theater.","The museum."],1,"46–47"],[1,48,4,"c1_b48.mp3","","What will students do in the morning on Children’s Day?",["Have classes as usual.","Play games.","Watch a magic show."],1,"48–50"],[1,49,4,"c1_b48.mp3","","What is inside the gift bag?",["Candy and pencils.","Toys and stickers.","Ice cream and cake."],0,"48–50"],[1,50,4,"c1_b48.mp3","","What will happen in the afternoon?",["A balloon fight.","A singing contest.","A magic show."],2,"48–50"],[2,1,1,"c2_01.mp3","c2_q1.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,2,1,"c2_02.mp3","c2_q2.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[2,3,1,"c2_03.mp3","c2_q3.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,4,1,"c2_04.mp3","c2_q4.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,5,1,"c2_05.mp3","c2_q5.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,6,1,"c2_06.mp3","c2_q6.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,7,1,"c2_07.mp3","c2_q7.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,8,1,"c2_08.mp3","c2_q8.jpg","",["第 A 句","第 B 句","第 C 句"],1,""],[2,9,1,"c2_09.mp3","c2_q9.jpg","",["第 A 句","第 B 句","第 C 句"],0,""],[2,10,1,"c2_10.mp3","c2_q10.jpg","",["第 A 句","第 B 句","第 C 句"],2,""],[2,11,2,"c2_11.mp3","","",["She needs nothing for her house.","She needs a new house.","We can buy a chair for her."],2,""],[2,12,2,"c2_12.mp3","","",["She is drawing a picture.","She rides to school every day.","She is going to walk her dog."],2,""],[2,13,2,"c2_13.mp3","","",["I am 160 cm.","I am 45 kg.","You are very tall."],0,""],[2,14,2,"c2_14.mp3","","",["People hang lanterns.","People watch the moon together.","All the family members eat a big dinner together."],2,""],[2,15,2,"c2_15.mp3","","",["There are four seasons in a year.","There are eight letters in my name.","My name is Peterson."],1,""],[2,16,2,"c2_16.mp3","","",["Yes, it is.","No, it isn’t.","Yes, they are."],2,""],[2,17,2,"c2_17.mp3","","",["Michael is not the most handsome boy in my class.","John is the most handsome boy in my class.","Jerry is the most interesting boy in my class."],1,""],[2,18,2,"c2_18.mp3","","",["He will have to stay with his parents.","He had to walk the dog.","He is playing ping-pong."],0,""],[2,19,2,"c2_19.mp3","","",["There are many students in my English class.","English is very important.","On foot."],2,""],[2,20,2,"c2_20.mp3","","",["He is sleeping under a tree.","He finished his homework.","He is going to swim across the river."],1,""],[2,21,2,"c2_21.mp3","","",["No, she didn’t.","No, she doesn’t.","She likes dancing."],0,""],[2,22,2,"c2_22.mp3","","",["She travels to America every year.","America is a big country.","She went there by plane."],2,""],[2,23,2,"c2_23.mp3","","",["My Chinese zodiac sign is the lion.","My Chinese zodiac sign is the tiger.","My favorite animal is the rooster."],1,""],[2,24,2,"c2_24.mp3","","",["Me, either.","So do I.","I will come, too."],1,""],[2,25,2,"c2_25.mp3","","",["John is older than Mary.","Mary is older than John.","John is as old as Mary."],2,""],[2,26,2,"c2_26.mp3","","",["No, I have nothing in my pocket.","Yes, there is something on the radio.","Yes, there is something in the refrigerator."],2,""],[2,27,2,"c2_27.mp3","","",["Yes, they are, and they have wings, too.","No, they don’t, and neither do these cats.","No, they aren’t, and those chickens aren’t, either."],2,""],[2,28,2,"c2_28.mp3","","",["I will have to take my dog to the animal doctor.","I had to go to the doctor yesterday.","I will have to go to the doctor."],2,""],[2,29,2,"c2_29.mp3","","",["I ate breakfast at 7:30.","I ate breakfast with my family.","I eat breakfast every day."],0,""],[2,30,2,"c2_30.mp3","","",["We will dress up and ask our neighbors for candy.","We will have a family dinner and give each other gifts.","We will watch parades and American football."],1,""],[2,31,3,"c2_b31.mp3","","Which sentence is true?",["They are going to Korea.","They have two suitcases as check-in luggage.","They are Korean."],0,"31–34"],[2,32,3,"c2_b31.mp3","","How many suitcases all together do they have?",["Only one.","Two each, so there are four.","Three."],2,"31–34"],[2,33,3,"c2_b31.mp3","","Where will they sit?",["They will sit in window seats.","One has a window seat and one has an aisle seat.","There are no more window seats, so they will sit in aisle seats."],1,"31–34"],[2,34,3,"c2_b31.mp3","","Where are they?",["At the airport.","At the hotel.","At the department store."],0,"31–34"],[2,35,3,"c2_b35.mp3","","When did Mr. Mark come to America?",["Last week.","Last month.","The week before last."],1,"35–36"],[2,36,3,"c2_b35.mp3","","What does Mr. Mark think of his life in America?",["It is boring.","It is difficult.","He likes everything in America."],2,"35–36"],[2,37,3,"c2_b37.mp3","","How does Mr. Mark learn about American culture?",["He learns it from his teacher.","He learns it from his wife.","He learns it from his friends."],0,"37–40"],[2,38,3,"c2_b37.mp3","","What surprises Mr. Mark in America?",["People eat.","People give gifts on Christmas.","People will talk to Santa Claus."],1,"37–40"],[2,39,3,"c2_b37.mp3","","Why do children in America hang stockings for Christmas, according to the woman?",["Because they can get money.","Because they like stockings.","Because they can get small gifts and snacks from Santa Claus."],2,"37–40"],[2,40,3,"c2_b37.mp3","","Who is Mr. Mark in America with?",["Family.","Neighbors.","Classmates"],0,"37–40"],[2,41,4,"c2_b41.mp3","","How many people are there in Lucy’s family?",["4.","5.","6."],0,"41–42"],[2,42,4,"c2_b41.mp3","","Where do Lucy’s family never go when they are free?",["The zoo.","The movie theater.","The museum."],1,"41–42"],[2,43,4,"c2_b43.mp3","","What does Lucy’s mother do in the country?",["Take care of the animals.","Talk to the farmer.","Pick flowers."],2,"43–45"],[2,44,4,"c2_b43.mp3","","What are not on this farm?",["Roosters.","Dogs.","Goats."],2,"43–45"],[2,45,4,"c2_b43.mp3","","Why can Tom say woof woof like a dog?",["Because he has a dog.","Because it is the easiest sound to make.","Because it is fun to sound like a dog."],1,"43–45"],[2,46,4,"c2_b46.mp3","","Why is Jack not worried?",["Because he knows Tom will win the running race.","Because he knows that he is a better swimmer than Tom.","Because he is not as fast as Tom."],1,"46–47"],[2,47,4,"c2_b46.mp3","","What will likely happen when one boy wins a race?",["The other will say, “Congratulations!”","The other will feel disappointed.","The boys won’t be friends any longer."],0,"46–47"],[2,48,4,"c2_b48.mp3","","Why doesn’t her mom want to go to the sale?",["Because there is something in the jewelry department she wants.","Because everything is on sale.","Because there is nothing she needs."],2,"48–50"],[2,49,4,"c2_b48.mp3","","Who is going to the sale with the speaker?",["Her mom.","Her friend.","She is going by herself."],1,"48–50"],[2,50,4,"c2_b48.mp3","","What is on sale?",["All the sports shoes.","Everything in the store.","All the pieces of jewelry."],0,"48–50"]],"D":[[1,1,1,"d1_01.mp3","d1_q1.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],3,""],[1,2,1,"d1_02.mp3","d1_q2.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],0,""],[1,3,1,"d1_03.mp3","d1_q3.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],3,""],[1,4,1,"d1_04.mp3","d1_q4.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],3,""],[1,5,1,"d1_05.mp3","d1_q5.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],0,""],[1,6,1,"d1_06.mp3","d1_q6.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],3,""],[1,7,1,"d1_07.mp3","d1_q7.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],0,""],[1,8,1,"d1_08.mp3","d1_q8.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],1,""],[1,9,1,"d1_09.mp3","d1_q9.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],1,""],[1,10,1,"d1_10.mp3","d1_q10.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],0,""],[1,11,2,"d1_11.mp3","","",["I don’t like drawing.","I can run in PE class.","Math.","Math is difficult."],2,""],[1,12,2,"d1_12.mp3","","",["He ate breakfast with me.","I was pleased with my grades.","He was watering the plants.","We sat and talked."],2,""],[1,13,2,"d1_13.mp3","","",["He will go to San Francisco by ship.","He went to San Francisco by plane.","He is going to San Francisco by plane.","He is driving to San Francisco."],1,""],[1,14,2,"d1_14.mp3","","",["He is singing.","He is a music lover.","He is going to play games with his friends.","He plays the piano."],2,""],[1,15,2,"d1_15.mp3","","",["The volcano is near my home.","I have never been to a volcano before.","Like a mountain.","I like volcanoes."],2,""],[1,16,2,"d1_16.mp3","","",["Since I graduated from university.","In 1980.","Last year.","When I studied here."],0,""],[1,17,2,"d1_17.mp3","","",["It is sunny today.","It is fine.","Fuji Mountain.","No, I am not."],2,""],[1,18,2,"d1_18.mp3","","",["He doesn’t want to walk there.","By bus.","The plane is fast.","He will go there by taxi."],1,""],[1,19,2,"d1_19.mp3","","",["Chicago.","Houston is a big city.","I have studied in Boston before.","Denver is close to where I live."],0,""],[1,20,2,"d1_20.mp3","","",["He is practicing kung-fu.","He was cooking in the kitchen.","He is going to England.","He will go to America."],1,""],[1,21,2,"d1_21.mp3","","",["At 7:30","They were in the restaurant.","At the park.","In the morning."],2,""],[1,22,2,"d1_22.mp3","","",["David is my favorite.","Devon loves music.","I listen to classical music.","I enjoy listening to music alone."],0,""],[1,23,2,"d1_23.mp3","","",["It is rainy.","It is Sunday morning.","It is a season.","It is good for health."],3,""],[1,24,2,"d1_24.mp3","","",["Yes, they do.","Yes, they don’t.","No, they do.","No, they don’t."],3,""],[1,25,2,"d1_25.mp3","","",["The campfire was difficult to make.","The campfire is my favorite part of camping.","They sang and danced.","They cook food."],2,""],[1,26,2,"d1_26.mp3","","",["I visited her at 6:30 yesterday.","He was shopping in the supermarket.","She was watching the news on TV.","She ate dinner."],2,""],[1,27,2,"d1_27.mp3","","",["It is very expensive.","It is very famous.","It is around the corner.","It is a typical Chinese restaurant."],2,""],[1,28,2,"d1_28.mp3","","",["Yes, she does.","No, she doesn’t.","No, she didn’t.","Yes, she will."],2,""],[1,29,2,"d1_29.mp3","","",["I get it at the night market.","I did it at the market.","I got it at the market.","I used to buy it online."],2,""],[1,30,2,"d1_30.mp3","","",["I will go to the art museum.","I am having a tour in the museum now.","I was playing video games.","I was in the countryside."],0,""],[1,31,3,"d1_b31.mp3","","What day is it today?",["Monday.","Wednesday.","Sunday.","Friday."],3,"31–32"],[1,32,3,"d1_b31.mp3","","What is Jason going to do on the weekend?",["He is going to do nothing.","He is going to buy some food.","He is going to visit his sister.","He is going to a concert."],3,"31–32"],[1,33,3,"d1_b33.mp3","","Why did Diana faint?",["Because she fell into the water.","Because she stayed in the water too long.","Because she had a headache.","Because she was too cold."],1,"33–36"],[1,34,3,"d1_b33.mp3","","How did Diana get to the hospital?",["She feels sad.","On foot.","She is a nice girl.","By ambulance."],3,"33–36"],[1,35,3,"d1_b33.mp3","","Who does Diana plan to go to the hot springs with next time?",["A friend.","A pet.","Her baby sister.","Her whole family."],0,"33–36"],[1,36,3,"d1_b33.mp3","","What is one good thing about hot spring water, according to Diana?",["It helps people sleep better","It makes the water look beautiful when it snows.","The minerals in it are good for your health.","It keeps the pool clean and warm."],2,"33–36"],[1,37,3,"d1_b37.mp3","","Where were the boys yesterday?",["They were at the park.","There were at the coffee shop.","They were at home.","They are at the cafe."],1,"37–38"],[1,38,3,"d1_b37.mp3","","Who was Devon with yesterday?",["Jason.","His mom.","His family.","His father."],0,"37–38"],[1,39,3,"d1_b39.mp3","","What are they talking about?",["Summer camp.","A new movie.","A video game.","A music festival."],3,"39–40"],[1,40,3,"d1_b39.mp3","","What did Cathy take to the music festival?",["An umbrella and snacks.","A book.","A mobile phone and an umbrella.","A car."],2,"39–40"],[1,41,4,"d1_b41.mp3","","Why didn’t Mike like these sweaters?",["They were too small.","They were for adults.","They made him look funny.","They were fashionable."],2,"41–42"],[1,42,4,"d1_b41.mp3","","Why did Mike’s friends laugh at him?",["Because he didn’t know how to make sweaters.","Because he always forgot to visit his grandma.","Because he looked funny in the sweaters his grandma made.","Because he wore the same sweater every day."],2,"41–42"],[1,43,4,"d1_b43.mp3","","What did Angelina think about the bus trip to Calais?",["It was not boring at all.","It was boring.","She was tired on the bus.","It was tiring."],0,"43–44"],[1,44,4,"d1_b43.mp3","","What transportation did they take in Calais?",["They took a bus.","They took a taxi.","They took a boat.","They took a train."],2,"43–44"],[1,45,4,"d1_b45.mp3","","How did the speaker prepare for her school report?",["She read books and searched the Internet.","She went to Paris by subway.","She watched TV.","She asked her friends."],0,"45–47"],[1,46,4,"d1_b45.mp3","","What did French people used to be called?",["They used to be called “kings and queens.”","They used to be called “French.”","They used to be called “Franks.”","We don’t know."],2,"45–47"],[1,47,4,"d1_b45.mp3","","Do French people have queens and kings now?",["Yes, they do.","They have Franks, kings, and queens.","Their kings and queens are in Paris now.","They did a long time ago, but not now."],3,"45–47"],[1,48,4,"d1_b48.mp3","","What is not displayed during the festival?",["Online shows.","Workshops.","Food stalls.","Concerts."],0,"48–50"],[1,49,4,"d1_b48.mp3","","For how many years was the festival awarded one of the 25 best music festivals in the world?",["5 years.","6 years.","7 years.","8 years."],1,"48–50"],[1,50,4,"d1_b48.mp3","","What does the text mainly talk about?",["How to talk about a music festival.","How to join a music festival.","A brief introduction to a world-famous artist.","A brief introduction to a music festival."],3,"48–50"],[2,1,1,"d2_01.mp3","d2_q1.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],3,""],[2,2,1,"d2_02.mp3","d2_q2.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],3,""],[2,3,1,"d2_03.mp3","d2_q3.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],2,""],[2,4,1,"d2_04.mp3","d2_q4.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],0,""],[2,5,1,"d2_05.mp3","d2_q5.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],2,""],[2,6,1,"d2_06.mp3","d2_q6.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],1,""],[2,7,1,"d2_07.mp3","d2_q7.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],1,""],[2,8,1,"d2_08.mp3","d2_q8.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],0,""],[2,9,1,"d2_09.mp3","d2_q9.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],1,""],[2,10,1,"d2_10.mp3","d2_q10.jpg","",["第 A 句","第 B 句","第 C 句","第 D 句"],3,""],[2,11,2,"d2_11.mp3","","",["At 7:30.","They were in the restaurant.","At the park.","In the morning."],2,""],[2,12,2,"d2_12.mp3","","",["I will go to the art museum.","I am touring in the museum.","I was playing video games.","I was in the countryside."],0,""],[2,13,2,"d2_13.mp3","","",["I will go to Korea by ship.","I went to Korea by plane.","I am going to Korea by plane.","I am driving to Korea."],1,""],[2,14,2,"d2_14.mp3","","",["He is singing.","He is a music lover.","He is going to play games with his friends.","He plays the piano."],2,""],[2,15,2,"d2_15.mp3","","",["Because I played video games until two o’clock.","You are welcome.","It is going to be sunny.","Yes, I was."],0,""],[2,16,2,"d2_16.mp3","","",["Sure.","You are welcome.","Never mind.","Yes, I did."],0,""],[2,17,2,"d2_17.mp3","","",["She is very considerate.","No problem.","Yes, she is cold.","No, she didn’t."],3,""],[2,18,2,"d2_18.mp3","","",["David is my favorite.","Devon loves music.","I listen to classical music.","I enjoy listening to music alone."],0,""],[2,19,2,"d2_19.mp3","","",["About twenty minutes.","No problem.","By bus.","About two hundred dollars."],0,""],[2,20,2,"d2_20.mp3","","",["He is practicing kung-fu.","He was cooking in the kitchen.","He is going to England.","He will go to America."],1,""],[2,21,2,"d2_21.mp3","","",["I don’t like drawing.","I can run in PE class.","Math.","Math is difficult."],2,""],[2,22,2,"d2_22.mp3","","",["He doesn’t want to walk there.","By bus.","The plane is fast.","He will go there by taxi."],1,""],[2,23,2,"d2_23.mp3","","",["It was rainy.","It was from America.","It was 7 o’clock.","It was interesting."],0,""],[2,24,2,"d2_24.mp3","","",["Classical music is my favorite.","Blues is very slow.","R&B is quick.","Rock has strong beats."],0,""],[2,25,2,"d2_25.mp3","","",["The campfire was difficult to make.","The campfire is my favorite part of camping.","They sang and danced.","They cook food."],2,""],[2,26,2,"d2_26.mp3","","",["I visited her at 6:30 yesterday.","He was shopping in the supermarket.","She was watching the news on TV.","She ate dinner."],2,""],[2,27,2,"d2_27.mp3","","",["It is very good.","They were all doing puzzles.","I will go to the concert tomorrow.","The performers were amazing!"],3,""],[2,28,2,"d2_28.mp3","","",["Yes, she does.","No, she doesn’t.","No, she didn’t.","Yes, she will."],2,""],[2,29,2,"d2_29.mp3","","",["I get it at the night market.","I did it at the market.","I got it at the market.","I used to buy it online."],2,""],[2,30,2,"d2_30.mp3","","",["He ate breakfast with me.","I was pleased with my grades.","He was watering the plants.","We sat and talked."],2,""],[2,31,3,"d2_b31.mp3","","What are they talking about?",["Summer camp.","A new movie.","A video game.","A music festival."],3,"31–32"],[2,32,3,"d2_b31.mp3","","What did Cathy take to the music festival?",["An umbrella and snacks.","A book.","A mobile phone and an umbrella.","A car."],2,"31–32"],[2,33,3,"d2_b33.mp3","","What did the girl use to do?",["She used to go to the new shopping mall.","She used to read outside.","She didn’t like to read outside.","She used to change her mind about the library."],1,"33–36"],[2,34,3,"d2_b33.mp3","","What made the girl change her mind?",["It is too noisy outside now.","She was reading outside.","There was no library.","Because she was in the library."],0,"33–36"],[2,35,3,"d2_b33.mp3","","Why does the man like to read at the library?",["Because he can sit outside at the library.","Because there’s too much noise, and too many mosquitoes.","Because he doesn’t think about his problems there.","Because there is no noise, and no mosquitoes."],3,"33–36"],[2,36,3,"d2_b33.mp3","","What will the boy and girl do tomorrow?",["They will read outside together.","They will visit the library.","They will go to the new shopping center.","They will return some books to the library."],1,"33–36"],[2,37,3,"d2_b37.mp3","","Where were the boys yesterday?",["They were at the park.","There were at the coffee shop.","They were at home.","They are at the cafe."],1,"37–38"],[2,38,3,"d2_b37.mp3","","Who was Devon with yesterday?",["Jason.","His mom.","His family.","His father."],0,"37–38"],[2,39,3,"d2_b39.mp3","","What day is it today?",["Monday.","Wednesday.","Sunday.","Friday."],3,"39–40"],[2,40,3,"d2_b39.mp3","","What is Jason going to do on the weekend?",["He is going to do nothing.","He is going to buy some food.","He is going to visit his sister.","He is going to a concert."],3,"39–40"],[2,41,4,"d2_b41.mp3","","How long is the movie the boys want to see?",["A little more than 2 hours.","A little less than 3 hours.","More than 3 hours.","It’s not even 2 hours long."],2,"41–42"],[2,42,4,"d2_b41.mp3","","What was Jack doing when Ben called him ?",["He was doing his homework.","He was watching a movie.","He was taking a shower.","He was sleeping."],3,"41–42"],[2,43,4,"d2_b43.mp3","","How long does the Rainforest World Music Festival last?",["3 days.","4 days.","5 days.","6 days."],0,"43–44"],[2,44,4,"d2_b43.mp3","","What is the purpose of the festival?",["To welcome musicians from all over the world.","To celebrate the birth of new music.","To make every music artist happy.","To celebrate the diversity of music."],3,"43–44"],[2,45,4,"d2_b45.mp3","","What is not displayed during the festival?",["Online shows.","Workshops.","Food stalls.","Concerts."],0,"45–47"],[2,46,4,"d2_b45.mp3","","For how many years is the festival awarded the best 25 music festivals in the world?",["5 years.","6 years.","7 years.","8 years."],1,"45–47"],[2,47,4,"d2_b45.mp3","","What does the text mainly talk about?",["How to talk about a music festival.","How to join a music festival.","A brief introduction to a world-famous artist.","A brief introduction to a music festival."],3,"45–47"],[2,48,4,"d2_b48.mp3","","How did the speaker prepare for her school report?",["She read books and searched the Internet.","She went to Paris by subway.","She watched TV.","She asked his friends."],0,"48–50"],[2,49,4,"d2_b48.mp3","","What did French people used to be called?",["They used to be called “kings and queens”.","They used to be called “French”.","They used to be called “Franks”.","We don’t know."],2,"48–50"],[2,50,4,"d2_b48.mp3","","Do French people have queens and kings now?",["Yes, they do.","They have Franks, kings, and queens.","Their kings and queens are in Paris now.","They did a long time ago, but not now."],3,"48–50"]]};
+const KIND_NAME = {g:"文法", c:"克漏字", r:"閱讀", l:"聽力"};
+const GROUPS = ["A","B","C","D"];
+const FLAT = {};
+for (const g of GROUPS) FLAT[g] = ["g","c","r"].flatMap(k => BANK[g][k].map(r => ({r, k}))).concat(LISTEN[g].map(L => ({L, k:"l"})));
+
+/* ===================== 工具 ===================== */
+const $ = s => document.querySelector(s);
+const LET = ["A","B","C","D"];
+const NOPT = () => (G && G.nopt) || 3;
+/* 難易度：spd=目標移動速度、run=跑酷/賽車速度、hit=點擊判定放大、size=目標大小、pen=答錯扣秒、read=跑酷/賽車讀題時間倍數 */
+const DIFFS = {
+  easy:   {name:"簡單", spd:.55, run:.8,  hit:1.7, size:1.2,  time:{fish:120, mole:100, balloon:100}, pen:1, hearts:5, read:1.5,  rival:.97, life:1.6,  btn:true},
+  normal: {name:"普通", spd:.8,  run:.92, hit:1.35,size:1.05, time:{fish:100, mole:80,  balloon:80},  pen:3, hearts:4, read:1.15, rival:1.04, life:1.15, btn:false},
+  hard:   {name:"挑戰", spd:1.15,run:1.1, hit:1,   size:.95,  time:{fish:80,  mole:65,  balloon:65},  pen:5, hearts:3, read:.9,   rival:1.1, life:.85,  btn:false}
+};
+const DF = () => DIFFS[S.diff] || DIFFS.normal;
+const LEVEL_SIZE = 5, MAX_LEVEL = 5;
+const LVL = () => 1 + .12*(((G && G.level) || 1) - 1);
+const COL = ["#E8553E","#2E6FD8","#2F9A4C","#E39A1F"];
+const COL_D = ["#A8361F","#1C4C9E","#1D6A31","#A66A08"];
+const INK = "#26314B";
+const INK_LINE = c => { c.strokeStyle = INK; c.lineWidth = 2.5; c.lineJoin = "round"; c.stroke(); };
+const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+const rand = n => Math.floor(Math.random()*n);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rand(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const esc = s => s.replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem("gramgame."+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem("gramgame."+k, JSON.stringify(v)); }catch(e){} }
+};
+function rr(c,x,y,w,h,r){ r=Math.min(r,w/2,h/2); c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+function wrapText(c, text, maxW, maxLines){
+  const words = text.split(" "); const lines = []; let line = "";
+  for (const w of words){ const t = line ? line+" "+w : w; if (c.measureText(t).width <= maxW || !line){ line = t; } else { lines.push(line); line = w; } }
+  if (line) lines.push(line);
+  if (lines.length > maxLines){ const keep = lines.slice(0,maxLines); let last = keep[maxLines-1]; while(last.length>1 && c.measureText(last+"…").width>maxW) last = last.slice(0,-1); keep[maxLines-1] = last+"…"; return keep; }
+  return lines;
+}
+
+/* ===================== 音效 ===================== */
+let AC = null, muted = store.get("muted", false);
+function tone(f,d,type="sine",v=.15,when=0,f2){
+  if (muted) return;
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain();
+    o.type = type; o.frequency.setValueAtTime(f,t); if (f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+    g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.001,t+d);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+d+.02);
+  }catch(e){}
+}
+const sfx = {
+  ok(){ tone(660,.12,"triangle"); tone(880,.12,"triangle",.15,.09); tone(1320,.22,"triangle",.12,.18); },
+  bad(){ tone(220,.28,"sawtooth",.07); tone(160,.32,"sawtooth",.07,.12); },
+  coin(){ tone(1250,.07,"square",.04); tone(1650,.1,"square",.04,.05); },
+  thud(){ tone(120,.2,"sine",.25,0,60); },
+  splash(){ tone(500,.25,"sine",.1,0,120); },
+  bonk(){ tone(300,.09,"square",.08,0,120); },
+  go(){ tone(523,.12,"triangle"); tone(784,.25,"triangle",.15,.1); },
+  tick(){ tone(880,.05,"square",.04); }
+};
+
+/* ===================== 狀態 ===================== */
+/* ===================== 角色插畫 ===================== */
+const CHARS = [
+  {id:"bunny", name:"兔兔", old:"🐰"}, {id:"dog", name:"狗狗", old:"🐶"}, {id:"cat", name:"貓咪", old:"🐱"},
+  {id:"fox", name:"狐狸", old:"🦊"}, {id:"panda", name:"熊貓", old:"🐼"}, {id:"frog", name:"青蛙", old:"🐸"},
+  {id:"tiger", name:"老虎", old:"🐯"}, {id:"penguin", name:"企鵝", old:"🐧"}, {id:"unicorn", name:"獨角獸", old:"🦄"},
+  {id:"dino", name:"恐龍", old:"🦖"}, {id:"monkey", name:"猴子", old:"🐵"}, {id:"koala", name:"無尾熊", old:"🐨"}
+];
+const SHIRTS = ["#FFD35C","#7FC6F5","#F59AB8","#9ED37A","#C7A6F2","#FF9B6A"];
+const avatarName = id => (CHARS.find(x => x.id===id) || {name:"我"}).name;
+function charSVG(id){
+  const st = 'stroke="#26314B" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"';
+  const thin = 'stroke="#26314B" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
+  const idx = Math.max(0, CHARS.findIndex(x => x.id===id));
+  const eyes = (y=52, dx=11) => `<ellipse cx="${50-dx}" cy="${y}" rx="3.6" ry="4.6" fill="#26314B"/><ellipse cx="${50+dx}" cy="${y}" rx="3.6" ry="4.6" fill="#26314B"/><circle cx="${51.2-dx}" cy="${y-1.6}" r="1.3" fill="#fff"/><circle cx="${51.2+dx}" cy="${y-1.6}" r="1.3" fill="#fff"/>`;
+  const cheeks = (y=62) => `<ellipse cx="31" cy="${y}" rx="6" ry="3.8" fill="#FF8FA0" opacity=".75"/><ellipse cx="69" cy="${y}" rx="6" ry="3.8" fill="#FF8FA0" opacity=".75"/>`;
+  const smile = (y=64) => `<path d="M44 ${y} Q47 ${y+4} 50 ${y} Q53 ${y+4} 56 ${y}" fill="none" ${thin}/>`;
+  const headC = f => `<circle cx="50" cy="54" r="31" fill="${f}" ${st}/>`;
+  let back = "", head = "", face = "";
+  switch (id){
+    case "dog": { const k = "#E2AE72";
+      head = headC(k) + `<ellipse cx="63" cy="40" rx="8" ry="6" fill="#C98C52"/><ellipse cx="50" cy="65" rx="14" ry="10" fill="#F7E6CC" ${st}/><ellipse cx="22" cy="50" rx="10" ry="20" transform="rotate(18 22 50)" fill="#8C5A34" ${st}/><ellipse cx="78" cy="50" rx="10" ry="20" transform="rotate(-18 78 50)" fill="#8C5A34" ${st}/>`;
+      face = eyes() + cheeks() + `<ellipse cx="50" cy="60" rx="5" ry="3.6" fill="#26314B"/><path d="M50 63 L50 66 M44 66 Q47 70 50 66 Q53 70 56 66" fill="none" ${thin}/>`; break; }
+    case "cat": { const k = "#F6A55B";
+      back = `<path d="M24 40 L28 12 L48 28 Z" fill="${k}" ${st}/><path d="M76 40 L72 12 L52 28 Z" fill="${k}" ${st}/><path d="M29 32 L31 19 L41 28 Z" fill="#FFB3C2"/><path d="M71 32 L69 19 L59 28 Z" fill="#FFB3C2"/>`;
+      head = headC(k) + `<path d="M44 26 L45 33 M50 24 L50 32 M56 26 L55 33" fill="none" ${thin}/>`;
+      face = eyes() + cheeks() + `<path d="M47 58 L53 58 L50 61 Z" fill="#FF8FA0" ${thin}/>` + smile(63) + `<path d="M20 57 L33 60 M20 65 L33 64 M80 57 L67 60 M80 65 L67 64" fill="none" stroke="#26314B" stroke-width="2" stroke-linecap="round"/>`; break; }
+    case "fox": { const k = "#EF7D3C";
+      back = `<path d="M22 44 L22 10 L46 28 Z" fill="${k}" ${st}/><path d="M78 44 L78 10 L54 28 Z" fill="${k}" ${st}/><path d="M23 13 L23 23 L30 18 Z" fill="#26314B"/><path d="M77 13 L77 23 L70 18 Z" fill="#26314B"/>`;
+      head = headC(k) + `<path d="M20 58 Q35 56 50 70 Q65 56 80 58 Q76 82 50 85 Q24 82 20 58 Z" fill="#FFF8EE" ${st}/>`;
+      face = eyes(50,12) + cheeks(60) + `<ellipse cx="50" cy="69" rx="4.5" ry="3.2" fill="#26314B"/><path d="M46 75 Q50 78 54 75" fill="none" ${thin}/>`; break; }
+    case "panda":
+      back = `<circle cx="27" cy="29" r="11" fill="#26314B"/><circle cx="73" cy="29" r="11" fill="#26314B"/>`;
+      head = headC("#FFFFFF");
+      face = `<ellipse cx="38" cy="52" rx="8" ry="10" transform="rotate(25 38 52)" fill="#26314B"/><ellipse cx="62" cy="52" rx="8" ry="10" transform="rotate(-25 62 52)" fill="#26314B"/><circle cx="39" cy="51" r="2.6" fill="#fff"/><circle cx="61" cy="51" r="2.6" fill="#fff"/><ellipse cx="50" cy="61" rx="4.5" ry="3" fill="#26314B"/>` + smile(65) + cheeks(66); break;
+    case "frog": { const k = "#86C96D";
+      back = `<circle cx="34" cy="30" r="13" fill="${k}" ${st}/><circle cx="66" cy="30" r="13" fill="${k}" ${st}/>`;
+      head = `<ellipse cx="50" cy="57" rx="34" ry="28" fill="${k}" ${st}/>`;
+      face = `<circle cx="34" cy="29" r="8" fill="#fff" ${thin}/><circle cx="66" cy="29" r="8" fill="#fff" ${thin}/><circle cx="35" cy="30" r="4" fill="#26314B"/><circle cx="65" cy="30" r="4" fill="#26314B"/><circle cx="46" cy="50" r="1.6" fill="#26314B"/><circle cx="54" cy="50" r="1.6" fill="#26314B"/><path d="M30 60 Q50 77 70 60" fill="none" ${st}/>` + cheeks(56); break; }
+    case "tiger": { const k = "#F4A23E";
+      back = `<circle cx="26" cy="30" r="10" fill="${k}" ${st}/><circle cx="74" cy="30" r="10" fill="${k}" ${st}/><circle cx="26" cy="31" r="5" fill="#FFE2B8"/><circle cx="74" cy="31" r="5" fill="#FFE2B8"/>`;
+      head = headC(k) + `<path d="M43 25 L46 33 M50 23 L50 33 M57 25 L54 33 M20 48 L28 50 M19 56 L27 56 M80 48 L72 50 M81 56 L73 56" fill="none" ${st}/><ellipse cx="50" cy="66" rx="13" ry="9" fill="#FFF5E4" ${st}/>`;
+      face = eyes(50,12) + cheeks(62) + `<path d="M46 60 L54 60 L50 64 Z" fill="#E8553E" ${thin}/><path d="M45 68 Q47.5 71 50 68 Q52.5 71 55 68" fill="none" ${thin}/>`; break; }
+    case "penguin":
+      head = headC("#34416A") + `<path d="M50 40 Q38 30 30 44 Q24 62 36 76 Q50 84 64 76 Q76 62 70 44 Q62 30 50 40 Z" fill="#fff" ${st}/>`;
+      face = eyes(53,10) + cheeks(64) + `<path d="M44 61 L56 61 L50 69 Z" fill="#F7B733" ${thin}/>`; break;
+    case "unicorn": { const k = "#FBF5FF";
+      back = `<circle cx="24" cy="38" r="10" fill="#F59AB8" ${st}/><circle cx="21" cy="56" r="10" fill="#9FD3F5" ${st}/><circle cx="25" cy="73" r="9" fill="#C7A6F2" ${st}/><path d="M30 34 L30 14 L44 26 Z" fill="${k}" ${st}/><path d="M70 34 L70 14 L56 26 Z" fill="${k}" ${st}/>`;
+      head = headC(k) + `<path d="M44 26 L50 2 L56 26 Z" fill="#FFD35C" ${st}/><path d="M46 19 L54 16 M47.5 12 L52.5 10" fill="none" stroke="#26314B" stroke-width="2" stroke-linecap="round"/><path d="M38 28 Q52 18 62 30 Q50 30 45 37 Z" fill="#F59AB8" ${st}/>`;
+      face = eyes() + cheeks() + smile(65); break; }
+    case "dino": { const k = "#72C792";
+      back = `<path d="M28 33 L32 15 L43 26 Z" fill="#F7B733" ${st}/><path d="M42 26 L50 9 L58 26 Z" fill="#F7B733" ${st}/><path d="M57 26 L68 15 L72 33 Z" fill="#F7B733" ${st}/>`;
+      head = headC(k) + `<circle cx="70" cy="44" r="3" fill="#5AAE79"/><circle cx="28" cy="46" r="2.5" fill="#5AAE79"/><circle cx="65" cy="34" r="2" fill="#5AAE79"/>`;
+      face = eyes(50,12) + cheeks(62) + `<circle cx="46" cy="59" r="1.6" fill="#26314B"/><circle cx="54" cy="59" r="1.6" fill="#26314B"/><path d="M38 65 Q50 77 62 65 Z" fill="#fff" ${thin}/>`; break; }
+    case "monkey": { const k = "#A8714A";
+      back = `<circle cx="18" cy="54" r="10" fill="${k}" ${st}/><circle cx="18" cy="54" r="5" fill="#F3D2AE"/><circle cx="82" cy="54" r="10" fill="${k}" ${st}/><circle cx="82" cy="54" r="5" fill="#F3D2AE"/>`;
+      head = headC(k) + `<path d="M50 44 Q42 36 34 42 Q28 50 32 60 Q30 76 50 80 Q70 76 68 60 Q72 50 66 42 Q58 36 50 44 Z" fill="#F3D2AE" ${st}/><path d="M44 25 Q50 13 55 25" fill="none" ${st}/>`;
+      face = eyes(52,9) + cheeks(65) + `<circle cx="47" cy="62" r="1.4" fill="#26314B"/><circle cx="53" cy="62" r="1.4" fill="#26314B"/>` + smile(67); break; }
+    case "koala": { const k = "#A7B1C2";
+      back = `<circle cx="22" cy="34" r="15" fill="${k}" ${st}/><circle cx="22" cy="35" r="8" fill="#F4EEF6"/><circle cx="78" cy="34" r="15" fill="${k}" ${st}/><circle cx="78" cy="35" r="8" fill="#F4EEF6"/>`;
+      head = headC(k);
+      face = eyes(50,13) + cheeks(64) + `<ellipse cx="50" cy="60" rx="7" ry="9" fill="#3A4560" ${thin}/><ellipse cx="48" cy="56" rx="2" ry="3" fill="#7E8AA5"/><path d="M45 72 Q50 75 55 72" fill="none" ${thin}/>`; break; }
+    default: { const k = "#FBF7F0";
+      back = `<g transform="rotate(-10 38 32)"><ellipse cx="38" cy="17" rx="9" ry="22" fill="${k}" ${st}/><ellipse cx="38" cy="19" rx="4" ry="14" fill="#FFB3C2"/></g><g transform="rotate(10 62 32)"><ellipse cx="62" cy="17" rx="9" ry="22" fill="${k}" ${st}/><ellipse cx="62" cy="19" rx="4" ry="14" fill="#FFB3C2"/></g>`;
+      head = headC(k);
+      face = eyes() + cheeks() + `<path d="M47 58 L53 58 L50 61 Z" fill="#FF8FA0" ${thin}/><path d="M50 61 L50 64" fill="none" ${thin}/>` + smile(64); }
+  }
+  const body = `<path d="M17 101 Q19 82 50 81 Q81 82 83 101 Z" fill="${SHIRTS[idx % SHIRTS.length]}" ${st}/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${back}${body}${head}${face}</svg>`;
+}
+const CHAR_IMG = {};
+for (const ch of CHARS){ const im = new Image(); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(charSVG(ch.id)); CHAR_IMG[ch.id] = im; }
+function drawHero(c, id, x, y, size){
+  const im = CHAR_IMG[id];
+  if (im && im.complete && im.naturalWidth) c.drawImage(im, x-size/2, y-size/2, size, size);
+  else { c.fillStyle = "#FBF7F0"; c.beginPath(); c.arc(x, y, size*.35, 0, Math.PI*2); c.fill(); }
+}
+
+const S = Object.assign({group:"A", avatar:"🐰", name:"", count:15, kind:"all", wrongOnly:false, diff:"normal"}, store.get("settings", {}));
+if (!GROUPS.includes(S.group)) S.group = "A";
+function saveSettings(){ store.set("settings", S); }
+const getWrong = g => store.get("wrong."+g, []);
+function setWrong(g, list){ store.set("wrong."+g, list); }
+function addWrong(id){ const w = getWrong(S.group); if (!w.includes(id)){ w.push(id); setWrong(S.group, w); } }
+function removeWrong(id){ setWrong(S.group, getWrong(S.group).filter(x => x!==id)); }
+
+/* ===================== 大廳 ===================== */
+function pressedGroup(root, attr, val){ root.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset[attr]===String(val)))); }
+function renderHome(){
+  const gEl = $("#groups"); gEl.innerHTML = "";
+  GROUPS.forEach((g,i) => {
+    const b = BANK[g]; const total = FLAT[g].length;
+    const btn = document.createElement("button");
+    btn.className = "gcard"; btn.dataset.g = g; btn.style.setProperty("--gc", COL[i]);
+    btn.innerHTML = `<span class="big">${g}</span><b>${g} 組題庫</b><span class="meta">共 ${total} 題 · 文法 ${b.g.length} · 克漏字 ${b.c.length} · 閱讀 ${b.r.length} · 聽力 ${LISTEN[g].length}</span>`;
+    btn.onclick = () => { S.group = g; saveSettings(); renderHome(); };
+    gEl.appendChild(btn);
+  });
+  pressedGroup(gEl, "g", S.group);
+
+  const aEl = $("#avatars"); aEl.innerHTML = "";
+  const oldPick = CHARS.find(x => x.old === S.avatar); if (oldPick) S.avatar = oldPick.id;
+  if (!CHARS.some(x => x.id===S.avatar)) S.avatar = CHARS[0].id;
+  const showPicked = () => { $("#picked").innerHTML = `<span class="big">${charSVG(S.avatar)}</span><span>你選了「${avatarName(S.avatar)}」，牠會陪你玩每一個遊戲！</span>`; };
+  CHARS.forEach(ch => { const b = document.createElement("button"); b.className="av"; b.dataset.a=ch.id; b.innerHTML=`<span class="face">${charSVG(ch.id)}</span><span class="nm">${ch.name}</span>`; b.setAttribute("aria-label","角色 "+ch.name); b.onclick=()=>{ S.avatar=ch.id; saveSettings(); pressedGroup(aEl,"a",ch.id); showPicked(); }; aEl.appendChild(b); });
+  pressedGroup(aEl, "a", S.avatar); showPicked();
+  $("#pname").value = S.name || "";
+
+  const cEl = $("#optCount"); cEl.innerHTML = "";
+  [[10,"10 題"],[15,"15 題"],[25,"25 題"],[0,"全部"]].forEach(([v,t]) => { const b=document.createElement("button"); b.className="pill"; b.dataset.v=v; b.textContent=t; b.onclick=()=>{S.count=v;saveSettings();pressedGroup(cEl,"v",v);}; cEl.appendChild(b); });
+  pressedGroup(cEl, "v", S.count);
+
+  const kEl = $("#optKind"); kEl.innerHTML = "";
+  [["all","全部"],["l","聽力"],["g","文法"],["c","克漏字"],["r","閱讀"]].forEach(([v,t]) => { const b=document.createElement("button"); b.className="pill"; b.dataset.v=v; b.textContent=t; b.onclick=()=>{S.kind=v;saveSettings();pressedGroup(kEl,"v",v);}; kEl.appendChild(b); });
+  pressedGroup(kEl, "v", S.kind);
+
+  const dEl = $("#optDiff"); dEl.innerHTML = "";
+  if (!DIFFS[S.diff]) S.diff = "normal";
+  [["easy","簡單 🐢"],["normal","普通"],["hard","挑戰 🔥"]].forEach(([v,t]) => { const b=document.createElement("button"); b.className="pill"; b.dataset.v=v; b.textContent=t; b.onclick=()=>{S.diff=v;saveSettings();pressedGroup(dEl,"v",v);}; dEl.appendChild(b); });
+  pressedGroup(dEl, "v", S.diff);
+  const wn = getWrong(S.group).length;
+  if (!wn) S.wrongOnly = false;
+  const wEl = $("#optWrong"); wEl.innerHTML = "";
+  [[false,"全部題目"],[true,`只練錯題（${wn}）`]].forEach(([v,t]) => { const b=document.createElement("button"); b.className="pill"; b.dataset.v=String(v); b.textContent=t; if (v && !wn) b.disabled=true; b.onclick=()=>{S.wrongOnly=v;saveSettings();pressedGroup(wEl,"v",String(v));}; wEl.appendChild(b); });
+  if (wn){ const clr=document.createElement("button"); clr.className="pill"; clr.textContent="清空錯題本"; clr.onclick=()=>{ setWrong(S.group,[]); S.wrongOnly=false; renderHome(); }; wEl.appendChild(clr); }
+  pressedGroup(wEl, "v", String(S.wrongOnly));
+
+  document.querySelectorAll("[data-best]").forEach(el => {
+    const top = store.get(`board.${S.group}.${el.dataset.best}`, [])[0];
+    el.textContent = top ? `${S.group} 組最高分 ${top.score}（${top.name}）` : `${S.group} 組還沒有紀錄`;
+  });
+  $("#homeMsg").textContent = "";
+  $("#today").textContent = classDate() + (S.name ? `　值日生：${S.name}` : "");
+}
+$("#pname").addEventListener("input", e => { S.name = e.target.value.trim(); saveSettings(); $("#today").textContent = classDate() + (S.name ? `　值日生：${S.name}` : ""); });
+function classDate(){ const d = new Date(); return `${d.getMonth()+1} 月 ${d.getDate()} 日（${"日一二三四五六"[d.getDay()]}）`; }
+document.querySelectorAll(".game").forEach(b => b.addEventListener("click", () => startGame(b.dataset.game)));
+
+/* ===================== 題目流程 ===================== */
+function buildRound(onlyIds){
+  let pool = FLAT[S.group].map((x,id) => ({id, ...x}));
+  if (onlyIds) pool = pool.filter(p => onlyIds.includes(p.id));
+  else {
+    if (S.kind !== "all") pool = pool.filter(p => p.k === S.kind);
+    if (S.wrongOnly){ const w = getWrong(S.group); pool = pool.filter(p => w.includes(p.id)); }
+  }
+  shuffle(pool);
+  if (!onlyIds && S.count) pool = pool.slice(0, S.count);
+  return pool.map(p => {
+    if (p.L){
+      const [t,n,part,clip,img,qt,o,a,range] = p.L;
+      const prompt = part===1 ? "看圖，選出最符合圖片的句子。" : part===2 ? "聽問題，選出最適合的回答。" : qt;
+      const ctx = part>=3 ? `先聽${part===3?"對話":"短文"}，回答問題（第 ${t} 回第 ${range} 題）` : `第 ${t} 回 第 ${n} 題`;
+      return {id:p.id, kind:"l", ctx, q:prompt, opts:o.map((x,i)=>({t:x, ok:i===a})), correct:a, audio:"listen/"+clip, img: img ? "listen/"+img : "", part};
+    }
+    const text = p.r[0], ans = p.r[p.r.length-1], raw = p.r.slice(1,-1);
+    const parts = text.split("|");
+    const opts = shuffle(raw.map((t,i) => ({t, ok: i===ans})));
+    return {id:p.id, kind:p.k, ctx: parts.length>1 ? parts[0] : "", q: parts.length>1 ? parts[1] : parts[0], opts, correct: opts.findIndex(o=>o.ok)};
+  });
+}
+const qHTML = s => esc(s).replace(/___/g, '<span class="blank"></span>');
+function renderQ(){
+  const q = cur();
+  $("#qKind").textContent = KIND_NAME[q.kind];
+  $("#qCtx").hidden = !q.ctx; $("#qCtx").textContent = q.ctx;
+  $("#qText").innerHTML = qHTML(q.q);
+  $("#qImg").hidden = !q.img; if (q.img) $("#qImg").src = q.img;
+  $("#qOpts").classList.toggle("row", q.part === 1);
+  $("#say").textContent = q.audio ? "🔊 再聽一次" : "🗣 唸給我聽";
+  stopClip(); if (q.audio){ if (G && G.countdown > 0) playClip(q.audio); else setTimeout(() => { if (G && cur()===q && !G.over) playClip(q.audio); }, 350); }
+  $("#qOpts").innerHTML = q.opts.map((o,i) => `<li><span class="L" style="background:${COL[i]}">${LET[i]}</span><span>${esc(o.t)}</span></li>`).join("");
+  $("#qcard").scrollTop = 0;
+  setHud();
+}
+function markCard(choice, ok){
+  const lis = $("#qOpts").children; const q = cur();
+  lis[q.correct].classList.add("ok");
+  if (!ok && choice>=0 && choice<lis.length) lis[choice].classList.add("bad");
+}
+const AUD = new Audio(); AUD.preload = "auto";
+let audBusy = false;
+AUD.addEventListener("playing", () => { audBusy = true; });
+["ended","pause","error","emptied"].forEach(ev => AUD.addEventListener(ev, () => { audBusy = false; }));
+const audioBusy = () => audBusy && !AUD.paused;
+function playClip(src){ try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} AUD.src = src; AUD.currentTime = 0; audBusy = true; AUD.play().catch(() => { audBusy = false; }); }
+function stopClip(){ try{ AUD.pause(); }catch(e){} audBusy = false; }
+function speak(){
+  try{
+    const q = cur(); if (!q) return;
+    if (q.audio){ playClip(q.audio); return; }
+    const say = t => t===NONE ? "nothing" : t;
+    const text = (q.ctx ? q.ctx+" ... " : "") + q.q.replace(/___/g," blank ") + " ... " + q.opts.map((o,i)=>LET[i]+", "+say(o.t)).join(". ");
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang = "en-US"; u.rate = .85; speechSynthesis.speak(u);
+  }catch(e){}
+}
+$("#say").onclick = speak;
+
+/* ===================== 遊戲核心 ===================== */
+const cv = $("#cv"), ctx = cv.getContext("2d");
+const V = {w:300, h:300, dpr:1};
+let G = null, GAME = null, raf = 0, lastT = 0;
+const cur = () => G && G.qs[G.qi];
+
+function resize(){
+  const st = $("#stage"); const r = st.getBoundingClientRect();
+  V.w = Math.max(200, r.width); V.h = Math.max(160, r.height); V.dpr = Math.min(2, window.devicePixelRatio||1);
+  cv.width = Math.round(V.w*V.dpr); cv.height = Math.round(V.h*V.dpr);
+  ctx.setTransform(V.dpr,0,0,V.dpr,0,0);
+  GAME && GAME.layout && GAME.layout();
+}
+window.addEventListener("resize", () => { if (G) resize(); });
+
+function show(id){ ["home","play"].forEach(s => $("#"+s).hidden = s!==id); }
+
+function startGame(game, onlyIds){
+  S.game = game; saveSettings();
+  const qs = buildRound(onlyIds);
+  if (!qs.length){ $("#homeMsg").textContent = "這個設定下沒有題目，換一個題型或關掉「只練錯題」試試。"; return; }
+  $("#result").hidden = true;
+  G = {game, qs, qi:0, score:0, combo:0, maxCombo:0, correct:0, answered:0, log:[], locked:false, t:0, shake:0, parts:[], floats:[], timers:[], countdown:3.2, over:false, paused:false, onlyIds, level:1, nopt: Math.max(...qs.map(q => q.opts.length))};
+  GAME = GAMES[game];
+  show("play");
+  const pb = $("#pickbar"); pb.hidden = !(DF().btn && GAME.pick && ["fish","balloon","mole"].includes(game));
+  pb.innerHTML = Array.from({length:G.nopt}, (_,i) => `<button style="background:${COL[i]}" aria-label="選 ${LET[i]}">${LET[i]}</button>`).join("");
+  pb.querySelectorAll("button").forEach((b,i) => b.onclick = () => { if (G && !G.over && G.countdown<=0 && GAME.pick) GAME.pick(i); });
+  $("#lvlup").hidden = true;
+  $("#hGroup").textContent = S.group+" 組"; $("#hGroup").style.background = COL[GROUPS.indexOf(S.group)];
+  resize(); GAME.init(); renderQ();
+  $("#hint").textContent = GAME.hint; $("#hint").hidden = false;
+  cancelAnimationFrame(raf); lastT = performance.now(); raf = requestAnimationFrame(loop);
+}
+function after(sec, fn){ G.timers.push({t:sec, fn}); }
+function answer(choice, bonus=0){
+  if (!G || G.locked || G.over) return null;
+  G.locked = true; const q = cur(); const ok = choice === q.correct;
+  G.answered++;
+  if (ok){
+    G.correct++; G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo);
+    const pts = 100 + Math.min(G.combo-1, 10)*20 + bonus;
+    G.score += pts; toast(G.combo>=3 ? "超厲害" : ["好棒","很棒","答對","讚喔"][rand(4)], G.combo>=3 ? `×${G.combo} +${pts}` : `+${pts}`, true);
+    sfx.ok(); removeWrong(q.id);
+    const nl = Math.min(MAX_LEVEL, 1 + Math.floor(G.correct / LEVEL_SIZE));
+    if (nl > G.level){ G.level = nl; after(.9, levelUp); }
+  } else {
+    G.combo = 0; addWrong(q.id); sfx.bad(); toast("再想想", `答案 ${LET[q.correct]}`, false);
+  }
+  G.log.push({q, choice, ok}); markCard(choice, ok); setHud(); if (q.audio) stopClip();
+  GAME.onAnswer && GAME.onAnswer(ok, choice);
+  after(ok ? .8 : 1.7, nextQ);
+  return ok;
+}
+function levelUp(){
+  if (!G || G.over) return;
+  const bonus = GAME.timed ? 10 : 0; if (bonus) G.time += bonus;
+  if (GAME.hasHearts && G.hearts < G.maxHearts && G.level % 2 === 1) G.hearts++;
+  const el = $("#lvlup");
+  el.querySelector("b").textContent = G.level >= MAX_LEVEL ? `最終關！` : `第 ${G.level} 關`;
+  el.querySelector("span").textContent = (G.level >= MAX_LEVEL ? "最快的速度，加油！" : "速度變快囉！") + (bonus ? `\n時間 +${bonus} 秒` : "");
+  el.hidden = false; el.style.animation = "none"; void el.offsetWidth; el.style.animation = "";
+  tone(523,.12,"triangle",.12); tone(659,.12,"triangle",.12,.12); tone(784,.12,"triangle",.12,.24); tone(1047,.35,"triangle",.12,.36);
+  setTimeout(() => { el.hidden = true; }, 1800);
+  setHud();
+}
+function nextQ(){
+  if (!G || G.over) return;
+  G.qi++;
+  if (G.qi >= G.qs.length || (GAME.dead && GAME.dead())) { endGame(); return; }
+  G.locked = false; renderQ(); GAME.onNext && GAME.onNext();
+}
+let toastTimer = 0;
+function toast(word, sub, good){
+  const t = $("#toast"); t.innerHTML = `<span class="w">${esc(word)}</span><span class="s">${esc(sub)}</span>`; t.className = "toast on " + (good ? "good" : "bad");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("on"), 900);
+}
+function setHud(){
+  if (!G) return;
+  $("#hLvl").textContent = G.level >= MAX_LEVEL ? "最終關" : `第 ${G.level} 關`;
+  $("#hProg").textContent = `${Math.min(G.qi+1, G.qs.length)} / ${G.qs.length}`;
+  $("#hScore").textContent = "⭐ " + G.score;
+  const cb = $("#hCombo"); cb.hidden = G.combo < 2; cb.textContent = `連擊 ×${G.combo}`;
+  const life = $("#hLife");
+  if (GAME.lifeText){ const t = GAME.lifeText(); life.textContent = t.text; life.classList.remove("time"); life.classList.toggle("low", !!t.low); }
+  else if (GAME.hasHearts){ life.textContent = "❤".repeat(Math.max(0,G.hearts)) + "♡".repeat(Math.max(0,(G.maxHearts||3)-G.hearts)); life.classList.remove("time","low"); }
+  else { const s = Math.max(0, Math.ceil(G.time)); life.textContent = `⏱ ${s} 秒`; life.classList.add("time"); life.classList.toggle("low", s<=10); }
+}
+function burst(x,y,colors,n=18){
+  for (let i=0;i<n;i++){ const a = Math.random()*Math.PI*2, s = 120+Math.random()*260; G.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-120,life:.9,col:colors[i%colors.length],r:3+Math.random()*4}); }
+}
+function floatText(x,y,txt,col){ G.floats.push({x,y,txt,col,life:1}); }
+
+function loop(now){
+  const dt = Math.min(.05, (now-lastT)/1000); lastT = now;
+  if (G && !G.over){
+    if (!G.paused){
+      G.t += dt;
+      if (G.countdown > 0){
+        const before = Math.ceil(G.countdown); G.countdown -= dt; const aft = Math.ceil(G.countdown);
+        if (aft !== before){ aft>0 ? sfx.tick() : sfx.go(); }
+        if (G.countdown <= 0) $("#hint").hidden = true;
+      } else {
+        for (const tm of G.timers.slice()){ tm.t -= dt; if (tm.t <= 0){ G.timers.splice(G.timers.indexOf(tm),1); tm.fn(); if (!G || G.over) break; } }
+        if (G && !G.over){
+          GAME.update(dt);
+          if (GAME.timed && !audioBusy()){
+            const prev = Math.ceil(G.time); G.time -= dt;
+            if (Math.ceil(G.time) !== prev) setHud();
+            if (G.time <= 0){ G.time = 0; setHud(); endGame(); }
+          }
+        }
+      }
+      if (G){
+        G.shake = Math.max(0, G.shake - dt);
+        for (const p of G.parts){ p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 600*dt; p.life -= dt; }
+        G.parts = G.parts.filter(p => p.life > 0);
+        for (const f of G.floats){ f.y -= 50*dt; f.life -= dt; }
+        G.floats = G.floats.filter(f => f.life > 0);
+      }
+    }
+    if (G) draw();
+  }
+  raf = requestAnimationFrame(loop);
+}
+let PAPER = null;
+function paperPattern(c){
+  if (!PAPER){
+    const p = document.createElement("canvas"); p.width = p.height = 128; const x = p.getContext("2d"); const img = x.createImageData(128,128);
+    for (let i=0;i<img.data.length;i+=4){ const v = 244 + Math.random()*11; img.data[i] = v; img.data[i+1] = v; img.data[i+2] = v-5; img.data[i+3] = 255; }
+    x.putImageData(img,0,0); PAPER = c.createPattern(p, "repeat");
+  }
+  return PAPER;
+}
+function draw(){
+  const c = ctx; c.save();
+  if (G.shake > 0) c.translate((Math.random()-.5)*12*G.shake/.3, (Math.random()-.5)*12*G.shake/.3);
+  GAME.draw(c);
+  c.globalCompositeOperation = "multiply"; c.fillStyle = paperPattern(c); c.fillRect(-20,-20,V.w+40,V.h+40); c.globalCompositeOperation = "source-over";
+  for (const p of G.parts){ c.globalAlpha = clamp(p.life,0,1); c.fillStyle = p.col; c.fillRect(p.x-p.r, p.y-p.r, p.r*2, p.r*2); }
+  c.globalAlpha = 1;
+  c.textAlign = "center"; c.textBaseline = "middle";
+  for (const f of G.floats){ c.globalAlpha = clamp(f.life*1.5,0,1); c.font = `700 22px Andika, sans-serif`; c.lineWidth = 5; c.strokeStyle = "#fff"; c.strokeText(f.txt,f.x,f.y); c.fillStyle = f.col; c.fillText(f.txt,f.x,f.y); }
+  c.globalAlpha = 1;
+  if (G.countdown > 0){
+    c.fillStyle = "rgba(30,62,50,.55)"; c.fillRect(0,0,V.w,V.h);
+    const n = Math.ceil(G.countdown); const fr = G.countdown - Math.floor(G.countdown);
+    c.font = `700 ${Math.min(V.w,V.h)*.32*(0.8+fr*.4)}px Andika, sans-serif`;
+    c.fillStyle = "#FFC43A"; c.strokeStyle = "#1B2450"; c.lineWidth = 8;
+    const label = n>0 ? String(n) : "GO!";
+    c.strokeText(label, V.w/2, V.h/2); c.fillText(label, V.w/2, V.h/2);
+    c.font = `700 18px Huninn, "Noto Sans TC", sans-serif`; c.fillStyle = "#fff";
+    c.fillText("先看看上面的題目喔！", V.w/2, V.h/2 + Math.min(V.w,V.h)*.22);
+  }
+  c.restore();
+}
+
+function endGame(){
+  if (!G || G.over) return;
+  stopClip(); $("#pickbar").hidden = true; $("#lvlup").hidden = true;
+  G.over = true; try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){}
+  const raceMsg = GAME.finish ? GAME.finish() : "";
+  const extraMsg = `${DF().name}模式・闖到${G.level >= MAX_LEVEL ? "最終關" : `第 ${G.level} 關`}` + (raceMsg ? `\n${raceMsg}` : "");
+  const key = `board.${S.group}.${G.game}`;
+  const board = store.get(key, []);
+  const name = S.name || "玩家";
+  const entry = {name, score:G.score, acc:`${G.correct}/${G.answered}`, at:Date.now(), d:DF().name, lv:G.level};
+  const prevBest = board.length ? board[0].score : -1;
+  board.push(entry); board.sort((a,b) => b.score-a.score); const top = board.slice(0,8); store.set(key, top);
+
+  const acc = G.answered ? G.correct/G.answered : 0;
+  const stars = G.answered===0 ? 0 : acc>=.9 ? 3 : acc>=.7 ? 2 : acc>=.4 ? 1 : 0;
+  $("#rTitle").textContent = stars===3 ? "太厲害了！" : stars===2 ? "很棒喔！" : stars===1 ? "再接再厲！" : "多練幾次就會了！";
+  $("#rStars").innerHTML = [0,1,2].map(i => `<span class="${i<stars?"":"off"}">讚</span>`).join("");
+  $("#rScore").textContent = G.score; $("#rAcc").textContent = `${G.correct}/${G.answered}`; $("#rCombo").textContent = G.maxCombo;
+  $("#rNew").hidden = !(G.score > prevBest && G.score > 0);
+  $("#rExtra").hidden = !extraMsg; $("#rExtra").textContent = extraMsg;
+  $("#rBoard").innerHTML = top.map((e,i) => `<li class="${e===entry?"me":""}"><span>${i+1}.</span><span>${esc(e.name)}</span><span class="bd">${e.d ? `${e.d}・第${e.lv}關` : ""}</span><span>${e.acc}</span><b>${e.score}</b></li>`).join("");
+  const wrongs = G.log.filter(l => !l.ok);
+  $("#rWrongH").textContent = wrongs.length ? `答錯的題目（${wrongs.length}）` : G.answered ? "全部答對，沒有錯題！" : "這次還沒有作答喔";
+  $("#rWrongs").innerHTML = wrongs.map(l => {
+    const q = l.q;
+    return `<div class="wr">${q.audio?`<button class="replay" data-src="${q.audio}">▶ 再聽</button>`:""}${q.img?`<img class="wimg" src="${q.img}" alt="">`:""}${q.ctx?`<div style="color:var(--mute)">${esc(q.ctx)}</div>`:""}<div class="wq">${esc(q.q)}</div><div class="wa">✔ 正確答案：${esc(q.opts[q.correct].t)}</div>${l.choice>=0?`<div class="wy">✘ 你選的：${esc(q.opts[l.choice].t)}</div>`:""}</div>`;
+  }).join("");
+  $("#rWrongs").querySelectorAll(".replay").forEach(b => b.onclick = () => playClip(b.dataset.src));
+  $("#retryWrong").disabled = !wrongs.length;
+  $("#retryWrong").onclick = () => startGame(G.game, wrongs.map(l => l.q.id));
+  $("#again").onclick = () => startGame(G.game, G.onlyIds);
+  $("#rDate").textContent = classDate();
+  $("#result").hidden = false;
+  submitAndShowBoard({grp:S.group, game:G.game, diff:DIFFS[S.diff] ? S.diff : "normal", name:(S.name||"").trim(), score:G.score, correct:G.correct, answered:G.answered, level:G.level});
+}
+/* ===================== 全班排行榜（Supabase，與 learning-den 同一個資料庫） ===================== */
+const SB_URL = "https://kvqbjkgzziidwulsjols.supabase.co", SB_KEY = "sb_publishable_bxPfQ8PsqEAoqxlswoLhBQ_gPtNBivo";
+const GAME_NAME = {run:"跑酷闖關", race:"極速賽車", fish:"海底釣魚", balloon:"射氣球", mole:"打地鼠"};
+let DEVICE = "";
+function deviceId(){
+  if (DEVICE) return DEVICE;
+  DEVICE = store.get("device", "");
+  if (!DEVICE){ const a = new Uint8Array(12); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_,i) => a[i] = rand(256)); DEVICE = Array.from(a, b => b.toString(16).padStart(2, "0")).join(""); store.set("device", DEVICE); }
+  return DEVICE;
+}
+async function rpc(fn, body){
+  const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 8000);
+  try{
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {method:"POST", headers:{apikey:SB_KEY, "Content-Type":"application/json"}, body:JSON.stringify(body), signal:ctl.signal});
+    const j = await r.json().catch(() => null);
+    if (!r.ok) throw new Error((j && (j.message || j.hint)) || ("HTTP " + r.status));
+    return j;
+  } finally { clearTimeout(tm); }
+}
+const tipRow = t => `<li class="tip">${esc(t)}</li>`;
+const onlineRows = rows => rows.map(e => `<li class="${e.is_me ? "me" : ""}"><span>${e.rank}.</span><span>${esc(e.name)}</span><span class="bd">${DIFFS[e.diff] ? DIFFS[e.diff].name : ""}・第${e.level}關</span><span>${e.correct}/${e.answered}</span><b>${e.score}</b></li>`).join("");
+async function submitAndShowBoard(rec){
+  const ob = $("#rOnline");
+  $("#rOnlineH").textContent = `🏆 全班排行榜・本週・${rec.grp} 組${GAME_NAME[rec.game]}（${DIFFS[rec.diff].name}）`;
+  if (!rec.name){ ob.innerHTML = tipRow("在大廳寫上名字，分數就會登上全班排行榜！"); return; }
+  ob.innerHTML = tipRow(rec.answered ? "上傳分數中…" : "讀取排行榜中…");
+  let note = "";
+  if (rec.answered){
+    try{ await rpc("gram_submit", {p_grp:rec.grp, p_game:rec.game, p_diff:rec.diff, p_name:rec.name, p_score:rec.score, p_correct:rec.correct, p_answered:rec.answered, p_level:rec.level, p_device:deviceId()}); }
+    catch(e){ note = /fetch|network|abort|Failed|HTTP 4|HTTP 5/i.test(e.message) ? "" : `（這局沒有上傳：${e.message}）`; if (!note){ ob.innerHTML = tipRow("現在連不上全班排行榜，先看下面這台裝置的紀錄。"); return; } }
+  }
+  try{
+    const rows = await rpc("gram_board", {p_grp:rec.grp, p_game:rec.game, p_diff:rec.diff, p_period:"week", p_device:deviceId()});
+    ob.innerHTML = (rows && rows.length ? onlineRows(rows) : tipRow("這週還沒有人上榜，快來搶第一！")) + (note ? tipRow(note) : "");
+  } catch(e){ ob.innerHTML = tipRow("現在連不上全班排行榜，先看下面這台裝置的紀錄。"); }
+}
+const BV = {grp:"A", game:"run", diff:"all", period:"week"};
+function pills(el, items, key){
+  el.innerHTML = "";
+  items.forEach(([v,t]) => { const b = document.createElement("button"); b.className = "pill"; b.dataset.v = v; b.textContent = t; b.onclick = () => { BV[key] = v; pressedGroup(el, "v", v); loadBoard(); }; el.appendChild(b); });
+  pressedGroup(el, "v", BV[key]);
+}
+let boardReq = 0;
+async function loadBoard(){
+  const id = ++boardReq, list = $("#bList");
+  $("#bGroupLbl").textContent = `${BV.grp} 組・${GAME_NAME[BV.game]}`;
+  list.innerHTML = tipRow("讀取中…");
+  try{
+    const rows = await rpc("gram_board", {p_grp:BV.grp, p_game:BV.game, p_diff:BV.diff, p_period:BV.period, p_device:deviceId()});
+    if (id !== boardReq) return;
+    list.innerHTML = rows && rows.length ? onlineRows(rows) : tipRow(BV.period === "week" ? "這週還沒有人上榜，快來搶第一！" : "還沒有人上榜，快來搶第一！");
+  } catch(e){ if (id === boardReq) list.innerHTML = tipRow("現在連不上排行榜，請確認有網路後再試一次。"); }
+}
+function openBoard(game){
+  BV.grp = S.group; BV.game = game || BV.game; BV.diff = "all";
+  pills($("#bGrp"), GROUPS.map(g => [g, g + " 組"]), "grp");
+  pills($("#bGame"), Object.entries(GAME_NAME), "game");
+  pills($("#bDiff"), [["all","全部難度"],["easy","簡單"],["normal","普通"],["hard","挑戰"]], "diff");
+  pills($("#bPeriod"), [["week","本週"],["all","全部時間"]], "period");
+  $("#boardModal").hidden = false; loadBoard();
+}
+$("#openBoard").onclick = () => openBoard();
+$("#bClose").onclick = () => { $("#boardModal").hidden = true; };
+$("#boardModal").addEventListener("click", e => { if (e.target.id === "boardModal") $("#boardModal").hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("#boardModal").hidden = true; });
+
+$("#toHome").onclick = () => { stopClip(); $("#result").hidden = true; G = null; show("home"); renderHome(); };
+$("#quit").onclick = () => { if (G && !G.over) endGame(); };
+$("#mute").onclick = () => { muted = !muted; store.set("muted", muted); $("#mute").textContent = muted ? "🔇" : "🔊"; };
+$("#mute").textContent = muted ? "🔇" : "🔊";
+document.addEventListener("visibilitychange", () => { if (G) G.paused = document.hidden; });
+
+function stagePoint(e){ const r = cv.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
+cv.addEventListener("pointerdown", e => {
+  if (!G || G.over || G.countdown>0) return;
+  e.preventDefault(); try{ cv.setPointerCapture(e.pointerId); }catch(err){}
+  const p = stagePoint(e); GAME.tap && GAME.tap(p.x, p.y);
+});
+cv.addEventListener("pointermove", e => { if (G && !G.over && GAME.move) GAME.move(stagePoint(e).x); });
+["pointerup","pointercancel"].forEach(t => cv.addEventListener(t, () => { if (G && GAME.up) GAME.up(); }));
+document.addEventListener("keyup", e => { if (G && !G.over && GAME.keyup) GAME.keyup(e.key.toLowerCase()); });
+document.addEventListener("keydown", e => {
+  if (!G || G.over || G.countdown>0 || $("#play").hidden) return;
+  if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+  const k = e.key.toLowerCase();
+  let handled = GAME.key && GAME.key(k);
+  if (!handled){ const i = {"a":0,"b":1,"c":2,"d":3,"1":0,"2":1,"3":2,"4":3}[k]; if (i!==undefined && i < NOPT() && GAME.pick){ GAME.pick(i); handled = true; } }
+  if (handled) e.preventDefault();
+});
+
+/* ===================== 1. 跑酷 ===================== */
+const Runner = {
+  hasHearts: true,
+  hint: "點左、中、右切換跑道（電腦可用 ← →）",
+  trackW(){ return NOPT() > 3 ? Math.min(V.w*.97, 700) : Math.min(V.w*.94, 600); },
+  laneX(i){ const tw = this.trackW(); return (V.w-tw)/2 + tw*(i+.5)/NOPT(); },
+  laneOf(x){ let best=0, d=1e9; for (let i=0;i<NOPT();i++){ const dd = Math.abs(x-this.laneX(i)); if (dd<d){ d=dd; best=i; } } return best; },
+  py(){ return V.h*.84; },
+  readTime(q){ if (q.audio) return 3.5*DF().read; const n = (q.ctx+q.q).length + q.opts.reduce((s,o)=>s+o.t.length,0); return clamp(3 + n*.045, 4, 11)*DF().read; },
+  init(){
+    Object.assign(G, {hearts:DF().hearts, maxHearts:DF().hearts, lane:1, px:this.laneX(1), ents:[], scroll:0, phase:"read", phaseT:this.readTime(cur()), phaseMax:0, spawnC:.4, spawnR:2, stun:0, speedMul:1});
+    G.phaseMax = G.phaseT; $("#rush").hidden = false;
+  },
+  layout(){ if (G) G.px = this.laneX(G.lane); },
+  dead(){ return G.hearts <= 0; },
+  onNext(){ G.phase = "read"; G.phaseT = G.phaseMax = this.readTime(cur()); $("#rush").hidden = false; },
+  onAnswer(ok){ if (ok) G.speedMul = Math.min(1.25, G.speedMul+.02); else { G.hearts--; G.shake = .35; setHud(); } },
+  rush(){ if (G && G.phase==="read" && G.countdown<=0){ stopClip(); G.phaseT = Math.min(G.phaseT, .05); } },
+  tap(x){ G.lane = this.laneOf(x); },
+  key(k){ if (k==="arrowleft"||k==="arrowright"){ G.lane = clamp(G.lane + (k==="arrowleft"?-1:1), 0, 2); return true; } if (k===" "||k==="arrowup"){ this.rush(); return true; } return false; },
+  pick(i){ G.lane = i; },
+  update(dt){
+    const h = V.h, sp = h*.42*DF().run*LVL()*G.speedMul*(G.stun>0 ? .45 : 1), py = this.py();
+    G.scroll += sp*dt; G.stun = Math.max(0, G.stun-dt);
+    G.px += (this.laneX(G.lane) - G.px) * Math.min(1, dt*14);
+    for (const e of G.ents) e.y += sp*dt;
+    if (G.phase === "read"){ if (!audioBusy()) G.phaseT -= dt; if (G.phaseT <= 0){ G.ents.push({k:"gate", y:-h*.14}); G.phase = "gate"; $("#rush").hidden = true; } }
+    G.spawnC -= dt;
+    if (G.spawnC <= 0){ G.spawnC = .9 + Math.random()*.7; const lane = rand(NOPT()); for (let i=0;i<3;i++) G.ents.push({k:"coin", lane, y:-h*.05 - i*h*.075}); }
+    if (G.phase === "read" && G.phaseT > 1.6){ G.spawnR -= dt; if (G.spawnR <= 0){ G.spawnR = 1.5 + Math.random()*1.5; G.ents.push({k:"rock", lane:rand(NOPT()), y:-h*.07}); } }
+    const myLane = this.laneOf(G.px);
+    for (const e of G.ents){
+      if (e.k === "coin" && !e.got && Math.abs(e.y-py) < h*.035 && e.lane === myLane){ e.got = true; G.score += 10; sfx.coin(); floatText(this.laneX(e.lane), py-40, "+10", "#C98A00"); setHud(); }
+      if (e.k === "rock" && !e.hit && Math.abs(e.y-py) < h*.04 && e.lane === myLane){ e.hit = true; G.stun = .7; G.shake = .3; G.score = Math.max(0, G.score-20); sfx.thud(); floatText(G.px, py-40, "-20", "#E5484D"); setHud(); }
+      if (e.k === "gate" && !e.done && e.y >= py - h*.02){
+        e.done = true; e.pick = myLane;
+        const ok = answer(myLane); e.ok = ok; e.correct = cur().correct;
+        if (ok) burst(G.px, py-20, ["#FFC43A","#FF6A55","#3A84F0","#1FA35C","#fff"], 26);
+      }
+    }
+    G.ents = G.ents.filter(e => e.y < h*1.25);
+  },
+  tree(c,x,y,s){
+    c.fillStyle = "#7A4E2D"; c.fillRect(x-s*.12, y, s*.24, s*.5);
+    c.fillStyle = "#2F8F45"; c.beginPath(); c.arc(x, y-s*.1, s*.55, 0, Math.PI*2); c.fill();
+    c.fillStyle = "#47AE5C"; c.beginPath(); c.arc(x-s*.15, y-s*.25, s*.3, 0, Math.PI*2); c.fill();
+  },
+  draw(c){
+    const w = V.w, h = V.h, tw = this.trackW(), tl = (w-tw)/2, py = this.py();
+    c.fillStyle = "#86D06F"; c.fillRect(0,0,w,h);
+    const band = h*.12, off = G.scroll % (band*2);
+    c.fillStyle = "#7AC565";
+    for (let y=-band*2+off; y<h; y+=band*2) c.fillRect(0, y, w, band);
+    if (tl > 34){
+      const gap = h*.26, o2 = G.scroll % gap, s = Math.min(tl*.7, 46);
+      for (let y=-gap+o2; y<h+gap; y+=gap){ this.tree(c, tl/2, y, s); this.tree(c, w-tl/2, y+gap/2, s); }
+    }
+    c.fillStyle = "#F2D49B"; c.fillRect(tl, 0, tw, h);
+    c.fillStyle = "#D9B574"; c.fillRect(tl-6, 0, 6, h); c.fillRect(tl+tw, 0, 6, h);
+    c.strokeStyle = "rgba(255,255,255,.85)"; c.lineWidth = 4; c.setLineDash([h*.05, h*.05]); c.lineDashOffset = -G.scroll;
+    for (let i=1;i<NOPT();i++){ const x = tl + tw*i/NOPT(); c.beginPath(); c.moveTo(x,0); c.lineTo(x,h); c.stroke(); }
+    c.setLineDash([]);
+
+    const laneW = tw/NOPT();
+    for (const e of G.ents){
+      if (e.k === "coin" && !e.got){
+        const x = this.laneX(e.lane), r = Math.min(laneW*.11, h*.028), sq = Math.abs(Math.cos(G.t*5 + e.y*.02));
+        c.fillStyle = "#E3A400"; c.beginPath(); c.ellipse(x, e.y, r*Math.max(.25,sq), r, 0, 0, Math.PI*2); c.fill();
+        c.fillStyle = "#FFD447"; c.beginPath(); c.ellipse(x, e.y, r*Math.max(.18,sq)*.7, r*.7, 0, 0, Math.PI*2); c.fill();
+      }
+      if (e.k === "rock"){
+        const x = this.laneX(e.lane), r = Math.min(laneW*.2, h*.045);
+        c.fillStyle = "rgba(0,0,0,.15)"; c.beginPath(); c.ellipse(x, e.y+r*.6, r*1.1, r*.35, 0, 0, Math.PI*2); c.fill();
+        c.fillStyle = e.hit ? "#9AA0AE" : "#7E8597"; c.beginPath(); c.moveTo(x-r, e.y+r*.5); c.quadraticCurveTo(x-r*1.05, e.y-r*.6, x-r*.2, e.y-r*.8); c.quadraticCurveTo(x+r*.9, e.y-r*.9, x+r, e.y+r*.5); c.closePath(); c.fill();
+        c.fillStyle = "#A5ABBA"; c.beginPath(); c.ellipse(x-r*.25, e.y-r*.35, r*.3, r*.16, -.3, 0, Math.PI*2); c.fill();
+      }
+    }
+    for (const e of G.ents){
+      if (e.k !== "gate") continue;
+      const bh = Math.max(56, h*.13), bw = laneW*.9;
+      c.fillStyle = "#6B4A2E"; c.fillRect(tl-4, e.y+bh*.35, tw+8, 8);
+      for (let i=0;i<NOPT();i++){
+        const x = this.laneX(i) - bw/2, y = e.y - bh/2;
+        let fill = COL[i], dark = COL_D[i], alpha = 1;
+        if (e.done){ if (i===e.correct){ fill = "#1FA35C"; dark = "#127041"; } else { alpha = .45; } }
+        c.globalAlpha = alpha;
+        c.fillStyle = dark; rr(c, x, y+5, bw, bh, 14); c.fill();
+        c.fillStyle = fill; rr(c, x, y, bw, bh, 14); c.fill(); INK_LINE(c);
+        c.fillStyle = "#fff";
+        c.textAlign = "center"; c.textBaseline = "middle";
+        const big = Math.min(bh*.42, bw*.32);
+        c.font = `700 ${big}px Andika, sans-serif`;
+        c.fillText(LET[i], x+bw/2, y + bh*.3);
+        const fs = clamp(bw/9, 11, 15);
+        c.font = `600 ${fs}px Andika, Huninn, "Noto Sans TC", sans-serif`;
+        const lines = wrapText(c, cur() && !e.done ? cur().opts[i].t : (e.done && G.log.length ? G.log[G.log.length-1].q.opts[i].t : ""), bw-10, 2);
+        lines.forEach((ln, k) => c.fillText(ln, x+bw/2, y + bh*.62 + k*(fs+2)));
+        c.globalAlpha = 1;
+      }
+    }
+    if (G.phase === "read" && G.countdown <= 0){
+      const pct = clamp(1 - G.phaseT/G.phaseMax, 0, 1), bw = Math.min(tw*.8, 320), x = (w-bw)/2, y = 12;
+      c.fillStyle = "rgba(27,36,80,.7)"; rr(c, x, y, bw, 26, 13); c.fill();
+      c.fillStyle = "#FFC43A"; rr(c, x+3, y+3, Math.max(20,(bw-6)*pct), 20, 10); c.fill();
+      c.fillStyle = "#fff"; c.font = `700 13px Huninn, "Noto Sans TC", sans-serif`; c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillText("答案門快來了，先想好跑哪道", w/2, y+13);
+    }
+    const bob = Math.sin(G.t*16)*3, sz = Math.min(laneW*.5, h*.11, 64);
+    c.fillStyle = "rgba(0,0,0,.18)"; c.beginPath(); c.ellipse(G.px, py+sz*.45, sz*.42, sz*.13, 0, 0, Math.PI*2); c.fill();
+    c.save(); c.translate(G.px, py + bob);
+    if (G.stun > 0) c.rotate(Math.sin(G.t*30)*.3);
+    drawHero(c, S.avatar, 0, -sz*.1, sz*1.45);
+    c.restore();
+  }
+};
+$("#rush").onclick = () => { if (G && GAME.rush) GAME.rush(); };
+
+/* ===================== 2. 釣魚 ===================== */
+const Fishing = {
+  hasHearts: false, timed: true,
+  hint: "點一下正確字母的魚就會甩竿（電腦可按字母鍵）",
+  waterY(){ return V.h*.24; },
+  fishSize(){ return clamp(Math.min(V.w,V.h)*.075, 24, 46); },
+  rodTip(){ return {x:V.w/2 + Math.min(V.w*.12, 70), y:this.waterY() - Math.min(V.h*.13, 70)}; },
+  init(){
+    Object.assign(G, {time:DF().time.fish, fish:[], hook:{ph:"idle"}, bubbles:[]});
+    for (let i=0;i<14;i++) G.bubbles.push({x:Math.random()*V.w, y:this.waterY()+Math.random()*(V.h-this.waterY()), r:2+Math.random()*4, s:20+Math.random()*30});
+    this.spawn(); $("#rush").hidden = true;
+  },
+  layout(){},
+  spawn(){
+    const wy = this.waterY(), top = wy + V.h*.1, bot = V.h - V.h*.08, rows = 2*NOPT();
+    const ys = shuffle([...Array(rows).keys()]);
+    G.fish = [];
+    for (let i=0;i<2*NOPT();i++){
+      const L = i % NOPT(), dir = Math.random()<.5 ? -1 : 1;
+      const y = top + (bot-top) * (ys[i] + .5) / rows;
+      G.fish.push({L, x: V.w*(.1 + Math.random()*.8), y, baseY:y, dir, sp: V.w*(.06 + Math.random()*.09), s: this.fishSize()*DF().size*(.85 + Math.random()*.35), ph: Math.random()*6, fade:0, flee:false, caught:false});
+    }
+  },
+  onNext(){ this.spawn(); },
+  onAnswer(){},
+  depthBonus(f){ const wy = this.waterY(); return Math.round(clamp((f.y - wy)/(V.h - wy), 0, 1) * 60); },
+  cast(f, tx, ty){
+    const tip = this.rodTip();
+    if (f){ f.caught = true; G.hook = {ph:"down", t:0, dur:.28, fish:f, from:{...tip}, to:{x:f.x, y:f.y}}; }
+    else G.hook = {ph:"down", t:0, dur:.25, fish:null, from:{...tip}, to:{x:tx, y:Math.max(ty, this.waterY()+10)}};
+    sfx.splash();
+  },
+  tap(x,y){
+    if (G.hook.ph !== "idle" || G.locked) return;
+    let best = null, bd = 1e9;
+    for (const f of G.fish){ if (f.flee) continue; const d = Math.hypot(f.x-x, f.y-y); if (d < f.s*1.6*DF().hit && d < bd){ bd = d; best = f; } }
+    if (y < this.waterY()) return;
+    this.cast(best, x, y);
+  },
+  pick(i){
+    if (G.hook.ph !== "idle" || G.locked) return;
+    const cand = G.fish.filter(f => f.L===i && !f.flee && f.x>0 && f.x<V.w);
+    if (cand.length) this.cast(cand[rand(cand.length)]);
+  },
+  update(dt){
+    const wy = this.waterY();
+    for (const f of G.fish){
+      f.fade = Math.min(1, f.fade + dt*3);
+      if (f.caught) continue;
+      const sp = f.flee ? f.sp*6 : f.sp*DF().spd*LVL();
+      f.x += f.dir*sp*dt; f.ph += dt*3; f.y = f.baseY + Math.sin(f.ph)*6;
+      if (!f.flee){ if (f.x < -f.s*2) f.x = V.w + f.s*2; if (f.x > V.w + f.s*2) f.x = -f.s*2; }
+    }
+    G.fish = G.fish.filter(f => !(f.flee && (f.x < -f.s*3 || f.x > V.w + f.s*3)) && !f.gone);
+    for (const b of G.bubbles){ b.y -= b.s*dt; if (b.y < wy){ b.y = V.h; b.x = Math.random()*V.w; } }
+    const hk = G.hook;
+    if (hk.ph !== "idle"){
+      hk.t += dt; const k = clamp(hk.t/hk.dur, 0, 1);
+      if (hk.ph === "down"){
+        hk.pos = {x: hk.from.x + (hk.to.x-hk.from.x)*k, y: hk.from.y + (hk.to.y-hk.from.y)*k};
+        if (k >= 1){
+          if (!hk.fish){ G.hook = {ph:"up", t:0, dur:.3, fish:null, from:{...hk.pos}, to:this.rodTip()}; }
+          else {
+            const f = hk.fish, ok = answer(f.L, this.depthBonus(f));
+            if (ok){ G.hook = {ph:"up", t:0, dur:.5, fish:f, from:{...hk.pos}, to:this.rodTip()}; burst(f.x, f.y, ["#fff","#9FE3FF","#FFC43A"], 14); }
+            else { f.caught = false; f.flee = true; f.dir = f.x < V.w/2 ? -1 : 1; G.time = Math.max(0, G.time - DF().pen); floatText(f.x, f.y-30, `-${DF().pen} 秒`, "#E5484D"); G.hook = {ph:"up", t:0, dur:.3, fish:null, from:{...hk.pos}, to:this.rodTip()}; setHud(); }
+          }
+        }
+      } else if (hk.ph === "up"){
+        hk.pos = {x: hk.from.x + (hk.to.x-hk.from.x)*k, y: hk.from.y + (hk.to.y-hk.from.y)*k};
+        if (hk.fish){ hk.fish.x = hk.pos.x; hk.fish.y = hk.pos.y + hk.fish.s*.6; }
+        if (k >= 1){ if (hk.fish){ hk.fish.gone = true; floatText(hk.pos.x, hk.pos.y, "🐟", "#3A84F0"); } G.hook = {ph:"idle"}; }
+      }
+    }
+  },
+  drawFish(c, f){
+    const s = f.s;
+    c.save(); c.globalAlpha = f.fade * (f.flee ? .6 : 1);
+    c.translate(f.x, f.y);
+    if (f.caught && G.hook.ph === "up") c.rotate(-Math.PI/2*f.dir*.6);
+    c.scale(f.dir, 1);
+    c.fillStyle = COL_D[f.L];
+    c.beginPath(); c.moveTo(-s*.75, 0); c.lineTo(-s*1.35, -s*.5); c.lineTo(-s*1.25, 0); c.lineTo(-s*1.35, s*.5); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(-s*.1, -s*.5); c.quadraticCurveTo(s*.1, -s*.95, s*.45, -s*.45); c.closePath(); c.fill();
+    c.fillStyle = COL[f.L]; c.beginPath(); c.ellipse(0, 0, s, s*.62, 0, 0, Math.PI*2); c.fill(); INK_LINE(c);
+    c.fillStyle = "rgba(255,255,255,.25)"; c.beginPath(); c.ellipse(s*.05, s*.28, s*.7, s*.22, 0, 0, Math.PI*2); c.fill();
+    c.fillStyle = "#fff"; c.beginPath(); c.arc(s*.58, -s*.14, s*.17, 0, Math.PI*2); c.fill();
+    c.fillStyle = "#1B2450"; c.beginPath(); c.arc(s*.62, -s*.14, s*.085, 0, Math.PI*2); c.fill();
+    c.restore();
+    c.save(); c.globalAlpha = f.fade * (f.flee ? .6 : 1);
+    c.fillStyle = "#fff"; c.font = `700 ${s*.85}px Andika, sans-serif`; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillText(LET[f.L], f.x - f.dir*s*.12, f.y + s*.04);
+    if (G.locked && G.log.length && !G.log[G.log.length-1].ok && f.L === G.log[G.log.length-1].q.correct && !f.flee){
+      c.strokeStyle = "#FFC43A"; c.lineWidth = 4; c.setLineDash([6,5]); c.beginPath(); c.arc(f.x, f.y, s*1.45, 0, Math.PI*2); c.stroke(); c.setLineDash([]);
+    }
+    c.restore();
+  },
+  draw(c){
+    const w = V.w, h = V.h, wy = this.waterY();
+    let g = c.createLinearGradient(0,0,0,wy); g.addColorStop(0,"#9BD7FF"); g.addColorStop(1,"#D8F1FF");
+    c.fillStyle = g; c.fillRect(0,0,w,wy);
+    c.fillStyle = "#FFD447"; c.beginPath(); c.arc(w*.86, wy*.38, Math.min(36, wy*.28), 0, Math.PI*2); c.fill();
+    c.fillStyle = "#fff"; for (const [cx,cy,r] of [[.18,.35,22],[.24,.3,28],[.31,.36,20]]){ c.beginPath(); c.arc(w*cx + Math.sin(G.t*.2)*10, wy*cy, r, 0, Math.PI*2); c.fill(); }
+    g = c.createLinearGradient(0,wy,0,h); g.addColorStop(0,"#3DA2EB"); g.addColorStop(1,"#164F9A");
+    c.fillStyle = g; c.beginPath(); c.moveTo(0,wy);
+    for (let x=0; x<=w; x+=12) c.lineTo(x, wy + Math.sin(x*.03 + G.t*2)*4);
+    c.lineTo(w,h); c.lineTo(0,h); c.closePath(); c.fill();
+    c.fillStyle = "rgba(255,255,255,.08)";
+    for (let i=0;i<3;i++){ const y = wy + (h-wy)*(.3+i*.22); c.fillRect(0, y, w, 2); }
+    c.fillStyle = "#E9C98A"; c.beginPath(); c.moveTo(0,h); for (let x=0;x<=w;x+=20) c.lineTo(x, h - 14 - Math.sin(x*.05)*6); c.lineTo(w,h); c.closePath(); c.fill();
+    c.strokeStyle = "#2E9E55"; c.lineWidth = 5; c.lineCap = "round";
+    for (let i=0;i<Math.ceil(w/90);i++){ const x = 40 + i*90, sway = Math.sin(G.t*1.5 + i)*8; c.beginPath(); c.moveTo(x, h-10); c.quadraticCurveTo(x+sway, h-50, x - sway*.5, h-80 - (i%3)*14); c.stroke(); }
+    c.fillStyle = "rgba(255,255,255,.5)";
+    for (const b of G.bubbles){ c.beginPath(); c.arc(b.x + Math.sin(b.y*.05)*4, b.y, b.r, 0, Math.PI*2); c.fill(); }
+    for (const f of G.fish) this.drawFish(c, f);
+    const bx = w/2, bob = Math.sin(G.t*2)*3, bw = Math.min(w*.32, 170);
+    const tip = this.rodTip();
+    const hs = Math.min(70, wy*.7); drawHero(c, S.avatar, bx - bw*.12, wy - 4 - hs*.42 + bob, hs);
+    c.strokeStyle = "#5A3A1E"; c.lineWidth = 4; c.beginPath(); c.moveTo(bx + 4, wy - 18 + bob); c.lineTo(tip.x, tip.y + bob); c.stroke();
+    c.fillStyle = "#C2532F"; c.beginPath(); c.moveTo(bx - bw/2, wy - 12 + bob); c.lineTo(bx + bw/2, wy - 12 + bob); c.lineTo(bx + bw*.36, wy + 14 + bob); c.lineTo(bx - bw*.36, wy + 14 + bob); c.closePath(); c.fill();
+    c.fillStyle = "#F2E1C2"; c.fillRect(bx - bw/2, wy - 16 + bob, bw, 6);
+    const hk = G.hook;
+    const hp = hk.ph === "idle" ? {x: tip.x, y: wy + 30 + Math.sin(G.t*2)*6} : hk.pos || tip;
+    c.strokeStyle = "rgba(255,255,255,.9)"; c.lineWidth = 1.5; c.beginPath(); c.moveTo(tip.x, tip.y + bob); c.lineTo(hp.x, hp.y); c.stroke();
+    c.strokeStyle = "#C7CCD8"; c.lineWidth = 3; c.beginPath(); c.arc(hp.x, hp.y + 6, 6, 0, Math.PI); c.stroke();
+    if (hk.ph === "idle"){ c.fillStyle = "#E5484D"; c.beginPath(); c.arc(tip.x, wy + 2 + Math.sin(G.t*2)*2, 6, 0, Math.PI*2); c.fill(); }
+  }
+};
+
+/* ===================== 3. 打地鼠 ===================== */
+const Mole = {
+  hasHearts: false, timed: true,
+  hint: "敲舉著正確字母的地鼠（電腦可按字母鍵）",
+  init(){
+    Object.assign(G, {time:DF().time.mole, holes:[], spawnT:.3, hammer:null, hero:{x:V.w/2, y:V.h*.88, tx:V.w/2, ty:V.h*.88}, cheer:0});
+    for (let i=0;i<9;i++) G.holes.push({m:null});
+    this.layout(); $("#rush").hidden = true;
+  },
+  layout(){
+    if (!G || !G.holes) return;
+    const gw = Math.min(V.w, V.h*1.5), ox = (V.w-gw)/2, cw = gw/3, ch = V.h/3;
+    G.holes.forEach((hl,i) => { const cx = ox + cw*(i%3 + .5), cy = ch*(Math.floor(i/3) + .5) + ch*.25; const rx = Math.min(cw*.36, ch*.5); Object.assign(hl, {cx, cy, rx, ry: rx*.32}); });
+  },
+  heroSize(){ return clamp(Math.min(V.w, V.h)*.17, 50, 96); },
+  onNext(){ G.spawnT = .5; },
+  onAnswer(){ for (const hl of G.holes) if (hl.m && hl.m.st === "up") { hl.m.st = "down"; } },
+  spawnOne(){
+    const empty = G.holes.filter(hl => !hl.m);
+    const up = G.holes.filter(hl => hl.m && hl.m.st === "up");
+    if (!empty.length || up.length >= 4) return;
+    const q = cur(); const hasCorrect = up.some(hl => hl.m.L === q.correct);
+    let L;
+    if (!hasCorrect && Math.random() < .6) L = q.correct;
+    else L = rand(NOPT());
+    const hl = empty[rand(empty.length)];
+    hl.m = {L, st:"up", h:0, life: Math.max(.9, 2.2*DF().life/LVL())};
+  },
+  hit(hl){
+    const m = hl.m; m.st = "bonk"; m.bonkT = .5;
+    G.hammer = {x: hl.cx + hl.rx*.6, y: hl.cy - hl.rx*1.2, t:.25};
+    sfx.bonk();
+    const ok = answer(m.L);
+    if (ok){ burst(hl.cx, hl.cy - hl.rx, ["#FFC43A","#fff",COL[m.L]], 16); G.cheer = .8; }
+    else { G.time = Math.max(0, G.time - DF().pen); floatText(hl.cx, hl.cy - hl.rx*1.6, `-${DF().pen} 秒`, "#E5484D"); setHud(); }
+  },
+  tap(x,y){
+    if (G.locked) return;
+    G.hammer = {x, y, t:.2};
+    for (const hl of G.holes){
+      const m = hl.m; if (!m || m.st !== "up" || m.h < .35) continue;
+      const mw = hl.rx*.85, mh = hl.rx*1.5*m.h;
+      const pad = 8 + (DF().hit-1)*30;
+      if (x > hl.cx - mw - pad && x < hl.cx + mw + pad && y > hl.cy - mh - 12 - pad && y < hl.cy + hl.ry + pad){ this.hit(hl); return; }
+    }
+  },
+  pick(i){
+    if (G.locked) return;
+    const hl = G.holes.find(hl => hl.m && hl.m.st === "up" && hl.m.L === i && hl.m.h > .35);
+    if (hl) this.hit(hl);
+  },
+  update(dt){
+    if (!G.locked){ G.spawnT -= dt; if (G.spawnT <= 0){ G.spawnT = Math.max(.4, .85/LVL()/Math.min(1.15,DF().spd+.3)); this.spawnOne(); } }
+    for (const hl of G.holes){
+      const m = hl.m; if (!m) continue;
+      if (m.st === "up"){ m.h = Math.min(1, m.h + dt*6); m.life -= dt; if (m.life <= 0) m.st = "down"; }
+      else if (m.st === "bonk"){ m.bonkT -= dt; if (m.bonkT <= 0) m.st = "down"; }
+      else if (m.st === "down"){ m.h -= dt*5; if (m.h <= 0) hl.m = null; }
+    }
+    if (G.hammer){ G.hero.tx = G.hammer.x + 46; G.hero.ty = G.hammer.y + 50; G.hammer.t -= dt; if (G.hammer.t <= 0) G.hammer = null; }
+    const hs = this.heroSize();
+    G.hero.tx = clamp(G.hero.tx, hs*.5, V.w - hs*.5); G.hero.ty = clamp(G.hero.ty, hs*.5, V.h - hs*.45);
+    G.hero.x += (G.hero.tx - G.hero.x) * Math.min(1, dt*14); G.hero.y += (G.hero.ty - G.hero.y) * Math.min(1, dt*14);
+    G.cheer = Math.max(0, G.cheer - dt);
+  },
+  draw(c){
+    const w = V.w, h = V.h;
+    c.fillStyle = "#7DCB63"; c.fillRect(0,0,w,h);
+    c.fillStyle = "#71BE58";
+    for (let y=0; y<h; y+=28) for (let x=(y/28)%2*20; x<w; x+=40){ c.beginPath(); c.moveTo(x, y+10); c.lineTo(x+4, y); c.lineTo(x+8, y+10); c.fill(); }
+    for (const hl of G.holes){
+      const {cx, cy, rx, ry} = hl;
+      c.fillStyle = "#5B3A22"; c.beginPath(); c.ellipse(cx, cy, rx*1.08, ry*1.35, 0, 0, Math.PI*2); c.fill();
+      c.fillStyle = "#2B1A0E"; c.beginPath(); c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); c.fill();
+      const m = hl.m;
+      if (m){
+        const mw = rx*.8, mh = rx*1.5, top = cy - mh*m.h;
+        c.save(); c.beginPath(); c.rect(cx - rx*1.2, cy - mh*1.6, rx*2.4, mh*1.6); c.clip();
+        c.fillStyle = "#9A6B44"; rr(c, cx - mw, top, mw*2, mh + ry, mw*.9); c.fill(); INK_LINE(c);
+        c.fillStyle = "#C59A70"; c.beginPath(); c.ellipse(cx, top + mh*.72, mw*.62, mh*.32, 0, 0, Math.PI*2); c.fill();
+        const bonk = m.st === "bonk";
+        c.fillStyle = "#1B2450"; c.lineWidth = 3; c.strokeStyle = "#1B2450";
+        if (bonk){ for (const sx of [-1,1]){ const ex = cx + sx*mw*.38, ey = top + mh*.24; c.beginPath(); c.moveTo(ex-5,ey-5); c.lineTo(ex+5,ey+5); c.moveTo(ex+5,ey-5); c.lineTo(ex-5,ey+5); c.stroke(); } }
+        else { for (const sx of [-1,1]){ c.beginPath(); c.arc(cx + sx*mw*.38, top + mh*.24, Math.max(3, mw*.11), 0, Math.PI*2); c.fill(); } }
+        c.fillStyle = "#F07C8C"; c.beginPath(); c.ellipse(cx, top + mh*.38, mw*.17, mw*.12, 0, 0, Math.PI*2); c.fill();
+        const sr = mw*.5, sy = top + mh*.74;
+        c.fillStyle = COL_D[m.L]; c.beginPath(); c.arc(cx, sy + 3, sr, 0, Math.PI*2); c.fill();
+        c.fillStyle = COL[m.L]; c.beginPath(); c.arc(cx, sy, sr, 0, Math.PI*2); c.fill(); INK_LINE(c);
+        c.fillStyle = "#fff"; c.font = `700 ${sr*1.25}px Andika, sans-serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(LET[m.L], cx, sy + 1);
+        if (bonk){ c.font = `${mw*.6}px ${EMOJI_FONT}`; c.fillText("💫", cx, top - mw*.2); }
+        if (G.locked && G.log.length && !G.log[G.log.length-1].ok && m.L === G.log[G.log.length-1].q.correct && m.st!=="bonk"){
+          c.strokeStyle = "#FFC43A"; c.lineWidth = 4; c.setLineDash([6,5]); c.beginPath(); c.arc(cx, sy, sr*1.35, 0, Math.PI*2); c.stroke(); c.setLineDash([]);
+        }
+        c.restore();
+      }
+      c.strokeStyle = "#5B3A22"; c.lineWidth = Math.max(4, ry*.45); c.beginPath(); c.ellipse(cx, cy, rx*1.04, ry*1.2, 0, 0, Math.PI); c.stroke();
+    }
+    const hs = this.heroSize(), hb = G.cheer > 0 ? -Math.abs(Math.sin(G.t*18))*hs*.18 : Math.sin(G.t*3)*2;
+    c.fillStyle = "rgba(0,0,0,.18)"; c.beginPath(); c.ellipse(G.hero.x, G.hero.y + hs*.42, hs*.32, hs*.09, 0, 0, Math.PI*2); c.fill();
+    drawHero(c, S.avatar, G.hero.x, G.hero.y + hb, hs);
+    if (G.cheer > 0){ c.font = `700 ${hs*.32}px Andika, sans-serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#E8553E"; c.fillText("Yay!", G.hero.x, G.hero.y - hs*.62 + hb); }
+    if (G.hammer){
+      const hm = G.hammer, a = (1 - hm.t/.25) * 1.1 - .3;
+      c.save(); c.translate(hm.x + 30, hm.y + 30); c.rotate(-a);
+      c.fillStyle = "#8B5A2B"; c.fillRect(-4, -60, 8, 60);
+      c.fillStyle = "#E5484D"; rr(c, -26, -78, 52, 26, 8); c.fill();
+      c.fillStyle = "#FFC43A"; c.fillRect(-26, -70, 6, 10); c.fillRect(20, -70, 6, 10);
+      c.restore();
+    }
+  }
+};
+
+/* ===================== 4. 賽車 ===================== */
+const Race = {
+  hasHearts: false, timed: false,
+  hint: "按住螢幕左右拖曳開車，開過正確答案的道具箱（電腦按住 ← →）",
+  trackW(){ return NOPT() > 3 ? Math.min(V.w*.94, 660) : Math.min(V.w*.9, 560); },
+  laneX(i){ const tw = this.trackW(); return (V.w-tw)/2 + tw*(i+.5)/NOPT(); },
+  laneOf(x){ let best=0, d=1e9; for (let i=0;i<NOPT();i++){ const dd = Math.abs(x-this.laneX(i)); if (dd<d){ d=dd; best=i; } } return best; },
+  py(){ return V.h*.8; },
+  carW(){ return clamp(this.trackW()/NOPT()*.42, 24, 54); },
+  init(){
+    Object.assign(G, {x:this.laneX(1), steer:0, drag:null, auto:null, ents:[], scroll:0, me:0, rival:0, mul:1, boost:0, spin:0, bump:0, phase:"read", phaseT:Runner.readTime(cur()), spawnT:1.2, hudT:0});
+    G.phaseMax = G.phaseT; $("#rush").hidden = false;
+  },
+  layout(){},
+  lifeText(){ const d = Math.round((G.me-G.rival)/(V.h*.05)); return d >= 0 ? {text:`🏁 領先 ${d} 公尺`} : {text:`🏁 落後 ${-d} 公尺`, low:true}; },
+  onNext(){ G.phase = "read"; G.phaseT = G.phaseMax = Runner.readTime(cur()); $("#rush").hidden = false; },
+  onAnswer(ok){ if (ok){ G.boost = 2; G.mul = Math.min(1.5, G.mul+.03); } else { G.spin = 1.2; G.shake = .3; } },
+  finish(){
+    const win = G.me >= G.rival;
+    if (win) G.score += 300;
+    return win ? "🏆 你贏了電腦對手！再加 300 分" : "🤖 差一點點！電腦對手先衝過終點";
+  },
+  rush(){ if (G.phase === "read"){ stopClip(); G.phaseT = Math.min(G.phaseT, .05); } },
+  tap(x){ G.drag = x; G.auto = null; },
+  move(x){ if (G.drag != null) G.drag = x; },
+  up(){ G.drag = null; },
+  key(k){
+    if (k==="arrowleft"){ G.steer = -1; G.auto = null; return true; }
+    if (k==="arrowright"){ G.steer = 1; G.auto = null; return true; }
+    if (k===" "||k==="arrowup"){ this.rush(); return true; }
+    return false;
+  },
+  keyup(k){ if ((k==="arrowleft" && G.steer<0) || (k==="arrowright" && G.steer>0)) G.steer = 0; },
+  pick(i){ G.auto = this.laneX(i); G.drag = null; },
+  update(dt){
+    const h = V.h, base = h*.5*DF().run*LVL(), py = this.py(), cw = this.carW(), ch = cw*1.7;
+    G.boost = Math.max(0, G.boost-dt); G.spin = Math.max(0, G.spin-dt); G.bump = Math.max(0, G.bump-dt);
+    const sp = base * G.mul * (G.boost>0 ? 1.6 : 1) * (G.spin>0 ? .4 : 1) * (G.bump>0 ? .55 : 1);
+    G.me += sp*dt; G.rival += base*DF().rival*dt; G.scroll += sp*dt;
+    const tw = this.trackW(), tl = (V.w-tw)/2;
+    if (G.drag != null) G.x += (G.drag-G.x) * Math.min(1, dt*10);
+    else if (G.steer) G.x += G.steer*tw*1.3*dt;
+    else if (G.auto != null) G.x += (G.auto-G.x) * Math.min(1, dt*10);
+    G.x = clamp(G.x, tl+cw/2+4, tl+tw-cw/2-4);
+    for (const e of G.ents) e.y += (e.k==="car" ? sp-e.v : sp)*dt;
+    if (G.phase === "read"){ if (!audioBusy()) G.phaseT -= dt; if (G.phaseT <= 0){ G.ents.push({k:"box", y:-h*.14}); G.phase = "box"; $("#rush").hidden = true; } }
+    if (G.phase === "read" && G.phaseT > 1.8){
+      G.spawnT -= dt;
+      if (G.spawnT <= 0){ G.spawnT = 1.3 + Math.random()*1.3; G.ents.push({k:"car", x:this.laneX(rand(NOPT())), y:-ch, v:base*(.45+Math.random()*.15), col:["#9AA4B8","#F2A541","#5CC6C0","#F28DB2"][rand(4)]}); }
+    }
+    for (const e of G.ents){
+      if (e.k==="car" && !e.hit && Math.abs(e.x-G.x) < cw*.9 && Math.abs(e.y-py) < ch*.85){
+        e.hit = true; G.bump = .8; G.shake = .3; G.score = Math.max(0, G.score-20); sfx.thud(); floatText(G.x, py-ch*.7, "-20", "#E5484D"); setHud();
+      }
+      if (e.k==="box" && !e.done && e.y >= py-ch*.4){
+        e.done = true; e.pick = this.laneOf(G.x);
+        const ok = answer(e.pick); e.correct = cur().correct; e.opts = cur().opts.map(o => o.t);
+        if (ok){ burst(G.x, py-ch*.3, ["#FFC43A","#FF6A55","#3A84F0","#1FA35C","#fff"], 26); tone(400,.4,"sawtooth",.06,0,1200); }
+      }
+    }
+    G.ents = G.ents.filter(e => e.y < h*1.3 && e.y > -h*1.5);
+    G.hudT -= dt; if (G.hudT <= 0){ G.hudT = .25; setHud(); }
+  },
+  drawCar(c, x, y, w, col, driver, flames, tilt){
+    const h = w*1.7;
+    c.save(); c.translate(x, y); if (tilt) c.rotate(tilt);
+    if (flames){
+      for (let i=0;i<3;i++){ c.fillStyle = i%2 ? "#FFC43A" : "#FF6A55"; const fx = (i-1)*w*.24; c.beginPath(); c.moveTo(fx-5, h/2-2); c.lineTo(fx+5, h/2-2); c.lineTo(fx, h/2+10+Math.random()*16); c.closePath(); c.fill(); }
+    }
+    c.fillStyle = "rgba(0,0,0,.2)"; rr(c, -w/2+3, -h/2+5, w, h, w*.3); c.fill();
+    c.fillStyle = "#1B2450";
+    for (const [dx,dy] of [[-1,-.28],[1,-.28],[-1,.3],[1,.3]]){ rr(c, dx*w*.5-w*.14, dy*h-h*.1, w*.28, h*.2, 3); c.fill(); }
+    c.fillStyle = col; rr(c, -w/2, -h/2, w, h, w*.32); c.fill(); INK_LINE(c);
+    c.fillStyle = "rgba(255,255,255,.35)"; rr(c, -w*.3, -h*.45, w*.6, h*.1, 4); c.fill();
+    c.fillStyle = "#BFE6FF"; rr(c, -w*.34, -h*.24, w*.68, h*.18, 5); c.fill();
+    c.fillStyle = "rgba(0,0,0,.15)"; rr(c, -w*.36, h*.3, w*.72, h*.1, 3); c.fill();
+    if (driver) drawHero(c, driver, 0, h*.08, w*1.05);
+    c.restore();
+  },
+  draw(c){
+    const w = V.w, h = V.h, tw = this.trackW(), tl = (w-tw)/2, py = this.py(), cw = this.carW(), ch = cw*1.7;
+    c.fillStyle = "#86D06F"; c.fillRect(0,0,w,h);
+    const band = h*.12, off = G.scroll % (band*2);
+    c.fillStyle = "#7AC565"; for (let y=-band*2+off; y<h; y+=band*2) c.fillRect(0, y, w, band);
+    c.fillStyle = "#555B70"; c.fillRect(tl, 0, tw, h);
+    const seg = h*.06, o2 = G.scroll % (seg*2);
+    for (let y=-seg*2+o2; y<h; y+=seg*2){
+      c.fillStyle = "#E5484D"; c.fillRect(tl-9, y, 9, seg); c.fillRect(tl+tw, y, 9, seg);
+      c.fillStyle = "#fff"; c.fillRect(tl-9, y+seg, 9, seg); c.fillRect(tl+tw, y+seg, 9, seg);
+    }
+    c.strokeStyle = "rgba(255,255,255,.75)"; c.lineWidth = 4; c.setLineDash([h*.05, h*.05]); c.lineDashOffset = -G.scroll;
+    for (let i=1;i<NOPT();i++){ const x = tl + tw*i/NOPT(); c.beginPath(); c.moveTo(x,0); c.lineTo(x,h); c.stroke(); }
+    c.setLineDash([]);
+    const laneW = tw/NOPT();
+    for (const e of G.ents){
+      if (e.k === "car"){ this.drawCar(c, e.x, e.y, cw, e.col, null, false, e.hit ? .3 : 0); continue; }
+      const bs = Math.min(laneW*.7, Math.max(60, h*.14));
+      for (let i=0;i<NOPT();i++){
+        const x = this.laneX(i) - bs/2, y = e.y - bs/2 + Math.sin(G.t*4 + i)*3;
+        let fill = COL[i], dark = COL_D[i]; c.globalAlpha = 1;
+        if (e.done){ if (i===e.correct){ fill = "#1FA35C"; dark = "#127041"; } else c.globalAlpha = .4; }
+        c.fillStyle = dark; rr(c, x, y+5, bs, bs, 12); c.fill();
+        c.fillStyle = fill; rr(c, x, y, bs, bs, 12); c.fill(); INK_LINE(c);
+        c.strokeStyle = "rgba(255,255,255,.6)"; c.lineWidth = 3; rr(c, x+5, y+5, bs-10, bs-10, 8); c.stroke();
+        c.fillStyle = "#fff"; c.textAlign = "center"; c.textBaseline = "middle";
+        c.font = `700 ${bs*.36}px Andika, sans-serif`; c.fillText(LET[i], x+bs/2, y+bs*.33);
+        const fs = clamp(bs/7.5, 10, 14); c.font = `600 ${fs}px Andika, Huninn, "Noto Sans TC", sans-serif`;
+        const label = e.done ? e.opts[i] : cur().opts[i].t;
+        wrapText(c, label, bs-12, 2).forEach((ln,k) => c.fillText(ln, x+bs/2, y+bs*.64 + k*(fs+2)));
+        c.globalAlpha = 1;
+      }
+    }
+    const ry = py - (G.rival - G.me), rx = tl + tw*(.5 + .32*Math.sin(G.t*.6));
+    if (ry > -ch && ry < h+ch) this.drawCar(c, rx, ry, cw, "#7B5CE0", S.avatar === "fox" ? "tiger" : "fox", false, 0);
+    else {
+      const ahead = ry <= -ch, y = ahead ? 46 : h-34;
+      c.fillStyle = "rgba(123,92,224,.92)"; rr(c, w/2-78, y-13, 156, 26, 13); c.fill();
+      c.fillStyle = "#fff"; c.font = `700 13px Huninn, "Noto Sans TC", sans-serif`; c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillText(ahead ? "▲ 對手在前面！" : "▼ 對手在後面", w/2, y);
+    }
+    const tilt = G.spin > 0 ? Math.sin(G.t*25)*.5 : (G.drag!=null ? clamp((G.drag-G.x)/200, -.15, .15) : G.steer*.12);
+    this.drawCar(c, G.x, py, cw, "#FF6A55", S.avatar, G.boost > 0, tilt);
+    if (G.phase === "read" && G.countdown <= 0){
+      const pct = clamp(1 - G.phaseT/G.phaseMax, 0, 1), bw = Math.min(tw*.8, 320), x = (w-bw)/2, y = 12;
+      c.fillStyle = "rgba(27,36,80,.75)"; rr(c, x, y, bw, 26, 13); c.fill();
+      c.fillStyle = "#FFC43A"; rr(c, x+3, y+3, Math.max(20,(bw-6)*pct), 20, 10); c.fill();
+      c.fillStyle = "#fff"; c.font = `700 13px Huninn, "Noto Sans TC", sans-serif`; c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillText("道具箱快來了，先想好開哪一道", w/2, y+13);
+    }
+  }
+};
+
+/* ===================== 5. 射氣球 ===================== */
+const Balloon = {
+  hasHearts: false, timed: true,
+  hint: "點寫著正確字母的氣球，射飛鏢戳破它！（電腦按 A / B / C）",
+  bR(){ return clamp(Math.min(V.w,V.h)*.07*DF().size, 22, 50); },
+  origin(){ return {x:V.w/2, y:V.h - Math.min(60, V.h*.14)}; },
+  init(){
+    Object.assign(G, {time:DF().time.balloon, bal:[], spawnT:.2, darts:[], clouds:[0,1,2].map(i => ({x:Math.random()*V.w, y:V.h*(.08+i*.16), s:.7+Math.random()*.6}))});
+    $("#rush").hidden = true;
+  },
+  layout(){},
+  onNext(){ G.spawnT = .3; },
+  onAnswer(){},
+  spawnOne(){
+    const q = cur(), r = this.bR();
+    const live = G.bal.filter(b => !b.pop && b.y > r*2);
+    if (live.length >= 7) return;
+    const has = live.some(b => b.L === q.correct);
+    const L = (!has && Math.random() < .65) ? q.correct : rand(NOPT());
+    G.bal.push({L, x: r + Math.random()*(V.w-2*r), y: V.h + r*1.6, v: V.h*(.11+Math.random()*.07)*DF().spd*LVL(), ph: Math.random()*6, pop:0});
+  },
+  shoot(b){
+    if (G.darts.length || G.locked) return;
+    b.target = true; const o = this.origin();
+    G.darts.push({ox:o.x, oy:o.y, x:o.x, y:o.y, b, t:0});
+    tone(900,.08,"triangle",.08,0,500);
+  },
+  tap(x,y){
+    const r = this.bR(); let best = null, bd = 1e9;
+    for (const b of G.bal){ if (b.pop || b.target) continue; const d = Math.hypot(b.x-x, (b.y-y)*.85); if (d < r*1.3*DF().hit && d < bd){ bd = d; best = b; } }
+    if (best) this.shoot(best);
+  },
+  pick(i){
+    const r = this.bR();
+    const c = G.bal.filter(b => b.L===i && !b.pop && !b.target && b.y < V.h-r && b.y > r).sort((a,b) => a.y-b.y);
+    if (c.length) this.shoot(c[0]);
+  },
+  update(dt){
+    const r = this.bR();
+    if (!G.locked){ G.spawnT -= dt; if (G.spawnT <= 0){ G.spawnT = Math.max(.45, .8/LVL()/Math.min(1.15,DF().spd+.3)); this.spawnOne(); } }
+    for (const b of G.bal){
+      if (b.pop){ b.pop += dt; continue; }
+      b.y -= b.v*dt*(b.target ? .3 : 1); b.ph += dt*2; b.x += Math.sin(b.ph)*12*dt;
+    }
+    G.bal = G.bal.filter(b => b.y > -r*3 && b.pop < .4);
+    for (const d of G.darts){
+      d.t += dt/.18; const k = Math.min(1, d.t);
+      d.x = d.ox + (d.b.x-d.ox)*k; d.y = d.oy + (d.b.y-d.oy)*k;
+      if (d.t >= 1){
+        d.done = true; const b = d.b; b.pop = .001;
+        tone(200,.12,"square",.1,0,80); burst(b.x, b.y, [COL[b.L],"#fff","#FFC43A"], 20);
+        const ok = answer(b.L);
+        if (ok === false){ G.time = Math.max(0, G.time-DF().pen); floatText(b.x, b.y-r, `-${DF().pen} 秒`, "#E5484D"); setHud(); }
+      }
+    }
+    G.darts = G.darts.filter(d => !d.done);
+    for (const cl of G.clouds){ cl.x += 10*cl.s*dt; if (cl.x > V.w+90) cl.x = -90; }
+  },
+  draw(c){
+    const w = V.w, h = V.h, r = this.bR();
+    const g = c.createLinearGradient(0,0,0,h); g.addColorStop(0,"#7CC8FF"); g.addColorStop(1,"#E6F6FF");
+    c.fillStyle = g; c.fillRect(0,0,w,h);
+    c.fillStyle = "#fff";
+    for (const cl of G.clouds){ const s = 24*cl.s; for (const [dx,dy,k] of [[0,0,1],[s*.9,-s*.35,1.2],[s*1.9,0,.9]]){ c.beginPath(); c.arc(cl.x+dx, cl.y+dy, s*k, 0, Math.PI*2); c.fill(); } }
+    c.fillStyle = "#8BD46E"; c.beginPath(); c.moveTo(0,h); c.quadraticCurveTo(w*.25, h-70, w*.5, h-34); c.quadraticCurveTo(w*.78, h-6, w, h-52); c.lineTo(w,h); c.closePath(); c.fill();
+    const wrongShown = G.locked && G.log.length && !G.log[G.log.length-1].ok ? G.log[G.log.length-1].q.correct : -1;
+    for (const b of G.bal){
+      if (b.pop){
+        c.strokeStyle = COL[b.L]; c.lineWidth = 3; const k = b.pop/.4;
+        for (let i=0;i<8;i++){ const a = i*Math.PI/4; c.beginPath(); c.moveTo(b.x+Math.cos(a)*r*(.4+k), b.y+Math.sin(a)*r*(.4+k)); c.lineTo(b.x+Math.cos(a)*r*(.8+k*1.2), b.y+Math.sin(a)*r*(.8+k*1.2)); c.stroke(); }
+        continue;
+      }
+      c.strokeStyle = "#5A6593"; c.lineWidth = 1.5; c.beginPath(); c.moveTo(b.x, b.y+r*1.18);
+      c.quadraticCurveTo(b.x + Math.sin(b.ph+1)*8, b.y+r*1.9, b.x, b.y+r*2.6); c.stroke();
+      c.fillStyle = COL_D[b.L]; c.beginPath(); c.moveTo(b.x-5, b.y+r*1.22); c.lineTo(b.x+5, b.y+r*1.22); c.lineTo(b.x, b.y+r*1.08); c.closePath(); c.fill();
+      c.fillStyle = COL[b.L]; c.beginPath(); c.ellipse(b.x, b.y, r, r*1.15, 0, 0, Math.PI*2); c.fill(); INK_LINE(c);
+      c.fillStyle = "rgba(255,255,255,.45)"; c.beginPath(); c.ellipse(b.x-r*.38, b.y-r*.45, r*.18, r*.32, -.4, 0, Math.PI*2); c.fill();
+      c.fillStyle = "#fff"; c.font = `700 ${r*1.05}px Andika, sans-serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(LET[b.L], b.x, b.y+2);
+      if (b.L === wrongShown){ c.strokeStyle = "#FFC43A"; c.lineWidth = 4; c.setLineDash([6,5]); c.beginPath(); c.ellipse(b.x, b.y, r*1.4, r*1.55, 0, 0, Math.PI*2); c.stroke(); c.setLineDash([]); }
+    }
+    for (const d of G.darts){
+      const a = Math.atan2(d.b.y-d.oy, d.b.x-d.ox);
+      c.save(); c.translate(d.x, d.y); c.rotate(a);
+      c.fillStyle = "#8B5A2B"; c.fillRect(-22, -2, 22, 4);
+      c.fillStyle = "#C7CCD8"; c.beginPath(); c.moveTo(0,-5); c.lineTo(10,0); c.lineTo(0,5); c.closePath(); c.fill();
+      c.fillStyle = "#E5484D"; c.beginPath(); c.moveTo(-22,0); c.lineTo(-30,-6); c.lineTo(-26,0); c.lineTo(-30,6); c.closePath(); c.fill();
+      c.restore();
+    }
+    const o = this.origin(), sz = Math.min(56, h*.13);
+    c.fillStyle = "rgba(0,0,0,.15)"; c.beginPath(); c.ellipse(o.x, o.y+sz*.5, sz*.4, sz*.12, 0, 0, Math.PI*2); c.fill();
+    drawHero(c, S.avatar, o.x, o.y - sz*.15 + Math.sin(G.t*4)*2, sz*1.4);
+  }
+};
+
+const GAMES = {run: Runner, race: Race, fish: Fishing, balloon: Balloon, mole: Mole};
+renderHome();
+</script>
+
+</html>
