@@ -2143,6 +2143,10 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-24',title:'讀書背景音樂和鬧鈴',items:[
+  ['lamp','讀書背景音樂','讀書房可以選輕音樂、雨聲、海浪、營火、森林，專注時陪你一起讀',()=>go('room')],
+  ['fire','時間到會響鈴','專注結束會響鬧鈴（手機還會震動），鬧鐘、魔法鈴、音樂盒、小雞四種任你選',()=>go('room')],
+ ]},
  {v:'2026-10-23b',title:'表情、揮手、讀書小桌',items:[
   ['coin','讀書小桌','讀書房多了 3 張小桌！跟同學坐同一桌一起專注，都讀完兩個人各 +20 金幣',()=>go('room')],
   ['me','揮手打招呼','點同學就能對他揮手，他會聽到叮咚一聲；好友每天第一次揮手還加好感度',()=>go('city')],
@@ -2508,7 +2512,7 @@ function listenSocial(ch){
   ch.on('broadcast',{event:'react'},({payload:p})=>{if(p&&p.u&&p.u!==ME&&!isBlocked(p.u)&&REACTS.includes(p.e))showReact(p.u,p.e)});
   ch.on('broadcast',{event:'wave'},({payload:p})=>{if(p&&p.to===ME&&p.from!==ME&&!isBlocked(p.from))gotWave(p)});
 }
-function chime(){try{const A=chime.a||(chime.a=new (window.AudioContext||window.webkitAudioContext)()),t=A.currentTime;
+function chime(){try{const A=ac(),t=A.currentTime;
   [988,1319].forEach((f,i)=>{const o=A.createOscillator(),g=A.createGain(),s0=t+i*.14;o.type='sine';o.frequency.value=f;
     g.gain.setValueAtTime(.0001,s0);g.gain.exponentialRampToValueAtTime(.18,s0+.02);g.gain.exponentialRampToValueAtTime(.0001,s0+.45);o.connect(g).connect(A.destination);o.start(s0);o.stop(s0+.5)})}catch(e){}}
 function sendWave(uid,name){
@@ -2567,6 +2571,104 @@ async function claimTable(sid,mins){
   else if(names.length)toast('一起讀完了！（今天的小桌獎勵已經領滿）');
   else toast('同桌的同學還在讀，等他讀完，你們兩個都會拿到小桌獎勵');
   if(curTab==='room')renderRoom();
+}
+
+
+/* ---------- 讀書背景音樂與鬧鈴 ----------
+   全部用 Web Audio 現場合成（不用音樂檔、沒有版權問題、不用下載）。專注中才播放，暫停或放棄就停；
+   專注時間到會響鬧鈴（響到按任何地方為止，最多 3 輪），手機會一起震動。休息結束響一聲提示。 */
+let AX=null;
+function ac(){try{AX=AX||new (window.AudioContext||window.webkitAudioContext)();if(AX.state==='suspended')AX.resume()}catch(e){}return AX}
+document.addEventListener('pointerdown',()=>{if(AX&&AX.state==='suspended')AX.resume();else if(!AX&&tm.mode==='focus'&&S.bgm&&S.bgm!=='off')ac()},true);
+const BGMS=[['off','關閉'],['piano','🎹 輕音樂'],['rain','🌧 雨聲'],['waves','🌊 海浪'],['fire','🔥 營火'],['forest','🌲 森林']];
+const RINGS=[['alarm','⏰ 鬧鐘'],['magic','🔔 魔法鈴'],['box','🎵 音樂盒'],['rooster','🐓 小雞']];
+let bgm={kind:null,nodes:[],timers:[],out:null},ringing=null;
+const bgmVol=()=>.6*(S.bgmVol==null?.5:S.bgmVol);
+function noiseBuf(A,brown){const k=brown?'_bn':'_wn';if(A[k])return A[k];
+  const n=A.sampleRate*3,b=A.createBuffer(1,n,A.sampleRate),d=b.getChannelData(0);let last=0;
+  for(let i=0;i<n;i++){const w=Math.random()*2-1;if(brown){last=(last+.02*w)/1.02;d[i]=last*3.5}else d[i]=w}return A[k]=b}
+const midi=m=>440*2**((m-69)/12);
+function tone(A,dest,f,t,dur,vol,type){const o=A.createOscillator(),g=A.createGain();o.type=type||'sine';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(dest);o.start(t);o.stop(t+dur+.05);return o}
+function bgmStart(kind){
+  bgmStop(true);const A=ac();if(!A||!kind||kind==='off')return;
+  const out=A.createGain();out.gain.setValueAtTime(.0001,A.currentTime);out.gain.exponentialRampToValueAtTime(Math.max(.001,bgmVol()),A.currentTime+1.5);out.connect(A.destination);
+  bgm={kind,nodes:[],timers:[],out};
+  const every=(ms,f)=>{f();bgm.timers.push(setInterval(f,ms))};
+  const noise=(brown,type,freq,vol)=>{const s=A.createBufferSource();s.buffer=noiseBuf(A,brown);s.loop=true;const f=A.createBiquadFilter();f.type=type;f.frequency.value=freq;
+    const g=A.createGain();g.gain.value=vol;s.connect(f).connect(g).connect(out);s.start();bgm.nodes.push(s);return g};
+  if(kind==='piano'){
+    const lp=A.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1700;lp.connect(out);
+    const CH=[[60,64,67,71],[57,60,64,67],[53,57,60,64],[55,59,62,65]],MEL=[72,74,76,79,81,84];let st=0;
+    every(3600,()=>{const t=A.currentTime+.05,c=CH[st++%4];tone(A,lp,midi(c[0]-12),t,3.8,.13,'triangle');
+      c.forEach((m,i)=>tone(A,lp,midi(m),t+i*.2,3.2,.045,'triangle'));
+      for(let k=0;k<4;k++)if(Math.random()<.55)tone(A,lp,midi(pick(MEL)),t+.9+k*.65+Math.random()*.15,1.5,.06,'sine')});
+  }else if(kind==='rain'){
+    noise(false,'lowpass',1100,.32);noise(true,'lowpass',300,.4);
+    every(250,()=>{for(let i=0;i<2;i++)if(Math.random()<.7){const t=A.currentTime+Math.random()*.25;tone(A,out,2200+Math.random()*2600,t,.035,.025,'sine')}});
+  }else if(kind==='waves'){
+    const g=noise(true,'lowpass',520,.25),l=A.createOscillator(),lg=A.createGain();l.frequency.value=.085;lg.gain.value=.22;l.connect(lg).connect(g.gain);l.start();bgm.nodes.push(l);
+    noise(false,'highpass',3000,.015);
+  }else if(kind==='fire'){
+    noise(true,'lowpass',380,.55);
+    every(180,()=>{if(Math.random()<.45)return;const t=A.currentTime+Math.random()*.15,s=A.createBufferSource(),f=A.createBiquadFilter(),g=A.createGain();
+      s.buffer=noiseBuf(A,false);f.type='bandpass';f.frequency.value=1500+Math.random()*3000;f.Q.value=3;
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25+Math.random()*.3,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.05);
+      s.connect(f).connect(g).connect(out);s.start(t,Math.random()*2,.07)});
+  }else if(kind==='forest'){
+    noise(true,'lowpass',700,.18);
+    every(1700,()=>{if(Math.random()<.4)return;const t=A.currentTime+Math.random()*.6,base=2400+Math.random()*1600,n=2+Math.floor(Math.random()*4);
+      for(let i=0;i<n;i++){const o=A.createOscillator(),g=A.createGain(),s0=t+i*.13;o.frequency.setValueAtTime(base,s0);o.frequency.exponentialRampToValueAtTime(base*(1.25+Math.random()*.3),s0+.08);
+        g.gain.setValueAtTime(.0001,s0);g.gain.exponentialRampToValueAtTime(.05,s0+.01);g.gain.exponentialRampToValueAtTime(.0001,s0+.1);o.connect(g).connect(out);o.start(s0);o.stop(s0+.12)}});
+  }
+}
+function bgmStop(now){
+  const b=bgm;bgm={kind:null,nodes:[],timers:[],out:null};b.timers.forEach(clearInterval);if(!b.out||!AX)return;
+  const t=AX.currentTime;try{b.out.gain.cancelScheduledValues(t);b.out.gain.setValueAtTime(b.out.gain.value,t);b.out.gain.exponentialRampToValueAtTime(.0001,t+(now?.1:.8))}catch(e){}
+  setTimeout(()=>{b.nodes.forEach(n=>{try{n.stop()}catch(e){}});try{b.out.disconnect()}catch(e){}},now?150:900);
+}
+/* 專注中、沒暫停、有選音樂 → 播；其他時候停 */
+function bgmSync(){const want=tm.mode==='focus'&&!tm.paused&&S.bgm&&S.bgm!=='off'?S.bgm:null;if(want!==bgm.kind){want?bgmStart(want):bgmStop()}}
+function ringOnce(kind){
+  const A=ac();if(!A)return 0;const t0=A.currentTime+.05,o=A.createGain();o.gain.value=.9;o.connect(A.destination);
+  if(kind==='alarm'){for(let r=0;r<4;r++)for(let i=0;i<4;i++){const t=t0+r*.8+i*.11;tone(A,o,1568,t,.07,.12,'square');tone(A,o,2093,t+.05,.05,.05,'square')}return 3.4}
+  if(kind==='magic'){[0,4,7,12,16,19,24,28].forEach((m,i)=>{tone(A,o,midi(72+m),t0+i*.12,1.6,.12,'sine');tone(A,o,midi(84+m),t0+i*.12,.8,.03,'sine')});return 2.6}
+  if(kind==='box'){[[76,0],[79,.3],[84,.6],[83,.9],[79,1.2],[81,1.5],[79,1.8],[76,2.1],[72,2.4]].forEach(([m,d])=>{tone(A,o,midi(m),t0+d,1.1,.12,'triangle');tone(A,o,midi(m+12),t0+d,.4,.03,'sine')});return 3.2}
+  if(kind==='rooster'){[0,.55,1.3].forEach((d,i)=>{const s=A.createOscillator(),g=A.createGain(),t=t0+d,len=i===2?.9:.4;s.type='sawtooth';
+    s.frequency.setValueAtTime(600,t);s.frequency.linearRampToValueAtTime(950,t+len*.4);s.frequency.linearRampToValueAtTime(700,t+len);
+    const f=A.createBiquadFilter();f.type='bandpass';f.frequency.value=1200;f.Q.value=2;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.35,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+len);
+    s.connect(f).connect(g).connect(o);s.start(t);s.stop(t+len+.05)});return 2.4}
+  return 0;
+}
+/* 鬧鈴：每 5 秒響一輪、最多 3 輪，按畫面任何地方就停 */
+function ringAlarm(){
+  stopRing();const kind=S.ring||'alarm';let n=0;
+  const go=()=>{if(n++>=3){stopRing();return}ringOnce(kind);try{navigator.vibrate&&navigator.vibrate([300,150,300,150,300])}catch(e){}};
+  go();ringing=setInterval(go,5000);
+  setTimeout(()=>document.addEventListener('pointerdown',stopRing,{once:true,capture:true}),600);
+}
+function stopRing(){if(ringing){clearInterval(ringing);ringing=null}}
+function musicBox(){
+  return `<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:6px" id="musicbox">
+    <p class="lbl" style="margin:0">讀書背景音樂（專注中播放）</p>
+    <div class="chips">${BGMS.map(([k,n])=>`<button class="chip" data-bgm="${k}" aria-pressed="${(S.bgm||'off')===k}">${n}</button>`).join('')}</div>
+    <label class="small" style="display:flex;align-items:center;gap:8px">音量<input type="range" id="bgmvol" min="0" max="1" step="0.05" value="${S.bgmVol==null?.5:S.bgmVol}" style="flex:1"></label>
+    <p class="lbl" style="margin:0">時間到的鈴聲（點一下試聽）</p>
+    <div class="chips">${RINGS.map(([k,n])=>`<button class="chip" data-ring="${k}" aria-pressed="${(S.ring||'alarm')===k}">${n}</button>`).join('')}</div>
+  </div>`;
+}
+let bgmPreview=null;
+function bindMusic(){
+  const box=$('#musicbox');if(!box)return;
+  box.querySelectorAll('[data-bgm]').forEach(b=>b.onclick=()=>{S.bgm=b.dataset.bgm;save();
+    box.querySelectorAll('[data-bgm]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+    clearTimeout(bgmPreview);
+    if(tm.mode==='focus'&&!tm.paused)bgmStart(S.bgm==='off'?null:S.bgm);
+    else if(S.bgm!=='off'){bgmStart(S.bgm);toast('試聽 5 秒，開始專注就會一直播放');bgmPreview=setTimeout(()=>{if(tm.mode!=='focus')bgmStop()},5000)}
+    else bgmStop()});
+  box.querySelector('#bgmvol').oninput=e=>{S.bgmVol=+e.target.value;save();if(bgm.out&&AX){bgm.out.gain.cancelScheduledValues(AX.currentTime);bgm.out.gain.setValueAtTime(Math.max(.001,bgmVol()),AX.currentTime)}};
+  box.querySelectorAll('[data-ring]').forEach(b=>b.onclick=()=>{S.ring=b.dataset.ring;save();
+    box.querySelectorAll('[data-ring]').forEach(x=>x.setAttribute('aria-pressed',x===b));stopRing();ringOnce(S.ring)});
 }
 
 /* ---------- 開始畫面 ---------- */
@@ -2841,12 +2943,13 @@ function renderRoom(){
    <p class="small" style="text-align:center;margin:0">今天已專注 ${S.minutes[today()]||0} 分鐘・累計 ${(Object.values(S.minutes).reduce((a,b)=>a+b,0)/60).toFixed(1)} 小時${(S.pendingFocus||[]).length?`・<span style="color:var(--coral)">${S.pendingFocus.length} 次還在存檔，有網路就會自動補上</span>`:ONLINE?'・已存到雲端 ✓':''}</p>
    <div class="chips" style="justify-content:center">${[15,25,50,120].map(m=>`<button class="chip" data-len="${m}" aria-pressed="${len===m}" ${tm.mode!=='idle'?'aria-disabled="true"':''}>${m===120?'2 小時':m+' 分鐘'}</button>`).join('')}</div>
    <div class="row" id="ctl"></div>
+   ${musicBox()}
    <div id="quiz"></div>
    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px" id="rchat"></div>
    <div class="box" style="background:var(--deep)" id="board"><p class="small" style="margin:0">載入排行中…</p></div>
    ${ONLINE?'':`<button class="chip" id="spd" style="align-self:center" aria-pressed="${tm.speed>1}">快轉 ×60</button>
    <p class="demo">單機版才有快轉，方便試玩。</p>`}`;
-  drawSeats();drawTables();bindReacts();paintSprites($('#view'));if(tm.mode!=='focus')flushWaves();
+  drawSeats();drawTables();bindReacts();bindMusic();paintSprites($('#view'));if(tm.mode!=='focus')flushWaves();
   $('#view').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const f=b.dataset.rm==='free';if(!!S.freeRoom===f)return;
     S.freeRoom=f;S.table=0;save();if(ONLINE){leaveRoom();joinRoom()}rchat.room='';renderRoom();toast(`換到${roomLabel()}`)});
   $('#view').querySelectorAll('[data-len]').forEach(b=>b.onclick=()=>{if(tm.mode!=='idle'){toast('專注中不能換時間');return}S.timerLen=+b.dataset.len;save();renderRoom()});
@@ -3011,9 +3114,9 @@ async function renderGuild(){
 function startFocus(len){
   tm={...tm,mode:'focus',len:len*60,left:len*60,end:Date.now()+len*60*1000/tm.speed,paused:false,sid:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>tm.wake=w).catch(()=>{})}catch(e){}
-  saveTimer();loop();trackMe();renderRoom();
+  ac();saveTimer();loop();trackMe();renderRoom();bgmSync();
 }
-function endTimer(){clearInterval(tm.tick);tm.mode='idle';tm.paused=false;try{tm.wake&&tm.wake.release()}catch(e){}tm.wake=null;saveTimer();trackMe()}
+function endTimer(){clearInterval(tm.tick);tm.mode='idle';tm.paused=false;try{tm.wake&&tm.wake.release()}catch(e){}tm.wake=null;saveTimer();trackMe();bgmSync()}
 /* 專注紀錄先放進待存清單，資料庫確認存好才移除；存不上就在打開 app、回到 app、網路恢復時自動補存 */
 function queueFocus(sid,day,minutes){if(!ONLINE)return;S.pendingFocus=(S.pendingFocus||[]).concat([{sid,day,minutes}]);save();flushFocus()}
 let flushing=false;
@@ -3047,7 +3150,8 @@ function loop(){clearInterval(tm.tick);tm.tick=setInterval(()=>{
   if(!tm.paused){tm.left=(tm.end-Date.now())*tm.speed/1000;
     Object.keys(botMin).forEach(k=>{if(Math.random()<.02*tm.speed/10)botMin[k]++});
     if(tm.mode==='focus'&&Date.now()-(tm.tracked||0)>60000)trackMe();
-    if(tm.left<=0){tm.mode==='focus'?finishFocus():(endTimer(),toast('休息結束，再來一輪？'),curTab==='room'&&renderRoom());return}}
+    if(tm.left<=0){tm.mode==='focus'?finishFocus():(endTimer(),ringOnce('magic'),toast('休息結束，再來一輪？'),curTab==='room'&&renderRoom());return}}
+  bgmSync();
   drawClock()},250)}
 function drawClock(){
   if(curTab!=='room')return;const c=$('#clock'),b=$('#bar');if(!c)return;
@@ -3066,7 +3170,7 @@ function finishFocus(){
   const q=pick(cardPool());
   const had=giveCard(q.w,q.zh);cloud.card(q.w);
   tm={...tm,mode:'break',len:300,left:300,end:Date.now()+300*1000/tm.speed,paused:false,quiz:null};
-  saveTimer();loop();trackMe();if(curTab==='room')renderRoom();
+  saveTimer();loop();trackMe();bgmSync();ringAlarm();if(curTab==='room')renderRoom();
   modal(`<div style="display:flex;justify-content:center"><span data-s="card" data-z="8"></span></div>
     <h2 style="text-align:center">專注 ${mins} 分鐘完成！</h2>
     <p style="text-align:center;margin:0">獲得單字卡 <span style="color:var(--gold)">${esc(q.w)}</span>${had?`（第 ${S.cards[q.w].n} 張）`:''}<br><span class="small">${esc(q.zh)}</span></p>
