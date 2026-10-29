@@ -141,6 +141,8 @@ const SPR={
  lock2:['..yyyy..','.y....y.','.y....y.','yyyyyyyy','yyykkyyy','yyykkyyy','yyyyyyyy','yyyyyyyy'],
  slime:['........','...tt...','..tttt..','.tttttt.','.tkttkt.','tttttttt','tttttttt','.tttttt.'],
  bat:['........','p......p','pp.pp.pp','pppppppp','.pkppkp.','..pppp..','...pp...','........'],
+ candy:['........','r.yyyy.r','rryyyyrr','.yyryyy.','.yyyryy.','rryyyyrr','r.yyyy.r','........'],
+ house:['...pp...','..pppp..','.pppppp.','pppppppp','.oyoooo.','.oookko.','.oookko.','.oookko.'],
  ghost:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','.wwkkww.','.wwwwww.','.wwwwww.','.w.ww.w.'],
  granny:['...gg...','..gggg..','.gssssg.','.skssks.','..ssss..','.rrrrrr.','orrrrrr.','o.k..k..'],
  bento:['........','kkkkkkkk','kwwwrrGk','kwwwrrGk','kyyyGGGk','kyyyGGGk','kkkkkkkk','........'],
@@ -407,6 +409,13 @@ const SHAPE={
  winhallow:['222222222222','21111211yy12','2111121yyyy2','2k1k121yyyy2','222222222222','211k12111y12','211112111112','2k1112111k12','222222222222'],
  ghostpet:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','.wwPPww.','.wwwwww.','.wwwwww.','.w.ww.w.'],
  pumpkinpet:['...G....','..GG....','.111111.','11k11k11','11111111','11kkkk11','.111111.','........'],
+ skelpet:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','..wkkw..','...ww...','.wwwwww.','.w.ww.w.'],
+ candymon:['........','r.yyyy.r','rryyyyrr','.ykyyky.','.yyyyyy.','.yyrryy.','r.yyyy.r','..y..y..'],
+ cauldron:['.G..G.','G.GG.G','.GGGG.','kkkkkk','k1111k','k1111k','.kkkk.','.r..r.'],
+ pcandy:['2222222','2111112','2r111r2','2ryyyr2','2yyryy2','2ryyyr2','2r111r2','2111112','2222222'],
+ lampjack:['.OO.','OkkO','OOOO','OkkO','.OO.','.2..','.2..','.2..','.2..','222.'],
+ rugcandy:['.111111111111111111.','rwOwrwOwrwOwrwOwrwOw','.111111111111111111.'],
+ winwitch:['222222222222','2111121yy112','211112yyyy12','2k1k12yyyy12','222222222222','2kkkk2111112','21kk12111112','211112111k12','222222222222'],
  spider:['k......k','.k....k.','..kkkk..','kkrkkrkk','..kkkk..','.k.kk.k.','k......k','........'],
  pxmas:['2222222','2111112','211G112','21GGG12','2GGyGG2','21GGG12','2GGGGG2','211o112','2222222']
 };
@@ -488,6 +497,18 @@ const SHOP=[
  {id:'top_pumpkin',slot:'top',name:'南瓜裝',price:120,c:['#ff8a5c'],from:'10-01',until:'11-07',season:'萬聖節'},
  {id:'acc_fangs',slot:'acc',name:'吸血鬼尖牙',price:100,acc:'fangs',from:'10-01',until:'11-07',season:'萬聖節'},
  {id:'acc_mask',slot:'acc',name:'舞會面具',price:120,acc:'mask',from:'10-01',until:'11-07',season:'萬聖節'},
+ /* 2026 萬聖節新品（10/29 上架） */
+ {id:'pet_skeleton',slot:'pet',name:'小骷髏',price:380,g:'skelpet',from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'pet_candymon',slot:'pet',name:'糖果怪',price:300,g:'candymon',from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'plant_cauldron',slot:'plant',name:'女巫大鍋',price:160,g:'cauldron',c:['#2b2b33','#5a3d2b'],from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'poster_candy',slot:'poster',name:'糖果海報',price:100,g:'pcandy',c:['#2b1d0e','#7a3f9e'],from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'lamp_jack',slot:'lamp',name:'南瓜提燈',price:140,g:'lampjack',c:['#ff8a5c','#5a3d2b'],from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'rug_candy',slot:'rug',name:'糖果條紋地毯',price:130,g:'rugcandy',c:['#7a3f9e'],from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'win_witch',slot:'window',name:'女巫飛過窗',price:180,g:'winwitch',c:['#1d2a5c','#5a3d2b'],from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'hat_witch_green',slot:'hat',name:'綠色女巫帽',price:200,hat:'witch',c:['#2f7045'],from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'top_witch',slot:'top',name:'女巫綠斗篷',price:150,c:['#2f7045'],from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'acc_bolts',slot:'acc',name:'科學怪人螺絲',price:120,acc:'bolts',from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
+ {id:'acc_catears',slot:'acc',name:'黑貓耳朵',price:150,acc:'catears',from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
  {id:'hat_santa',slot:'hat',name:'聖誕帽',price:150,hat:'santa',c:['#d94f4f'],from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'pet_reindeer',slot:'pet',name:'麋鹿',price:400,g:'reindeer',from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'poster_xmas',slot:'poster',name:'聖誕樹海報',price:120,g:'pxmas',c:['#1d2a5c','#c98a3a'],from:'12-01',until:'12-31',season:'聖誕節'},
@@ -634,7 +655,7 @@ const HAT={fisher:['........','..hhhh..','hhhyhhhh'],beret:['........','.hhhhh..
   witch:['...hh...','..hhh...','hhhhhhhh'],crystal:['...BB...','..BwBB..','.BBBBBB.'],starcrown:['..y.y.y.','.yywyyw.','.yyyyyy.'],grad:['........','hhhhhhhh','..hhhhy.'],rainbow:['...rr...','..yyyy..','.tttttt.'],pumpkin:['...G....','.hhhhhh.','hhhhhhhh'],santa:['......w.','..hhhhh.','wwwwwwww'],hair:['........','..oooo..','.oooooo.'],horns:['.h....h.','.hooooh.','.oooooo.'],mummy:['..hhhh..','.hghhgh.','.hhhhhh.'],wiz:['...hh...','..hhyh..','.hhhhhh.'],helmet:['..hhhh..','.hhhhhh.','.hhhhhh.'],
   cap:['........','..hhhh..','.hhhhhhh'],bunny:['.h....h.','.h....h.','.hhhhhh.'],catear:['.h....h.','.hh..hh.','.hhhhhh.'],crown:['........','.h.hh.h.','.hhhhhh.']};
 const HATSIDE={pumpkinhelm:{3:'O......O',4:'O......O'},hairlong:{3:'o......o',4:'o......o',5:'o......o',6:'o......o'},ponytail:{2:'.......o',3:'.......o',4:'.......o'},curly:{3:'o......o',4:'o......o'},bob:{3:'.o....o.',4:'.o....o.'},astro:{3:'.w....w.',4:'.w....w.',5:'.w....w.'},elf:{4:'.s....s.'}};
-const ACC={maple:{1:'......O.',2:'.....OO.'},flowercrown:{2:'.PyPyPy.'},friendband:{6:'P......P'},heartwings:{4:'r......r',5:'rr....rr',6:'r......r'},carrotclip:{0:'......G.',1:'.....OO.'},sunclip:{0:'.....yy.',1:'....ydy.',2:'.....yy.'},starcape:{5:'y......y',6:'y......y',7:'y......y'},ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
+const ACC={bolts:{4:'g......g'},catears:{0:'.k....k.',1:'.kk..kk.'},maple:{1:'......O.',2:'.....OO.'},flowercrown:{2:'.PyPyPy.'},friendband:{6:'P......P'},heartwings:{4:'r......r',5:'rr....rr',6:'r......r'},carrotclip:{0:'......G.',1:'.....OO.'},sunclip:{0:'.....yy.',1:'....ydy.',2:'.....yy.'},starcape:{5:'y......y',6:'y......y',7:'y......y'},ninja:{5:'..kkkk..'},eyepatch:{4:'..kk....'},mustache:{5:'..kkkk..'},freckle:{5:'.P....P.'},fangs:{5:'..w..w..'},mask:{4:'.pkpkpp.'},beard:{5:'..wwww..',6:'..wwww..'},glasses:{4:'..kkkk..'},scarf:{5:'..rrrr..',6:'..rr....'},phones:{3:'.k....k.',4:'.k....k.'},cape:{5:'r......r',6:'r......r',7:'r......r'},headband:{2:'.rrrrrr.'},leaf:{1:'......G.',2:'.....GG.'},moon:{0:'......y.',1:'.....y..'},fairy:{4:'P......P',5:'PP....PP',6:'P......P'},bow:{0:'.....PP.',1:'.....PPP'},bowtie:{6:'..rkkr..'},star:{0:'......y.',1:'.....yyy'},round:{4:'.bkbbkb.'},pearl:{6:'..wccw..'},halo:{0:'..yyyy..'},wings:{4:'w......w',5:'ww....ww',6:'w......w'}};
 function avatarGrid(outfit){
   const hat=ITEM[outfit.hat]||ITEM.hat_none,top=ITEM[outfit.top]||ITEM.top_blue,acc=ITEM[outfit.acc];
   const g=[...HAT[hat.hat||'hair'],'..ssss..','..ksks..','..ssss..','.cccccc.','..n..n..'];
@@ -770,7 +791,7 @@ function renderShop(cat,from){
    ${slots.map(([slot,name])=>`<div><p class="small" style="margin:0 0 6px">${name}</p>
      <div class="shop">${SHOP.filter(i=>i.slot===slot&&(inWin(i)||owns(i.id))).map(it=>{
        const on=(slot in L.room?L.room[slot]:L.outfit[slot])===it.id,own=owns(it.id);
-       return `<button class="sitem${on?' on':''}" data-it="${it.id}">${itemThumb(it)}<span>${esc(it.name)}</span>
+       return `<button class="sitem${on?' on':''}" data-it="${it.id}">${itemThumb(it)}<span>${esc(it.name)}${it.fresh&&!own?' <b style="color:var(--coral)">新</b>':''}</span>
          ${it.gacha?`<span class="pill" style="background:${RARITY[it.gacha][1]};color:var(--night)">盲盒 ${it.gacha}</span>`:it.rare?'<span class="pill" style="background:var(--gold);color:var(--night)">稀有</span>':it.season?`<span class="pill" style="background:var(--coral);color:var(--night)">${it.season}限定・到 ${it.until.replace('-','/')}</span>`:''}
          <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':it.bundle==='friend'?'好感度獎勵':it.bundle==='fish'?'釣魚圖鑑獎勵':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
    <p class="demo" style="text-align:left;line-height:1.6">答今日一題 +10（答對再 +5）・專注每分鐘 +1（每天最多 ${FOCUS_CAP}）・連續打卡 3／7／15／30 天有額外獎勵。</p>`;
@@ -977,8 +998,8 @@ let gardenBack=null;
 /* ---------- 遊戲區：單字翻牌、60 秒快答、雙倍挑戰、銀行 ----------
    線上版的金幣進出全部由資料庫函式處理（claim_game、start/submit_challenge、bank_move），
    網頁只顯示結果；單機版在瀏覽器裡用同樣的規則模擬。 */
-const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower','halloween'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
-function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
+const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower','halloween','trick'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
+function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,trick:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
 /* 資料庫回傳錢包餘額時，用它校正本機的流水帳總和 */
 function syncWallet(w){if(typeof w==='number'){S.tx=w-(coinsEarned()-coinsSpent());save()}}
 function gameShell(title,body,back){
@@ -992,6 +1013,7 @@ function renderGames(){
   const card=(id,sp,name,desc,note)=>`<button class="frow" data-g="${id}" style="padding:12px"><span data-s="${sp}" data-z="4"></span><span class="grow"><span style="font-size:16px">${name}</span><br><span class="small">${desc}</span></span><span class="small" style="text-align:right">${note}</span></button>`;
   $('#view').innerHTML=`${header()}<div class="bar"><h2>遊樂場</h2><button class="btn ghost" id="gcity" style="padding:5px 10px;font-size:13px">← 城市</button></div>
    <div class="flist">
+     ${halloween()?card('trick','candy','🎃 不給糖就搗蛋','敲門答萬聖節單字換糖果・只到 11/7',`今天 ${g.trick}/${GAME_CAP}`):''}
      ${card('match','card','單字翻牌',`翻牌配對英文和中文・第 ${lvOpen('match')}／4 關`,`今天 ${g.match}/${GAME_CAP}`)}
      ${card('speed','lamp','60 秒快答',`跟時間賽跑・第 ${lvOpen('speed')}／4 關`,`今天 ${g.speed}/${GAME_CAP}`)}
      ${card('granny','granny','恐怖阿嬤（迷你版）',`答題開門逃出去・第 ${lvOpen('granny')}／4 關`,`今天 ${g.granny}/${GAME_CAP}`)}
@@ -1003,7 +1025,7 @@ function renderGames(){
    <p class="demo" style="text-align:left;line-height:1.6">小遊戲每場最多 ${GAME_MAX}～${lvMax(4)} 金幣（關卡越後面越多），每種每天最多 ${GAME_CAP}。雙倍挑戰要靠實力，不是靠運氣。</p>`;
   paintSprites($('#view'));
   $('#gcity').onclick=()=>go('city');
-  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{chal:gChal,gacha:gGacha,bank:gBank}[b.dataset.g])());
+  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{chal:gChal,gacha:gGacha,bank:gBank,trick:gTrick}[b.dataset.g])());
 }
 /* ---------- 小遊戲關卡：每種 4 關，過了才開下一關；越後面每場金幣上限越高（15／18／21／24） ---------- */
 const GLV={
@@ -1041,7 +1063,7 @@ async function claimGame(game,score,lv=1){
   S.gamesPlayed=(S.gamesPlayed||0)+1;
   const g=gday();let r;
   if(ONLINE){const res=await cloud.rpc('claim_game',{p_game:game,p_score:score,p_level:lv});if(!res)return 0;r=res.reward;syncWallet(res.wallet)}
-  else{r=Math.max(0,Math.min(score,game==='halloween'?HW_MAX:lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
+  else{r=Math.max(0,Math.min(score,game==='halloween'||game==='trick'?HW_MAX:lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
   g[game]+=r;g.plays=(g.plays||0)+1;save();return r;
 }
 /* 單字翻牌：6 組英文／中文 */
@@ -1478,6 +1500,65 @@ function hwOpen(){
     <p style="margin:0;line-height:1.7">${HW_SECS} 秒內在城裡撿糖果，<b style="color:var(--gold)">一顆糖 1 金幣</b>（每場最多 ${HW_MAX}）。<br>小幽靈會穿牆追城裡的人（也會去嚇 NPC 和其他同學），被碰到只會掉 1 顆糖，之後 2 秒無敵！<br>不用考英文，純玩！只到 11/7。</p>
     <p class="small" style="margin:0">今天領了 ${gday().halloween||0}／${GAME_CAP} 金幣・最佳紀錄 ${S.hwBest||0} 顆</p>
     <div class="row"><button class="btn" data-close>等等再玩</button><button class="btn gold" id="hwgo">開始！</button></div>`).querySelector('#hwgo').onclick=e=>{e.target.closest('.modal').remove();hwStart()};
+}
+/* ---------- 萬聖節「不給糖就搗蛋」（10/1～11/7，2026-10-29 新增） ----------
+   一條街 9 戶人家，點一戶敲門，答對萬聖節單字就拿到 1～3 顆糖（金色那戶給 5 顆）；
+   答錯會被搗蛋、扣一顆南瓜燈，並顯示正確答案。南瓜燈 3 顆用完或 9 戶都敲完就結束。
+   糖果換金幣，和糖果大作戰一樣每場最多 20、每天最多 40（線上版由資料庫 claim_game 'trick' 把關）。 */
+const HW_WORDS=[
+ ['pumpkin','南瓜',1],['ghost','鬼',1],['bat','蝙蝠',1],['cat','貓',1],['candy','糖果',1],['moon','月亮',1],['witch','女巫',1],['spider','蜘蛛',1],
+ ['mask','面具',1],['party','派對',1],['night','夜晚',1],['hat','帽子',1],['scary','可怕的',1],['owl','貓頭鷹',1],['black','黑色的',1],['orange','橘色的',1],
+ ['costume','服裝；戲服',2],['skeleton','骷髏',2],['vampire','吸血鬼',2],['monster','怪物',2],['broom','掃帚',2],['treat','點心；款待',2],['trick','惡作劇',2],['lantern','燈籠',2],
+ ['haunted','鬧鬼的',2],['decorate','裝飾',2],['midnight','午夜',2],['scream','尖叫',2],['magic','魔法',2],['mummy','木乃伊',2],['zombie','殭屍',2],['wizard','巫師',2],
+ ['cauldron','大鍋',3],['potion','藥水',3],['creepy','令人毛骨悚然的',3],['graveyard','墓地',3],['coffin','棺材',3],['cobweb','蜘蛛網',3],['carve','雕刻',3],['disguise','偽裝',3],
+ ['superstition','迷信',3],['wand','魔杖',3],['howl','嚎叫',3],['eerie','陰森的',3],['phantom','幽靈',3],['tombstone','墓碑',3],['nightmare','惡夢',3],['supernatural','超自然的',3]];
+const trickWords=()=>{const lv={kid:[1],teen:[1,2],sage:[2,3]}[S.tier]||[1,2];return HW_WORDS.filter(w=>lv.includes(w[2]))};
+function gTrick(){
+  if(!halloween()){toast('萬聖節活動結束了，明年見！');return}
+  const words=trickWords().sort(()=>Math.random()-.5),gold=Math.floor(Math.random()*9);
+  const houses=Array.from({length:9},(_,i)=>({w:words[i%words.length],gold:i===gold,state:null,n:0}));
+  let lives=3,got=0,busy=false,done=false;const learned=[];
+  gameShell('不給糖就搗蛋',`<p class="small" id="tkhud" style="margin:0;text-align:center"></p>
+    <div id="tkst" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div><div id="tkq"></div>`);
+  const hud=()=>{$('#tkhud').innerHTML=`糖果 <b style="color:var(--gold)">${got}</b> 顆・南瓜燈 ${'🎃'.repeat(lives)}${'・'.repeat(3-lives)}・點一戶敲門！`};
+  const street=()=>{$('#tkst').innerHTML=houses.map((h,i)=>`<button class="sitem" data-tk="${i}" ${h.state?'aria-disabled="true"':''} style="padding:8px 4px;${h.gold&&!h.state?'border-color:var(--gold)':''}">
+      <span data-s="${h.state==='treat'?'candy':h.state==='trick'?'ghost':'house'}" data-z="5"></span>
+      <span class="small">${h.state==='treat'?`+${h.n} 顆`:h.state==='trick'?'被搗蛋了':h.gold?'大方的人家':`第 ${i+1} 戶`}</span></button>`).join('');
+    paintSprites($('#tkst'));
+    $('#tkst').querySelectorAll('[data-tk]').forEach(b=>b.onclick=()=>knock(+b.dataset.tk))};
+  const myHud=()=>$('#tkhud');
+  function knock(i){
+    const h=houses[i];if(busy||done||h.state)return;busy=true;
+    const en=Math.random()<.5,pool=trickWords().filter(w=>w!==h.w).sort(()=>Math.random()-.5).slice(0,3);
+    const opts=[h.w,...pool].sort(()=>Math.random()-.5);
+    $('#tkq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px">
+      <p class="lbl" style="margin:0">Knock knock！答對才拿得到糖果</p>
+      <div class="qtext">${en?`「${esc(h.w[0])}」是什麼意思？`:`「${esc(h.w[1])}」的英文是？`}</div>
+      ${opts.map((o,k)=>`<button class="btn opt" data-to="${k}" style="padding:7px 10px">${'ABCD'[k]}. ${esc(en?o[1]:o[0])}</button>`).join('')}</div>`;
+    $('#tkq').querySelectorAll('[data-to]').forEach(b=>b.onclick=()=>{
+      if(h.state)return;const ok=opts[+b.dataset.to]===h.w;
+      $('#tkq').querySelectorAll('[data-to]').forEach(x=>{x.disabled=true;if(opts[+x.dataset.to]===h.w)x.classList.add('right')});
+      speak(h.w[0]);learned.push(h.w);
+      if(ok){h.state='treat';h.n=h.gold?5:1+Math.floor(Math.random()*3);got+=h.n;toast(`Trick or treat！拿到 ${h.n} 顆糖`)}
+      else{b.classList.add('wrong');h.state='trick';lives--;toast(`搗蛋！正確是 ${h.w[0]}（${h.w[1]}）`)}
+      setTimeout(()=>{if(myHud()!==hudEl)return;busy=false;$('#tkq').innerHTML='';street();hud();
+        if(!lives||houses.every(x=>x.state))finish()},ok?700:1500);
+    });
+  }
+  async function finish(){
+    if(done)return;done=true;
+    const score=Math.min(HW_MAX,got),r=score?await claimGame('trick',score,1):0;
+    const nb=got>(S.trickBest||0);S.trickBest=Math.max(S.trickBest||0,got);save();
+    const m=modal(`<div style="display:flex;justify-content:center;gap:8px"><span data-s="candy" data-z="6"></span><span data-s="ghost" data-z="6"></span></div>
+      <h2 style="text-align:center">${lives?'整條街都敲完了！':'南瓜燈用完了！'}</h2>
+      <p style="text-align:center;margin:0">拿到 ${got} 顆糖${nb?'・新紀錄！':`・最佳 ${S.trickBest} 顆`}</p>
+      <p style="text-align:center;margin:0;color:var(--gold)">${score?(r?`+${r} 金幣`:'今天的萬聖節金幣領滿了'):'一顆都沒拿到，再試一次！'}</p>
+      <div class="box paper" style="padding:8px 10px"><p class="lbl" style="margin:0 0 4px">這場的單字</p><div class="qtext" style="font-size:15px">${learned.map(w=>`${esc(w[0])}　${esc(w[1])}`).join('<br>')}</div></div>
+      <div class="row"><button class="btn" id="tkhub">回遊樂場</button><button class="btn gold" id="tkre">再玩一次</button></div>`);
+    m.querySelector('#tkhub').onclick=()=>{m.remove();go('games')};
+    m.querySelector('#tkre').onclick=()=>{m.remove();gTrick()};
+  }
+  const hudEl=$('#tkhud');street();hud();
 }
 /* 鏡頭：以自己為中心，碰到地圖邊緣就停 */
 function cityCam(){const me=city.me;return [Math.round(Math.max(0,Math.min(CW*TS-VW*TS,me.px-VW*TS/2))),Math.round(Math.max(0,Math.min(CH*TS-VH*TS,me.py-VH*TS/2)))]}
@@ -2145,6 +2226,10 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-10-29',title:'萬聖節新遊戲＋新品上架',items:[
+  ['candy','不給糖就搗蛋','遊樂場新遊戲！敲門答萬聖節單字換糖果，答錯會被幽靈搗蛋。糖果換金幣，只到 11/7！',()=>go('games')],
+  ['ghost','萬聖節新品 11 款','小骷髏、糖果怪、女巫大鍋、南瓜提燈、黑貓耳朵…百貨公司標「新」的就是，11/7 下架！',()=>renderShop('pet','city')],
+ ]},
  {v:'2026-10-24c',title:'高二第二次段考題庫上線',items:[
   ['book','龍騰 B3 L4–L6','高中題庫新增高二第二次段考範圍（講義、週作業本、每週小考），共 600 多題。高二的同學記得到「更改範圍」選「龍騰高二第二次段考」！',()=>{go('daily');setTimeout(()=>{const b=$('#scopeBtn');if(b)b.click()},150)}],
  ]},
