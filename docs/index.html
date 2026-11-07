@@ -93,6 +93,7 @@ h2{font-size:17px;font-weight:400;margin:0}
 .modal{position:fixed;inset:0;background:rgba(15,10,26,.82);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .modal .box{background:var(--night);max-width:380px;width:100%;display:flex;flex-direction:column;gap:12px;max-height:90%;overflow-y:auto}
 .modal .box.paper{background:var(--paper)}
+#mycards summary::-webkit-details-marker{display:none}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--gold);color:var(--night);border:3px solid var(--ink);padding:8px 14px;font-size:13px;z-index:20;max-width:90%}
 input[type=text]{font-family:inherit;font-size:15px;width:100%;padding:10px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)}
 .row{display:flex;gap:8px}.row>*{flex:1}
@@ -154,6 +155,8 @@ const SPR={
  lock2:['..yyyy..','.y....y.','.y....y.','yyyyyyyy','yyykkyyy','yyykkyyy','yyyyyyyy','yyyyyyyy'],
  slime:['........','...tt...','..tttt..','.tttttt.','.tkttkt.','tttttttt','tttttttt','.tttttt.'],
  bat:['........','p......p','pp.pp.pp','pppppppp','.pkppkp.','..pppp..','...pp...','........'],
+ xtree:['...yy...','...GG...','..GrGG..','..GGGG..','.GGyGGG.','.GGGGrG.','GGrGGGGG','...oo...'],
+ gift:['...rr...','.r.rr.r.','..rrrr..','yyyryyyy','yyyryyyy','yyyryyyy','yyyryyyy','yyyryyyy'],
  candy:['........','r.yyyy.r','rryyyyrr','.yyryyy.','.yyyryy.','rryyyyrr','r.yyyy.r','........'],
  house:['...pp...','..pppp..','.pppppp.','pppppppp','.oyoooo.','.oookko.','.oookko.','.oookko.'],
  ghost:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','.wwkkww.','.wwwwww.','.wwwwww.','.w.ww.w.'],
@@ -1347,8 +1350,13 @@ const BUILDINGS=[
 const NOTICE=[9,7],QUEST=[20,7],PARK=[29,6,3,4];
 let CITY=null,cityLoop=0,city=null;
 const halloween=()=>{const d=new Date(),m=d.getMonth()+1;return m===10||(m===11&&d.getDate()<=7)};
+/* 聖誕節：11/8 起廣場的聖誕樹一週一週布置起來（預告），12 月整個城市過聖誕
+   1 = 11/8～14 光禿禿的樹、2 = 11/15～21 掛上彩球、3 = 11/22～30 加燈和路燈花圈、4 = 12 月（星星、禮物、下雪、灌木變小松樹） */
+const xmasStage=()=>{const d=new Date(),m=d.getMonth()+1,day=d.getDate();return m===12?4:m===11&&day>=8?(day<15?1:day<22?2:3):0};
+const xmasLeft=()=>{const d=new Date();return Math.round((new Date(d.getFullYear(),11,1)-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)};
+const standOn=()=>halloween()||xmasStage()>0;
 function buildCity(){return CITY_MAP.map(r=>[...r])}
-const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(halloween()&&x===HW_STAND[0]&&y===HW_STAND[1]);
+const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1]);
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 const doorAt=(x,y)=>BUILDINGS.find(b=>b.door[0]===x&&b.door[1]===y);
 /* 圖書館：錯題本、單字卡 */
@@ -1423,6 +1431,7 @@ function renderCity(){
    <div class="row"><button class="btn" id="fishbtn" style="background:#3a7bd5;color:var(--paper)">湖邊釣單字</button><button class="btn" id="marketbtn" style="background:#c98a3a;color:var(--night)">大頭菜市場<span id="mktip" class="small" style="display:block;font-size:11px"></span></button></div>
    <button class="btn" id="gardenbtn" style="background:#3f8f5a;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px">${cropIcon('sunflower',22)}我的魔法花園（種菜、偷菜、換配件）</button>
    ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
+   ${!halloween()&&xmasStage()?`<button class="btn" id="xmasbtn" style="background:#2f7045;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="xtree" data-z="3"></span>${xmasStage()<4?`聖誕節預告・倒數 ${xmasLeft()} 天（廣場的聖誕樹）`:'聖誕節到了！（廣場的聖誕樹）'}</button>`:''}
    <div class="chips">${BUILDINGS.map(b=>`<button class="chip" data-b="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-b="notice">布告欄</button><button class="chip" data-b="quest">任務板</button></div>`;
   paintSprites($('#view'));
   $('#ctasks').onclick=()=>renderQuests();loadAnn();loadQuests();
@@ -1439,6 +1448,7 @@ function renderCity(){
   if($('#nbcard'))$('#nbcard').onclick=openNewbie;
   if(!renderCity.nbLoading){renderCity.nbLoading=1;loadNewbie().then(st=>{renderCity.nbLoading=0;const had=!!$('#nbcard');if(curTab==='city'&&(!!st)!==had)renderCity();else if(st&&$('#nbcard'))$('#nbcard').outerHTML=newbieCard(),$('#nbcard').onclick=openNewbie,paintSprites($('#nbcard'))})}
   if($('#hwbtn'))$('#hwbtn').onclick=()=>{if(city.hw)return;cityTap(HW_STAND[0],HW_STAND[1])};
+  if($('#xmasbtn'))$('#xmasbtn').onclick=()=>cityTap(HW_STAND[0],HW_STAND[1]);
   $('#view').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{if(b.dataset.b==='notice')openNotice();else if(b.dataset.b==='quest')renderQuests();else{const x=BUILDINGS.find(y=>y.id===b.dataset.b);enterBuilding(x)}});
   joinCity();
   cancelAnimationFrame(cityLoop);let last=performance.now();
@@ -1573,6 +1583,26 @@ function gTrick(){
   }
   const hudEl=$('#tkhud');street();hud();
 }
+/* ---------- 聖誕節預告（11/8～11/30）／聖誕節（12 月）：點廣場的聖誕樹 ----------
+   預告只露一點點：限定商品用剪影、活動名稱打問號，12/1 再揭曉。 */
+function xmasOpen(){
+  const st=xmasStage();if(!st)return;
+  const items=SHOP.filter(i=>i.from==='12-01');
+  const shadow=it=>`<div style="filter:brightness(0) opacity(.75)">${itemThumb(it)}</div>`;
+  const teasers=[['gift','每天開一格的神秘禮物','12/1 到 12/25，每天都有一格可以打開…'],['master','聖誕老人需要幫忙','好像有什麼東西弄丟了？'],['star','新的聖誕小遊戲','跟雪有關，其他還是秘密']];
+  const pre=st<4;
+  const m=modal(`<div style="display:flex;justify-content:center;gap:8px"><span data-s="xtree" data-z="6"></span><span data-s="gift" data-z="6"></span></div>
+    <h2 style="text-align:center">${pre?`聖誕節倒數 ${xmasLeft()} 天`:'聖誕快樂！'}</h2>
+    <p style="margin:0;line-height:1.7;text-align:center">${pre?`廣場的聖誕樹正在布置中，${['','先把樹搬來了','掛上彩球了','燈也亮起來了'][st]}！<br>每個禮拜都會多一點裝飾，<b style="color:var(--gold)">12/1</b> 整個城市一起過聖誕。`:'城裡下雪了！聖誕限定商品在百貨公司，只到 12/31。'}</p>
+    ${pre?`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px"><p class="lbl" style="margin:0">12/1 登場（先偷看一點點）</p>
+      ${teasers.map(([sp,a,b])=>`<div style="display:flex;gap:10px;align-items:center"><span data-s="${sp}" data-z="4"></span><span><b>${a}</b><br><span class="small">${b}</span></span></div>`).join('')}</div>
+      <div class="box" style="background:var(--deep)"><p class="lbl" style="margin:0 0 6px">聖誕限定商品（還看不清楚）</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${items.map(shadow).join('')}<div style="font-size:28px;line-height:40px;color:var(--lilac)">＋？</div></div></div>
+      <p class="small" style="margin:0;text-align:center">先存金幣吧！讀書、答題、玩小遊戲都能賺。</p>`
+    :`<button class="btn gold" id="xshop">去百貨公司看聖誕商品</button>`}
+    <button class="btn ghost" data-close>${pre?'好期待！':'關閉'}</button>`);
+  if(m.querySelector('#xshop'))m.querySelector('#xshop').onclick=()=>{m.remove();renderShop('wear','city')};
+}
 /* 鏡頭：以自己為中心，碰到地圖邊緣就停 */
 function cityCam(){const me=city.me;return [Math.round(Math.max(0,Math.min(CW*TS-VW*TS,me.px-VW*TS/2))),Math.round(Math.max(0,Math.min(CH*TS-VH*TS,me.py-VH*TS/2)))]}
 /* 全圖：整張城市縮小畫，點哪裡就走過去 */
@@ -1601,6 +1631,7 @@ function cityTap(tx,ty){
     if(best){me.path=best;me.goal='fish';if(!best.length){me.goal=null;openFishing()}}return}
   if(city.hw){const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal=null}return}
   if(halloween()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='hw';if(!p.length){me.goal=null;hwOpen()}}return}
+  if(xmasStage()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='xmas';if(!p.length){me.goal=null;xmasOpen()}}return}
   const npc=city.npcs.find(n=>n.x===tx&&n.y===ty);
   if(npc){const talk=BOT_TALK[S.tier];city.bubbles.push({who:npc,txt:['嗨！','今天打卡了嗎？',talk[hash(npc.name+Date.now())%talk.length],'一起去讀書房吧'][Math.floor(Math.random()*4)],until:performance.now()+2500});return}
   const peer=Object.values(city.peers).find(p=>Math.round((p.px-8)/TS)===tx&&Math.round((p.py-8)/TS)===ty);
@@ -1621,6 +1652,7 @@ function cityTick(dt){
     mapCoins().forEach(c=>{if(!c.got&&c.x===me.x&&c.y===me.y)pickCoin(c.i)});
     if(city.hw)me.armed=false;
     else if(!me.path.length&&me.goal==='hw'){me.goal=null;hwOpen()}
+    else if(!me.path.length&&me.goal==='xmas'){me.goal=null;xmasOpen()}
     else if(!me.path.length&&me.goal==='fish'){me.goal=null;openFishing()}
     else if(!me.path.length&&me.goal==='visitor'){me.goal=null;openVisitor()}
     else{const door=doorAt(me.x,me.y);
@@ -1739,7 +1771,7 @@ function cityDraw(){
   const cv=$('#ccv');if(!cv)return;const c=cv.getContext('2d');c.imageSmoothingEnabled=false;
   const [camX,camY]=cityCam();
   c.setTransform(CSC,0,0,CSC,-camX*CSC,-camY*CSC);
-  const t=performance.now()/1000,hw=halloween();
+  const t=performance.now()/1000,hw=halloween(),xs=hw?0:xmasStage();
   const x0=Math.floor(camX/TS),y0=Math.floor(camY/TS);
   for(let y=y0;y<Math.min(CH,y0+VH+1);y++)for(let x=x0;x<Math.min(CW,x0+VW+1);x++){
     const ch=CITY[y][x],X=x*TS,Y=y*TS;
@@ -1752,10 +1784,12 @@ function cityDraw(){
     if(ch==='~'){c.fillStyle='#9aa3b5';c.fillRect(X,Y,TS,TS);c.fillStyle='#8fc6f5';c.fillRect(X+1,Y+1,TS-2,TS-2);c.fillStyle='#f4ecd8';c.fillRect(X+3+Math.round(Math.sin(t*3+x+y)*2),Y+6,3,1)}
     if(ch==='b'){c.fillStyle='#3a7bd5';c.fillRect(X,Y,TS,TS);c.fillStyle='#8b5e3c';c.fillRect(X,Y+2,TS,12);c.fillStyle='#6e472b';for(let i=0;i<TS;i+=4)c.fillRect(X+i,Y+2,1,12);c.fillStyle='#5a3d2b';c.fillRect(X,Y+2,TS,1);c.fillRect(X,Y+13,TS,1)}
     if(ch==='s'){c.fillStyle='#e8d39a';c.fillRect(X,Y,TS,TS);c.fillStyle='#d9c084';c.fillRect(X+((x*5+y*3)%11),Y+((x*7+y)%12),2,1);if((x*7+y*3)%13===0){c.fillStyle='#f4a6c6';c.fillRect(X+7,Y+8,3,2)}}
-    if(ch==='L'){c.fillStyle='#2b2b33';c.fillRect(X+7,Y+3,2,13);c.fillRect(X+5,Y+14,6,2);c.fillStyle='#ffd166';c.fillRect(X+5,Y,6,4);c.fillStyle='rgba(255,209,102,.18)';c.fillRect(X+2,Y-2,12,8)}
+    if(ch==='L'){c.fillStyle='#2b2b33';c.fillRect(X+7,Y+3,2,13);c.fillRect(X+5,Y+14,6,2);c.fillStyle='#ffd166';c.fillRect(X+5,Y,6,4);c.fillStyle='rgba(255,209,102,.18)';c.fillRect(X+2,Y-2,12,8);
+      if(xs>=3){c.fillStyle='#2f7045';c.fillRect(X+4,Y+6,8,3);c.fillStyle='#d94f4f';c.fillRect(X+6,Y+7,4,2);c.fillRect(X+7,Y+9,2,3)}}
     if(ch==='f'||ch==='g'){c.fillStyle=ch==='g'?'#43965e':'#8b5e3c';if(ch==='f'){c.fillRect(X+1,Y+4,2,11);c.fillRect(X+13,Y+4,2,11);c.fillRect(X,Y+6,TS,2);c.fillRect(X,Y+11,TS,2)}else{c.fillStyle='#8b5e3c';c.fillRect(X,Y+2,2,13);c.fillRect(X+14,Y+2,2,13);c.fillRect(X,Y+2,TS,2)}}
     if(ch==='c'){c.fillStyle='#8b5e3c';c.fillRect(X+1,Y+6,14,3);c.fillRect(X+1,Y+3,14,2);c.fillStyle='#5a3d2b';c.fillRect(X+2,Y+9,2,5);c.fillRect(X+12,Y+9,2,5)}
     if(ch==='p'){if(hw){c.fillStyle='#ff8a5c';c.fillRect(X+3,Y+6,10,8);c.fillRect(X+2,Y+8,12,4);c.fillStyle='#c25a1c';c.fillRect(X+7,Y+6,2,8);c.fillStyle='#4caf50';c.fillRect(X+7,Y+3,2,3);c.fillStyle='#1a1026';c.fillRect(X+4,Y+8,2,2);c.fillRect(X+10,Y+8,2,2);c.fillRect(X+5,Y+11,6,1)}
+      else if(xs>=4){c.fillStyle='#5a3d2b';c.fillRect(X+7,Y+13,2,3);c.fillStyle='#2f7045';c.fillRect(X+3,Y+9,10,4);c.fillRect(X+5,Y+5,6,4);c.fillRect(X+7,Y+2,2,3);c.fillStyle='#f4ecd8';c.fillRect(X+5,Y+5,6,1);c.fillRect(X+3,Y+9,10,1);c.fillStyle='#d94f4f';c.fillRect(X+5,Y+11,2,1);c.fillStyle='#ffd166';c.fillRect(X+10,Y+7,1,1)}
       else{c.fillStyle='#2f7045';c.fillRect(X+2,Y+5,12,10);c.fillStyle='#4caf50';c.fillRect(X+4,Y+6,5,4);c.fillStyle='#d94f4f';c.fillRect(X+10,Y+8,2,2)}}
     if(ch==='Q'){c.fillStyle='#5a3d2b';c.fillRect(X+7,Y+10,2,6);c.fillStyle='#c98a3a';c.fillRect(X+1,Y+1,14,2);c.fillRect(X+1,Y+10,14,2);c.fillStyle='#f4ecd8';c.fillRect(X+2,Y+3,12,7);c.fillStyle='#d94f4f';c.fillRect(X+4,Y+5,8,1);c.fillRect(X+4,Y+7,5,1)}
     if(ch==='N'){c.fillStyle='#5a3d2b';c.fillRect(X+3,Y+10,2,6);c.fillRect(X+11,Y+10,2,6);c.fillStyle='#c98a3a';c.fillRect(X+1,Y+2,14,9);c.fillStyle='#f4ecd8';c.fillRect(X+3,Y+4,4,2);c.fillRect(X+9,Y+4,4,2);c.fillRect(X+3,Y+7,10,1)}
@@ -1780,6 +1814,17 @@ function cityDraw(){
   /* 萬聖節南瓜攤 */
   if(hw){const X=HW_STAND[0]*TS,Y=HW_STAND[1]*TS;c.fillStyle='#5a3d2b';c.fillRect(X+1,Y+6,14,10);c.fillStyle='#7a3f9e';c.fillRect(X,Y,16,5);c.fillStyle='#ff8a5c';c.fillRect(X+3,Y+8,10,6);c.fillStyle='#1a1026';c.fillRect(X+5,Y+10,2,1);c.fillRect(X+9,Y+10,2,1);
     if(!city.hw){const by=Y-10+Math.round(Math.sin(t*5)*2);c.fillStyle='#ff8a5c';c.fillRect(X+5,by,6,8);c.fillStyle='#1a1026';c.fillRect(X+7,by+1,2,4);c.fillRect(X+7,by+6,2,1)}}
+  /* 廣場的聖誕樹：越接近 12 月布置得越多 */
+  if(xs){const X=HW_STAND[0]*TS,Y=HW_STAND[1]*TS;
+    c.fillStyle='rgba(0,0,0,.2)';c.fillRect(X+1,Y+14,14,2);c.fillStyle='#5a3d2b';c.fillRect(X+6,Y+11,4,4);
+    c.fillStyle='#2f7045';c.fillRect(X+1,Y+5,14,7);c.fillRect(X+3,Y-1,10,7);c.fillRect(X+5,Y-6,6,6);c.fillRect(X+7,Y-9,2,4);
+    c.fillStyle='#4caf50';c.fillRect(X+3,Y+6,3,2);c.fillRect(X+5,Y,2,2);c.fillRect(X+7,Y-5,2,2);
+    if(xs>=2)[[3,9,'#d94f4f'],[11,7,'#ffd166'],[5,3,'#8fc6f5'],[10,1,'#d94f4f'],[8,-3,'#ffd166'],[13,10,'#8fc6f5']].forEach(([dx,dy,col])=>{c.fillStyle=col;c.fillRect(X+dx,Y+dy,2,2)});
+    if(xs>=3)[[7,-6],[4,-1],[11,-1],[2,4],[8,4],[13,4],[5,10],[10,10]].forEach(([dx,dy],i)=>{c.fillStyle=Math.sin(t*4+i*1.7)>0?'#fff6c9':'#f4a6c6';c.fillRect(X+dx,Y+dy,1,1)});
+    if(xs>=4){c.fillStyle='#ffd166';c.fillRect(X+7,Y-14,2,6);c.fillRect(X+5,Y-12,6,2);c.fillStyle='#fff6c9';c.fillRect(X+7,Y-12,2,2);
+      [[0,'#d94f4f','#ffd166'],[11,'#3a7bd5','#f4ecd8']].forEach(([dx,a,b])=>{c.fillStyle=a;c.fillRect(X+dx,Y+11,5,5);c.fillStyle=b;c.fillRect(X+dx+2,Y+11,1,5);c.fillRect(X+dx,Y+13,5,1)})}
+    else{c.font='7px "DotGothic16", sans-serif';c.textAlign='center';const txt=`聖誕倒數 ${xmasLeft()} 天`,w=c.measureText(txt).width+6,by=Y-20+Math.round(Math.sin(t*2)*1);
+      c.fillStyle='rgba(15,10,26,.8)';c.fillRect(X+8-w/2,by-7,w,10);c.fillStyle='#ffd166';c.fillText(txt,X+8,by)}}
   if(city.hw){const h=city.hw;
     h.candies.forEach(cd=>{const X=cd.x*TS+8,Y=cd.y*TS+9+Math.round(Math.sin(t*4+cd.x)*1);c.fillStyle=['#f4a6c6','#9fe1cb','#ffd166'][cd.k];c.fillRect(X-3,Y-2,6,4);c.fillStyle='#f4ecd8';c.fillRect(X-6,Y-1,3,2);c.fillRect(X+3,Y-1,3,2);c.fillRect(X-1,Y-2,1,1)});
     h.ghosts.forEach(g=>{c.globalAlpha=.75+Math.sin(t*4+g.px)*.15;const G=SPR.ghost,X=Math.round(g.px-8),Y=Math.round(g.py-12+Math.sin(t*3+g.py)*2);
@@ -1804,6 +1849,7 @@ function cityDraw(){
     c.globalAlpha=1;
     if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle='rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle='#f4ecd8';c.fillText(p.name,p.px,Y-3)}
   });
+  if(xs>=4){c.fillStyle='rgba(244,236,216,.85)';for(let i=0;i<46;i++){const sx=camX+((i*53+t*(8+i%4*3)+Math.sin(t+i)*6)%(VW*TS)+VW*TS)%(VW*TS),sy=camY+(i*97+t*(14+i%3*6))%(VH*TS);c.fillRect(Math.round(sx),Math.round(sy),i%5?1:2,i%5?1:2)}}
   c.font='7px "DotGothic16", sans-serif';
   if(city.hw){const h=city.hw;c.save();c.setTransform(CSC,0,0,CSC,0,0);const left=Math.max(0,Math.ceil((h.end-performance.now())/1000));c.fillStyle='rgba(15,10,26,.82)';c.fillRect(4,4,118,14);c.fillStyle='#ffd166';c.font='9px "DotGothic16",sans-serif';c.textAlign='left';c.fillText(`糖果 ${h.got}・剩 ${left} 秒・還有 ${h.candies.length} 顆`,8,14);c.restore();c.font='7px "DotGothic16", sans-serif'}
   drawVisitor(c,t);c.font='7px "DotGothic16", sans-serif';
@@ -2239,6 +2285,10 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-07',title:'聖誕節預告＋單字卡變整齊了',items:[
+  ['xtree','廣場的聖誕樹','聖誕節要來了！廣場的聖誕樹每個禮拜都會多一點裝飾，點它可以偷看 12/1 會有什麼…',()=>{go('city');setTimeout(()=>cityTap(HW_STAND[0],HW_STAND[1]),300)}],
+  ['card','單字卡收起來了','「我的」頁面的單字卡變成可以打開、收起來的選單，還可以搜尋和排序，不會再占一大片。',()=>go('me')],
+ ]},
  {v:'2026-10-29',title:'萬聖節新遊戲＋新品上架',items:[
   ['candy','不給糖就搗蛋','遊樂場新遊戲！敲門答萬聖節單字換糖果，答錯會被幽靈搗蛋。糖果換金幣，只到 11/7！',()=>go('games')],
   ['ghost','萬聖節新品 11 款','小骷髏、糖果怪、女巫大鍋、南瓜提燈、黑貓耳朵…百貨公司標「新」的就是，11/7 下架！',()=>renderShop('pet','city')],
@@ -4141,10 +4191,13 @@ function renderMe(){
      <div><b>${cards.length}</b><span class="small">單字卡</span></div>
    </div>
    <div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 8px">${m+1} 月打卡</p><div class="cal">${cal}</div></div>
-   <div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 8px">我的單字卡${(()=>{const n=cards.length,nx=SHOP.filter(i=>i.cards&&n<i.cards).sort((a,b)=>a.cards-b.cards)[0];return nx?`・再收集 ${nx.cards-n} 張解鎖「${nx.name}」`:'・獎勵全部解鎖了！'})()}</p>
-     ${cards.length?`<div class="cards">${cards.map(([w,c])=>`<div class="card"><div style="font-size:14px">${esc(w)}</div><div style="color:var(--plum)">${esc(c.zh)}</div>${c.n>1?`<div>×${c.n}</div>`:''}</div>`).join('')}</div>`
-      :`<p style="margin:0">答對今日一題或完成一次專注，就能收集第一張卡。</p>`}
-   </div>
+   <details class="box" id="mycards" style="background:var(--deep)"${S.cardsOpen?' open':''}><summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px">
+     <span>我的單字卡 <b style="color:var(--gold)">${cards.length}</b> 張<br><span class="small">${(()=>{const n=cards.length,nx=SHOP.filter(i=>i.cards&&n<i.cards).sort((a,b)=>a.cards-b.cards)[0];return nx?`再收集 ${nx.cards-n} 張解鎖「${nx.name}」`:'獎勵全部解鎖了！'})()}</span></span><span class="chip" id="cardtog">${S.cardsOpen?'收起 ▲':'打開 ▼'}</span></summary>
+     ${cards.length?`<div class="row" style="margin:10px 0 8px"><input type="search" id="cardq" placeholder="找單字（英文或中文）" style="flex:1;min-width:0">
+       <select id="cardsort" style="font-family:inherit;font-size:14px;padding:8px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)"><option value="new">最新的</option><option value="az">A → Z</option><option value="n">收集最多</option></select></div>
+       <div class="cards" id="cardlist"></div>`
+      :`<p style="margin:10px 0 0">答對今日一題或完成一次專注，就能收集第一張卡。</p>`}
+   </details>
    ${SRCS[S.tier]?`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px">
      <label for="scope" class="small">題目範圍（今日一題、多練幾題、小遊戲、雙倍挑戰都用這個）</label>
      ${scopeSelect()}
@@ -4165,6 +4218,12 @@ function renderMe(){
    <p class="demo">Learning Den・免費・非營利教育用途・<a href="https://priscillalearn-ops.github.io/learning-den/about.html" target="_blank" rel="noopener" style="color:var(--lilac)">關於與版權</a></p>
    ${S.blocked.length?`<p class="small">已封鎖：${S.blocked.map(b=>esc(b.startsWith('u:')?b.split(':').slice(2).join(':'):b)).join('、')} <button class="chip" id="unb">全部解除</button></p>`:''}`;
   paintSprites($('#view'));
+  const cd=$('#mycards');cd.ontoggle=()=>{S.cardsOpen=cd.open;save();$('#cardtog').textContent=cd.open?'收起 ▲':'打開 ▼'};
+  const drawCards=()=>{const l=$('#cardlist');if(!l)return;const q=$('#cardq').value.trim().toLowerCase(),so=$('#cardsort').value;
+    let list=cards.filter(([w,c])=>!q||w.toLowerCase().includes(q)||String(c.zh).includes(q));
+    if(so==='new')list=list.slice().reverse();else if(so==='az')list=list.slice().sort((a,b)=>a[0].localeCompare(b[0]));else list=list.slice().sort((a,b)=>b[1].n-a[1].n);
+    l.innerHTML=list.length?list.map(([w,c])=>`<div class="card"><div style="font-size:14px">${esc(w)}</div><div style="color:var(--plum)">${esc(c.zh)}</div>${c.n>1?`<div>×${c.n}</div>`:''}</div>`).join(''):'<p class="small" style="margin:0">找不到這個字</p>'};
+  if($('#cardlist')){$('#cardq').oninput=drawCards;$('#cardsort').onchange=drawCards;drawCards()}
   $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=()=>showTutorial(true);$('#mylog').onclick=showChangelog;drawTrophies();
   if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mysugg').onclick=openSuggest;$('#myach').onclick=openAch;loadAch().then(a=>{const b=$('#myach');if(b)b.textContent=`我的成就（${achCount(a)}／${ACH.length*3}）`});$('#mywrong').onclick=()=>renderMistakes();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
