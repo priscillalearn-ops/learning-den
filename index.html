@@ -412,6 +412,7 @@ const SHAPE={
  winhallow:['222222222222','21111211yy12','2111121yyyy2','2k1k121yyyy2','222222222222','211k12111y12','211112111112','2k1112111k12','222222222222'],
  ghostpet:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','.wwPPww.','.wwwwww.','.wwwwww.','.w.ww.w.'],
  pumpkinpet:['...G....','..GG....','.111111.','11k11k11','11111111','11kkkk11','.111111.','........'],
+ snowman:['...kk...','..kkkk..','..wwww..','.wkwwkw.','.wwOOww.','..rrrr..','.wwwrww.','.wwwwww.'],
  skelpet:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','..wkkw..','...ww...','.wwwwww.','.w.ww.w.'],
  candymon:['........','r.yyyy.r','rryyyyrr','.ykyyky.','.yyyyyy.','.yyrryy.','r.yyyy.r','..y..y..'],
  cauldron:['.G..G.','G.GG.G','.GGGG.','kkkkkk','k1111k','k1111k','.kkkk.','.r..r.'],
@@ -514,6 +515,8 @@ const SHOP=[
  {id:'acc_catears',slot:'acc',name:'黑貓耳朵',price:150,acc:'catears',from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
  {id:'hat_santa',slot:'hat',name:'聖誕帽',price:150,hat:'santa',c:['#d94f4f'],from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'pet_reindeer',slot:'pet',name:'麋鹿',price:400,g:'reindeer',from:'12-01',until:'12-31',season:'聖誕節'},
+ {id:'pet_snowman',slot:'pet',name:'雪人',price:9999,g:'snowman',bundle:'advent',from:'12-01',until:'12-31',season:'聖誕節'},
+ {id:'hat_goldsanta',slot:'hat',name:'金色聖誕帽',price:9999,hat:'santa',c:['#ffd166'],bundle:'advent',from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'poster_xmas',slot:'poster',name:'聖誕樹海報',price:120,g:'pxmas',c:['#1d2a5c','#c98a3a'],from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'poster_potion',slot:'poster',name:'藥水海報',price:9999,g:'pposter',c:['#1d2a5c','#c98a3a'],gacha:'N'},
  {id:'poster_rune',slot:'poster',name:'符文海報',price:9999,g:'prune',c:['#3a2f55','#9aa3b5'],gacha:'N'},
@@ -796,7 +799,7 @@ function renderShop(cat,from){
        const on=(slot in L.room?L.room[slot]:L.outfit[slot])===it.id,own=owns(it.id);
        return `<button class="sitem${on?' on':''}" data-it="${it.id}">${itemThumb(it)}<span>${esc(it.name)}${it.fresh&&!own?' <b style="color:var(--coral)">新</b>':''}</span>
          ${it.gacha?`<span class="pill" style="background:${RARITY[it.gacha][1]};color:var(--night)">盲盒 ${it.gacha}</span>`:it.rare?'<span class="pill" style="background:var(--gold);color:var(--night)">稀有</span>':it.season?`<span class="pill" style="background:var(--coral);color:var(--night)">${it.season}限定・到 ${it.until.replace('-','/')}</span>`:''}
-         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':it.bundle==='friend'?'好感度獎勵':it.bundle==='fish'?'釣魚圖鑑獎勵':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
+         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':it.bundle==='friend'?'好感度獎勵':it.bundle==='fish'?'釣魚圖鑑獎勵':it.bundle==='advent'?'降臨月曆獎勵':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
    <p class="demo" style="text-align:left;line-height:1.6">答今日一題 +10（答對再 +5）・專注每分鐘 +1（每天最多 ${FOCUS_CAP}）・連續打卡 3／7／15／30 天有額外獎勵。</p>`;
   paintSprites($('#view'));
   $('#sback').onclick=()=>shopFrom==='home'?renderHome():go(shopFrom);
@@ -812,7 +815,7 @@ function pickItem(it){
   if(owns(it.id)){equip(it);return}
   if(it.cards){const n=Object.keys(S.cards).length;modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div><h2 style="text-align:center">${esc(it.name)}</h2><p style="text-align:center;margin:0;line-height:1.6">收集 ${it.cards} 張單字卡就會自動得到，不能用金幣買。<br>你現在有 ${n} 張，還差 ${Math.max(0,it.cards-n)} 張。</p><button class="btn" data-close>好</button>`);return}
   if(it.gacha){toast(`${it.name}只能從遊樂場的魔法盲盒抽到（${it.gacha}）`);return}
-  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:it.bundle==='friend'?`${it.name}：和好友的好感度升級才拿得到`:it.bundle==='fish'?`${it.name}：魚圖鑑 14 種全部收齊就送你`:`${it.name}是新手大禮包限定的`);return}
+  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:it.bundle==='friend'?`${it.name}：和好友的好感度升級才拿得到`:it.bundle==='fish'?`${it.name}：魚圖鑑 14 種全部收齊就送你`:it.bundle==='advent'?`${it.name}：降臨月曆開滿 ${it.id==='pet_snowman'?10:20} 格就送你`:`${it.name}是新手大禮包限定的`);return}
   if(!inWin(it)){toast('這個限定商品現在沒有販售');return}
   const bal=coins();
   const m=modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div>
@@ -1418,7 +1421,7 @@ function renderCity(){
    <div class="row"><button class="btn" id="fishbtn" style="background:#3a7bd5;color:var(--paper)">湖邊釣單字</button><button class="btn" id="marketbtn" style="background:#c98a3a;color:var(--night)">大頭菜市場<span id="mktip" class="small" style="display:block;font-size:11px"></span></button></div>
    <button class="btn" id="gardenbtn" style="background:#3f8f5a;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px">${cropIcon('sunflower',22)}我的魔法花園（種菜、偷菜、換配件）</button>
    ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
-   ${!halloween()&&xmasStage()?`<button class="btn" id="xmasbtn" style="background:#2f7045;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="xtree" data-z="3"></span>${xmasStage()<4?`聖誕節預告・倒數 ${xmasLeft()} 天（廣場的聖誕樹）`:'聖誕節到了！（廣場的聖誕樹）'}</button>`:''}
+   ${!halloween()&&xmasStage()?`<button class="btn" id="xmasbtn" style="background:#2f7045;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="xtree" data-z="3"></span>${xmasStage()<4?`聖誕節預告・倒數 ${xmasLeft()} 天（廣場的聖誕樹）`:'聖誕節到了！降臨月曆（廣場的聖誕樹）'}</button>`:''}
    <div class="chips">${BUILDINGS.map(b=>`<button class="chip" data-b="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-b="notice">布告欄</button><button class="chip" data-b="quest">任務板</button></div>`;
   paintSprites($('#view'));
   $('#ctasks').onclick=()=>renderQuests();loadAnn();loadQuests();
@@ -1586,10 +1589,89 @@ function xmasOpen(){
       <div class="box" style="background:var(--deep)"><p class="lbl" style="margin:0 0 6px">聖誕限定商品（還看不清楚）</p>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${items.map(shadow).join('')}<div style="font-size:28px;line-height:40px;color:var(--lilac)">＋？</div></div></div>
       <p class="small" style="margin:0;text-align:center">先存金幣吧！讀書、答題、玩小遊戲都能賺。</p>`
-    :`<button class="btn gold" id="xshop">去百貨公司看聖誕商品</button>`}
+    :`<button class="btn gold" id="xadv">打開降臨月曆${adventDay()?'（每天開一格）':''}</button><button class="btn" id="xshop">去百貨公司看聖誕商品</button>`}
     <button class="btn ghost" data-close>${pre?'好期待！':'關閉'}</button>`);
   if(m.querySelector('#xshop'))m.querySelector('#xshop').onclick=()=>{m.remove();renderShop('wear','city')};
+  if(m.querySelector('#xadv'))m.querySelector('#xadv').onclick=()=>{m.remove();openAdvent()};
 }
+/* ---------- 聖誕降臨月曆（12/1～12/25） ----------
+   每天開當天那一格：答對一題聖誕單字才打開，答錯會看到正確答案、可以再一題。
+   線上版由資料庫 advent_ask／advent_open 出題、對答案、發金幣（supabase/update-2026-11-09-聖誕降臨月曆.sql）。
+   錯過的日子不能補開。開滿 10 格送雪人、20 格送金色聖誕帽。 */
+/* 跟資料庫 xmas_words() 一樣（單機版用） */
+const XMAS_WORDS=[
+ ['snow','雪',1],['tree','樹',1],['star','星星',1],['gift','禮物',1],['bell','鈴鐺',1],['sock','襪子',1],['cake','蛋糕',1],['cold','冷的',1],
+ ['red','紅色的',1],['green','綠色的',1],['hat','帽子',1],['card','卡片',1],['candle','蠟燭',1],['cookie','餅乾',1],['snowman','雪人',1],['happy','快樂的',1],
+ ['reindeer','麋鹿',2],['chimney','煙囪',2],['sleigh','雪橇',2],['ornament','裝飾品',2],['stocking','聖誕襪',2],['wrap','包裝',2],['celebrate','慶祝',2],['holiday','假期',2],
+ ['jingle','叮噹聲',2],['carol','聖誕頌歌',2],['snowflake','雪花',2],['mitten','連指手套',2],['scarf','圍巾',2],['fireplace','壁爐',2],['wish','願望',2],['angel','天使',2],
+ ['wreath','花圈',3],['mistletoe','槲寄生',3],['festive','節日氣氛的',3],['gingerbread','薑餅',3],['tradition','傳統',3],['generous','慷慨的',3],['eve','前夕',3],['merry','歡樂的',3],
+ ['frost','霜',3],['blizzard','暴風雪',3],['cozy','溫暖舒適的',3],['gratitude','感激',3],['tinsel','金蔥彩條',3],['evergreen','常青樹',3],['festival','節慶',3],['chestnut','栗子',3]];
+const ADVENT_COIN=d=>d===24||d===25?100:d%5===0?50:20;
+const adventDay=()=>{const d=new Date();return d.getMonth()===11&&d.getDate()<=25?d.getDate():null};
+async function adventState(){
+  if(ONLINE){const r=await cloud.rpc('advent_state');return r?{today:r.today,opened:r.opened||{}}:null}
+  const y=new Date().getFullYear();if(!S.advent||S.advent.yr!==y){S.advent={yr:y,opened:{}};save()}
+  return {today:adventDay(),opened:S.advent.opened};
+}
+async function adventAsk(){
+  if(ONLINE)return cloud.rpc('advent_ask');
+  if(!adventDay()){toast('降臨月曆只在 12/1 到 12/25 開放');return null}
+  const lv={kid:[1],teen:[1,2],sage:[2,3]}[S.tier]||[1,2],ws=XMAS_WORDS.filter(w=>lv.includes(w[2])),w=pick(ws),en=Math.random()<.5;
+  const opts=[w,...ws.filter(x=>x!==w).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
+  return {local:{w,en,opts},q:en?`「${w[0]}」是什麼意思？`:`「${w[1]}」的英文是？`,options:opts.map(o=>en?o[1]:o[0])};
+}
+async function adventAnswer(a,k){
+  if(ONLINE){const r=await cloud.rpc('advent_open',{p_ask:a.ask,p_choice:k});if(!r)return null;if(r.wallet!=null)syncWallet(r.wallet);
+    if(r.ok){if(r.total>=10)S.owned.pet_snowman=0;if(r.total>=20)S.owned.hat_goldsanta=0;save()}return r}
+  const {w,en,opts}=a.local,right=en?w[1]:w[0];
+  if(opts[k]!==w)return {ok:false,right};
+  const d=adventDay(),amt=ADVENT_COIN(d);S.advent.opened[d]=amt;const total=Object.keys(S.advent.opened).length;
+  S.tx=(S.tx||0)+amt;if(total>=10)S.owned.pet_snowman=0;if(total>=20)S.owned.hat_goldsanta=0;save();
+  return {ok:true,right,day:d,coins:amt,total,snowman:total===10,gold:total===20};
+}
+async function openAdvent(){
+  const st=await adventState();if(!st)return;
+  const today=st.today,dec=new Date().getMonth()===11,total=Object.keys(st.opened).length;
+  const prize=(id,n)=>{const it=ITEM[id],own=owns(id);return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;${own?'':'opacity:.8'}">${itemThumb(it)}<span class="small">${own?'✓ 拿到了':`開滿 ${n} 格`}</span><span class="small">${it.name}</span></div>`};
+  const cell=d=>{const got=st.opened[d]!=null,isT=d===today&&!got,miss=!got&&dec&&(!today||d<today),big=d===24||d===25;
+    return `<button class="sitem" data-ad="${d}" style="padding:6px 2px;gap:2px;background:${got?'var(--deep)':isT?'#d94f4f':'#2f7045'};border-color:${isT||big?'var(--gold)':'var(--ink)'};${miss?'opacity:.4':!got&&!isT?'opacity:.75':''}">
+      <span style="font-size:15px;color:${isT?'var(--gold)':'var(--paper)'}">${d}</span>
+      ${got?`<span data-s="star" data-z="3"></span><span class="small" style="color:var(--gold)">+${st.opened[d]}</span>`:`<span data-s="gift" data-z="3"></span><span class="small" style="color:var(--paper)">${isT?'打開！':miss?'錯過了':big?'大禮':''}</span>`}</button>`};
+  const m=modal(`<h2 style="text-align:center">聖誕降臨月曆</h2>
+    <p class="small" style="margin:0;text-align:center;line-height:1.6">12/1 到 12/25，每天答對一題聖誕單字就能打開當天那一格。<br>已經開了 <b style="color:var(--gold)">${total}</b>／25 格・錯過的日子不能補開</p>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${Array.from({length:25},(_,i)=>cell(i+1)).join('')}</div>
+    <div id="adq"></div>
+    <div class="box" style="background:var(--deep);display:flex;justify-content:space-around;padding:8px">${prize('pet_snowman',10)}${prize('hat_goldsanta',20)}</div>
+    <button class="btn ghost" data-close>關閉</button>`);
+  const q=m.querySelector('#adq');
+  const ask=async()=>{
+    const a=await adventAsk();if(!a||!m.isConnected)return;
+    q.innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px"><p class="lbl" style="margin:0">第 ${today} 格・答對就打開</p>
+      <div class="qtext">${esc(a.q)}</div>${a.options.map((o,k)=>`<button class="btn opt" data-ao="${k}" style="padding:7px 10px">${'ABCD'[k]}. ${esc(o)}</button>`).join('')}</div>`;
+    q.querySelectorAll('[data-ao]').forEach(b=>b.onclick=async()=>{
+      q.querySelectorAll('[data-ao]').forEach(x=>x.disabled=true);
+      const r=await adventAnswer(a,+b.dataset.ao);if(!r){ask();return}
+      q.querySelectorAll('[data-ao]').forEach(x=>{if(a.options[+x.dataset.ao]===r.right)x.classList.add('right')});
+      if(!r.ok){b.classList.add('wrong');
+        q.firstElementChild.insertAdjacentHTML('beforeend',`<p style="margin:0;color:var(--coral)">差一點！正確答案是「${esc(r.right)}」</p><button class="btn gold" id="adre" disabled>再一題</button>`);
+        const re=q.querySelector('#adre');setTimeout(()=>{re.disabled=false},2000);re.onclick=ask;return}
+      setTimeout(()=>{m.remove();
+        const g=[r.snowman?'pet_snowman':null,r.gold?'hat_goldsanta':null].filter(Boolean);
+        const w=modal(`<div style="display:flex;justify-content:center"><span data-s="gift" data-z="8"></span></div><h2 style="text-align:center">第 ${r.day} 格打開了！</h2>
+          <p style="text-align:center;margin:0;color:var(--gold)">+${r.coins} 金幣</p>
+          ${g.map(id=>`<div style="display:flex;flex-direction:column;align-items:center">${itemThumb(ITEM[id])}<b style="color:var(--gold)">獲得「${ITEM[id].name}」！</b></div>`).join('')}
+          <p class="small" style="margin:0;text-align:center">已經開了 ${r.total}／25 格・明天再來開下一格</p>
+          <button class="btn gold" id="adback">回月曆</button>`);
+        w.querySelector('#adback').onclick=()=>{w.remove();openAdvent()};
+      },700);
+    });
+  };
+  m.querySelectorAll('[data-ad]').forEach(b=>b.onclick=()=>{const d=+b.dataset.ad;
+    if(st.opened[d]!=null){toast(`第 ${d} 格已經打開了，拿到 ${st.opened[d]} 金幣`);return}
+    if(d!==today){toast(!dec?'12/1 才開始喔！':today&&d>today?`還沒到，${d} 號再來開`:'這天錯過了，不能補開');return}
+    if(!q.innerHTML)ask()});
+}
+
 /* 鏡頭：以自己為中心，碰到地圖邊緣就停 */
 function cityCam(){const me=city.me;return [Math.round(Math.max(0,Math.min(CW*TS-VW*TS,me.px-VW*TS/2))),Math.round(Math.max(0,Math.min(CH*TS-VH*TS,me.py-VH*TS/2)))]}
 /* 全圖：整張城市縮小畫，點哪裡就走過去 */
