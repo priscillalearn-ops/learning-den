@@ -2053,7 +2053,7 @@ returns json language plpgsql security definer set search_path = public as $$
 declare got int; r int; cap int; lv int := greatest(1, least(coalesce(p_level, 1), 4));
 begin
   if auth.uid() is null then raise exception '請先登入'; end if;
-  if p_game not in ('match', 'speed', 'granny', 'tower', 'halloween', 'trick') then raise exception '沒有這個遊戲'; end if;
+  if p_game not in ('match', 'speed', 'granny', 'tower', 'halloween', 'trick', 'words') then raise exception '沒有這個遊戲'; end if;
   if p_game in ('halloween', 'trick') and not (extract(month from public.taipei_today()) = 10
       or (extract(month from public.taipei_today()) = 11 and extract(day from public.taipei_today()) <= 7)) then
     raise exception '萬聖節活動結束了'; end if;

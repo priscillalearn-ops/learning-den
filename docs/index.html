@@ -219,7 +219,7 @@ function cardOf(ex,ans){
   return{w:ans,zh:/[\u4e00-\u9fff]/.test(ex||'')?cut(ex):''};
 }
 /* 題庫版本：網站版由 build-site.js 填入各題庫的內容指紋，題庫一改網址就變，手機的離線快取會馬上換新題庫 */
-const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"9e50faeae5"};
+const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"9e50faeae5","w-kid":"e4e47da507","w-teen":"e76e0b9a69","w-sage":"41bfce3eb3"};
 /* 題庫分成 banks/kid.json、teen.json、sage.json，選了等級才下載（高中題庫很大，國小國中生不用載）。
    由 tools/gept-kid.py、tools/jh-bank.py、tools/import-granny.js 產生。 */
 const SRCS={},QID={},bankLoading={};
@@ -1017,8 +1017,8 @@ let gardenBack=null;
 /* ---------- 遊戲區：單字翻牌、60 秒快答、雙倍挑戰、銀行 ----------
    線上版的金幣進出全部由資料庫函式處理（claim_game、start/submit_challenge、bank_move），
    網頁只顯示結果；單機版在瀏覽器裡用同樣的規則模擬。 */
-const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower','halloween','trick'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
-function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,trick:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
+const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower','halloween','trick','words'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
+function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,trick:0,words:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
 /* 資料庫回傳錢包餘額時，用它校正本機的流水帳總和 */
 function syncWallet(w){if(typeof w==='number'){S.tx=w-(coinsEarned()-coinsSpent());save()}}
 function gameShell(title,body,back){
@@ -1033,6 +1033,7 @@ function renderGames(){
   $('#view').innerHTML=`${header()}<div class="bar"><h2>遊樂場</h2><button class="btn ghost" id="gcity" style="padding:5px 10px;font-size:13px">← 城市</button></div>
    <div class="flist">
      ${halloween()?card('trick','candy','🎃 不給糖就搗蛋','敲門答萬聖節單字換糖果・只到 11/7',`今天 ${g.trick}/${GAME_CAP}`):''}
+     ${card('wb','book','單字本','依課本版本背單字、玩單字小遊戲',`今天 ${g.words}/${GAME_CAP}`)}
      ${card('match','card','單字翻牌',`翻牌配對英文和中文・第 ${lvOpen('match')}／4 關`,`今天 ${g.match}/${GAME_CAP}`)}
      ${card('speed','lamp','60 秒快答',`跟時間賽跑・第 ${lvOpen('speed')}／4 關`,`今天 ${g.speed}/${GAME_CAP}`)}
      ${card('granny','granny','恐怖阿嬤（迷你版）',`答題開門逃出去・第 ${lvOpen('granny')}／4 關`,`今天 ${g.granny}/${GAME_CAP}`)}
@@ -1044,7 +1045,150 @@ function renderGames(){
    <p class="demo" style="text-align:left;line-height:1.6">小遊戲每場最多 ${GAME_MAX}～${lvMax(4)} 金幣（關卡越後面越多），每種每天最多 ${GAME_CAP}。雙倍挑戰要靠實力，不是靠運氣。</p>`;
   paintSprites($('#view'));
   $('#gcity').onclick=()=>go('city');
-  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{chal:gChal,gacha:gGacha,bank:gBank,trick:gTrick}[b.dataset.g])());
+  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{chal:gChal,gacha:gGacha,bank:gBank,trick:gTrick,wb:()=>renderWordbook('games')}[b.dataset.g])());
+}
+/* ---------- 單字本：依版本 → 冊 → 課 背單字，玩單字小遊戲 ----------
+   單字表在 banks/words-{kid,teen,sage}.json，由 tools/wordbook.py 從題庫產生（每個字：英文、中文、詞性、例句）。
+   「記住了」的字記在這台裝置（S.wb.known）。小遊戲答對的字會變成單字卡，金幣走 claim_game('words')，每場最多 15、每天最多 40。 */
+const WB_TIERS=[['kid','國小'],['teen','國中'],['sage','高中']],WORDS={},wordsLoading={};
+function loadWords(tier){
+  if(WORDS[tier])return Promise.resolve(WORDS[tier]);
+  if(!wordsLoading[tier])wordsLoading[tier]=fetch(`banks/words-${tier}.json${BANK_VER['w-'+tier]?'?v='+BANK_VER['w-'+tier]:''}`).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})
+    .then(d=>{d.pubs.forEach(p=>p.books.forEach(b=>b.units.forEach(u=>{u.book=b;u.pub=p}))) ;WORDS[tier]=d;return d}).catch(e=>{console.warn(e);delete wordsLoading[tier];return null});
+  return wordsLoading[tier];
+}
+function wbState(){S.wb=S.wb||{};S.wb.known=S.wb.known||{};S.wb.tier=S.wb.tier||S.tier||'teen';return S.wb}
+const wbKnown=u=>new Set(wbState().known[u.id]||[]);
+function wbMark(u,w,on){const st=wbState(),k=new Set(st.known[u.id]||[]);on?k.add(w):k.delete(w);st.known[u.id]=[...k];save()}
+const wbSel=(id,opts,cur)=>`<select id="${id}" style="font-family:inherit;font-size:14px;padding:8px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night);min-width:0;flex:1">${opts.map(([v,n])=>`<option value="${esc(v)}" ${v===cur?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+let wbBack='games',wbUnit=null;
+async function renderWordbook(back){
+  if(back)wbBack=back;const st=wbState();
+  gameShell('單字本','<p class="small" style="text-align:center">單字表載入中…</p>',wbBack);
+  const d=await loadWords(st.tier);if(!d){$('#view').innerHTML='<p>單字表載不到，檢查一下網路再試一次。</p>';return}
+  const pub=d.pubs.find(p=>p.name===st.pub)||d.pubs[0],book=pub.books.find(b=>b.id===st.book)||pub.books[0];
+  gameShell('單字本',`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px">
+      <div class="row">${wbSel('wbt',WB_TIERS,st.tier)}${wbSel('wbp',d.pubs.map(p=>[p.name,p.name]),pub.name)}</div>
+      ${wbSel('wbb',pub.books.map(b=>[b.id,b.name]),book.id)}
+      <p class="small" style="margin:0">選你學校用的版本和冊數，點一課開始背。背熟的字按「記住了」，進度會記在這台裝置。</p></div>
+    <div class="flist">${book.units.map(u=>{const k=wbKnown(u).size,n=u.words.length;
+      return `<button class="frow" data-wu="${esc(u.id)}" style="padding:10px"><span data-s="book" data-z="3"></span><span class="grow"><span>${esc(u.name)}</span><br>
+        <span style="display:block;height:6px;background:var(--night);margin-top:4px"><span style="display:block;height:6px;width:${Math.round(k/n*100)}%;background:var(--mint)"></span></span></span>
+        <span class="small" style="text-align:right">${k}／${n}<br>記住了</span></button>`}).join('')}</div>`,wbBack);
+  $('#wbt').onchange=e=>{st.tier=e.target.value;st.pub=st.book=null;save();renderWordbook()};
+  $('#wbp').onchange=e=>{st.pub=e.target.value;st.book=null;save();renderWordbook()};
+  $('#wbb').onchange=e=>{st.pub=pub.name;st.book=e.target.value;save();renderWordbook()};
+  $('#view').querySelectorAll('[data-wu]').forEach(b=>b.onclick=()=>{st.pub=pub.name;st.book=book.id;save();wbOpenUnit(book.units.find(u=>u.id===b.dataset.wu))});
+}
+function wbShell(title,body){gameShell(title,body);$('#gback').textContent='← 單字本';$('#gback').onclick=()=>wbUnit?wbOpenUnit(wbUnit):renderWordbook()}
+function wbOpenUnit(u){
+  wbUnit=null;const k=wbKnown(u),n=u.words.length,few=n<4;
+  gameShell(u.name,`<p class="small" style="margin:0;text-align:center">${esc(u.book.name)}・${n} 個字・記住了 <b style="color:var(--mint)">${k.size}</b> 個</p>
+    <button class="btn gold" id="wfc">背單字（字卡）</button>
+    <div class="row"><button class="btn" id="wq1" ${few?'disabled':''}>選意思</button><button class="btn" id="wq2" ${few?'disabled':''}>聽音選字</button></div>
+    <div class="row"><button class="btn" id="wq3">拼字挑戰</button><button class="btn" id="wq4" ${few?'disabled':''}>配對</button></div>
+    <div class="flist">${u.words.map((w,i)=>`<div class="frow" style="padding:8px;align-items:flex-start;gap:8px">
+      <button class="chip" data-sp="${i}" aria-label="唸 ${esc(w[0])}">🔊</button>
+      <span class="grow"><b>${esc(w[0])}</b> <span class="small">${esc(w[2])}</span><br><span style="color:var(--gold)">${esc(w[1])}</span>${w[3]?`<br><span class="small" style="line-height:1.5">${esc(w[3])}</span>`:''}</span>
+      <button class="chip" data-kn="${i}" aria-pressed="${k.has(w[0])}">${k.has(w[0])?'✓ 記住了':'記住了？'}</button></div>`).join('')}</div>`);
+  $('#gback').textContent='← 單字本';$('#gback').onclick=()=>renderWordbook();
+  $('#view').querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>speak(u.words[+b.dataset.sp][0]));
+  $('#view').querySelectorAll('[data-kn]').forEach(b=>b.onclick=()=>{const w=u.words[+b.dataset.kn][0],on=b.getAttribute('aria-pressed')!=='true';wbMark(u,w,on);b.setAttribute('aria-pressed',on);b.textContent=on?'✓ 記住了':'記住了？'});
+  $('#wfc').onclick=()=>wbCards(u);
+  $('#wq1').onclick=()=>wbQuiz(u,'mean');$('#wq2').onclick=()=>wbQuiz(u,'listen');$('#wq3').onclick=()=>wbSpell(u);$('#wq4').onclick=()=>wbMatch(u);
+}
+/* 字卡：還沒記住的先出；「還不熟」的會排到後面再出一次 */
+function wbCards(u){
+  wbUnit=u;const k=wbKnown(u);let q=[...u.words.filter(w=>!k.has(w[0])),...u.words.filter(w=>k.has(w[0]))],seen=0,learned=0;
+  const show=()=>{
+    if(!q.length){wbShell('背完了！',`<div class="box" style="background:var(--deep);text-align:center;line-height:1.8"><span data-s="star" data-z="6"></span><h2>這課背完一輪了</h2><p style="margin:0">這輪記住了 ${learned} 個字，整課記住了 ${wbKnown(u).size}／${u.words.length} 個</p></div>
+      <div class="row"><button class="btn" id="wagain">再背一輪</button><button class="btn gold" id="wgame">去玩小遊戲</button></div>`);
+      paintSprites($('#view'));$('#wagain').onclick=()=>wbCards(u);$('#wgame').onclick=()=>wbOpenUnit(u);return}
+    const w=q[0];let flip=false;
+    const draw=()=>{wbShell(`背單字・${u.name}`,`<p class="small" style="margin:0;text-align:center">剩 ${q.length} 張・記住了 ${wbKnown(u).size}／${u.words.length}</p>
+      <button class="box paper" id="wcard" style="min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;width:100%;font:inherit">
+        <span style="font-size:30px;font-family:'Noto Sans TC',sans-serif">${esc(w[0])}</span><span class="small">${esc(w[2])}</span>
+        ${flip?`<span style="font-size:22px;color:var(--plum)">${esc(w[1])}</span>${w[3]?`<span class="qtext" style="font-size:14px">${esc(w[3])}</span>`:''}`:'<span class="small">點卡片看意思</span>'}</button>
+      <div class="row"><button class="btn" id="wsay">🔊 再唸一次</button></div>
+      ${flip?'<div class="row"><button class="btn coral" id="wno">還不熟</button><button class="btn mint" id="wyes">記住了！</button></div>':''}`);
+      $('#wcard').onclick=()=>{if(!flip){flip=true;draw()}};$('#wsay').onclick=()=>speak(w[0]);
+      if(flip){$('#wno').onclick=()=>{q.push(q.shift());wbMark(u,w[0],false);show()};
+        $('#wyes').onclick=()=>{q.shift();if(!wbKnown(u).has(w[0]))learned++;wbMark(u,w[0],true);show()}}};
+    draw();speak(w[0]);seen++;
+  };
+  show();
+}
+/* 小遊戲共用：10 題，答對的字變成單字卡，最後領金幣 */
+async function wbFinish(u,title,ok,total,missed){
+  const score=Math.min(15,ok+(ok===total?3:0)),r=ok?await claimGame('words',score,1):0;
+  wbShell(title,`<div class="box" style="background:var(--deep);text-align:center;line-height:1.8"><h2 style="margin:0">答對 ${ok}／${total}</h2>
+      <p style="margin:0;color:var(--gold)">${ok?(r?`+${r} 金幣`:'今天單字本的金幣領滿了（明天再來）'):'再試一次！'}</p></div>
+    ${missed.length?`<div class="box paper"><p class="lbl" style="margin:0 0 4px">要再複習的字</p>${missed.map(w=>`<div class="qtext" style="font-size:15px">${esc(w[0])}　${esc(w[1])}</div>`).join('')}</div>`:''}
+    <div class="row"><button class="btn" id="wback">回這一課</button><button class="btn gold" id="wre">再玩一次</button></div>`);
+  $('#wback').onclick=()=>wbOpenUnit(u);return $('#wre');
+}
+const wbRight=(u,w)=>{if(!S.cards[w[0]]){giveCard(w[0],w[1],true);cloud.card(w[0])}};
+function wbQuiz(u,mode){
+  wbUnit=u;const ws=u.words.slice().sort(()=>Math.random()-.5).slice(0,10);let i=0,ok=0;const missed=[];
+  const next=()=>{
+    if(i>=ws.length){wbFinish(u,mode==='listen'?'聽音選字':'選意思',ok,ws.length,missed).then(b=>b.onclick=()=>wbQuiz(u,mode));return}
+    const w=ws[i],en=mode==='listen'||Math.random()<.5,opts=[w,...u.words.filter(x=>x!==w).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
+    const label=o=>mode==='listen'?o[0]:en?o[1]:o[0];
+    wbShell(mode==='listen'?'聽音選字':'選意思',`<p class="small" style="margin:0;text-align:center">第 ${i+1}／${ws.length} 題・答對 ${ok}</p>
+      <div class="box paper" style="display:flex;flex-direction:column;gap:8px">
+        ${mode==='listen'?'<button class="btn gold" id="wsay" style="font-size:20px">🔊 聽一次</button><p class="small" style="margin:0;text-align:center">聽到的是哪個字？</p>'
+          :`<div class="qtext" style="font-size:20px;text-align:center">${en?esc(w[0]):esc(w[1])}</div><p class="small" style="margin:0;text-align:center">${en?'是什麼意思？':'英文是？'}</p>`}
+        ${opts.map((o,k)=>`<button class="btn opt" data-wo="${k}" style="padding:8px 10px">${'ABCD'[k]}. ${esc(label(o))}</button>`).join('')}</div>`);
+    if($('#wsay'))$('#wsay').onclick=()=>speak(w[0]);if(mode==='listen'||en)speak(w[0]);
+    $('#view').querySelectorAll('[data-wo]').forEach(b=>b.onclick=()=>{
+      $('#view').querySelectorAll('[data-wo]').forEach(x=>{x.disabled=true;if(opts[+x.dataset.wo]===w)x.classList.add('right')});
+      if(opts[+b.dataset.wo]===w){ok++;wbRight(u,w)}else{b.classList.add('wrong');missed.push(w);if(mode!=='listen')speak(w[0])}
+      i++;setTimeout(next,opts[+b.dataset.wo]===w?600:1400)});
+  };
+  next();
+}
+function wbSpell(u){
+  wbUnit=u;const pool=u.words.filter(w=>/^[A-Za-z]{2,14}$/.test(w[0]));
+  if(pool.length<1){toast('這課沒有適合拼字的單字');return}
+  const ws=pool.slice().sort(()=>Math.random()-.5).slice(0,Math.min(8,pool.length));let i=0,ok=0;const missed=[];
+  const next=()=>{
+    if(i>=ws.length){wbFinish(u,'拼字挑戰',ok,ws.length,missed).then(b=>b.onclick=()=>wbSpell(u));return}
+    const w=ws[i],ans=w[0].toLowerCase(),extra='abcdefghijklmnopqrstuvwxyz'.split('').sort(()=>Math.random()-.5).slice(0,2);
+    const tiles=[...ans.split(''),...extra].map((c,k)=>({c,k})).sort(()=>Math.random()-.5);let typed=[],tries=0;
+    const draw=()=>{wbShell('拼字挑戰',`<p class="small" style="margin:0;text-align:center">第 ${i+1}／${ws.length} 題・答對 ${ok}</p>
+      <div class="box paper" style="display:flex;flex-direction:column;gap:10px;align-items:center">
+        <div class="qtext" style="font-size:22px">${esc(w[1])}</div><span class="small">${w[2]?esc(w[2])+'・':''}${ans.length} 個字母・第一個是 <b>${ans[0]}</b></span>
+        <div style="font-size:26px;letter-spacing:4px;font-family:monospace;min-height:34px">${typed.map(t=>tiles[t].c).join('')}<span style="opacity:.35">${'_'.repeat(Math.max(0,ans.length-typed.length))}</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${tiles.map((t,k)=>`<button class="btn" data-tl="${k}" ${typed.includes(k)?'disabled style="opacity:.3;min-width:40px"':'style="min-width:40px"'}>${t.c}</button>`).join('')}</div>
+        <div class="row" style="width:100%"><button class="btn" id="wdel">← 刪掉</button><button class="btn" id="wskip">跳過</button><button class="btn" id="wsay">🔊</button></div></div>`);
+      $('#view').querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{typed.push(+b.dataset.tl);
+        const sp=typed.map(t=>tiles[t].c).join('');
+        if(sp.length===ans.length){if(sp===ans){ok++;wbRight(u,w);speak(w[0]);toast('拼對了！');i++;setTimeout(next,600);return}
+          tries++;toast(tries>=2?`正確是 ${w[0]}`:'不對喔，再試一次');if(tries>=2){missed.push(w);i++;setTimeout(next,1200);return}typed=[]}
+        draw()});
+      $('#wdel').onclick=()=>{typed.pop();draw()};$('#wsay').onclick=()=>speak(w[0]);
+      $('#wskip').onclick=()=>{missed.push(w);toast(`正確是 ${w[0]}`);i++;setTimeout(next,900)}};
+    draw();
+  };
+  next();
+}
+/* 配對：左邊英文、右邊中文，點一個英文再點它的中文；兩輪各 5 組 */
+function wbMatch(u){
+  wbUnit=u;const ws=u.words.slice().sort(()=>Math.random()-.5).slice(0,Math.min(10,u.words.length));let ok=0,miss=0,round=0;const missed=[];
+  const rounds=[ws.slice(0,5),ws.slice(5,10)].filter(r=>r.length>=2);
+  const play=()=>{
+    if(round>=rounds.length){wbFinish(u,'配對',ok,ws.length,missed).then(b=>b.onclick=()=>wbMatch(u));return}
+    const set=rounds[round],L=set.slice().sort(()=>Math.random()-.5),R=set.slice().sort(()=>Math.random()-.5);let sel=null;const done=new Set();
+    const draw=()=>{wbShell('配對',`<p class="small" style="margin:0;text-align:center">第 ${round+1}／${rounds.length} 輪・點英文，再點它的中文</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="display:flex;flex-direction:column;gap:8px">${L.map((w,k)=>`<button class="btn" data-ml="${k}" ${done.has(w)?'disabled':''} style="${done.has(w)?'background:var(--mint);':sel===w?'background:var(--gold);color:var(--night);':''}font-size:15px">${esc(w[0])}</button>`).join('')}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${R.map((w,k)=>`<button class="btn" data-mr="${k}" ${done.has(w)?'disabled':''} style="${done.has(w)?'background:var(--mint);':''}font-size:15px">${esc(w[1])}</button>`).join('')}</div></div>`);
+      $('#view').querySelectorAll('[data-ml]').forEach(b=>b.onclick=()=>{sel=L[+b.dataset.ml];speak(sel[0]);draw()});
+      $('#view').querySelectorAll('[data-mr]').forEach(b=>b.onclick=()=>{if(!sel){toast('先點左邊的英文');return}const w=R[+b.dataset.mr];
+        if(w===sel){done.add(w);if(!missed.includes(w)){ok++;wbRight(u,w)}sel=null;if(done.size===set.length){round++;setTimeout(play,400)}else draw()}
+        else{if(!missed.includes(sel))missed.push(sel);miss++;toast('不是這個喔');sel=null;draw()}})};
+    draw();
+  };
+  play();
 }
 /* ---------- 小遊戲關卡：每種 4 關，過了才開下一關；越後面每場金幣上限越高（15／18／21／24） ---------- */
 const GLV={
@@ -1367,12 +1511,13 @@ function openLibrary(){
   const n=wrongs().length,done=!!S.answers[dkey()];
   const m=modal(`<div style="display:flex;justify-content:center"><span data-s="book" data-z="7"></span></div><h2 style="text-align:center">圖書館</h2>
     <p class="small" style="margin:0;text-align:center;line-height:1.6">安靜的角落，適合複習。錯題本有 <b style="color:var(--gold)">${n}</b> 題，單字卡收集了 <b style="color:var(--gold)">${Object.keys(S.cards).length}</b> 張。</p>
-    <button class="btn gold" id="lrev">打開錯題本（${n}）</button><button class="btn" id="lmore">多練幾題</button><button class="btn mint" id="lcard">看我的單字卡</button>
+    <button class="btn gold" id="lrev">打開錯題本（${n}）</button><button class="btn" id="lmore">多練幾題</button><button class="btn mint" id="lcard">看我的單字卡</button><button class="btn" id="lwb" style="background:#5a3d2b;color:var(--paper)">單字本（依版本背單字）</button>
     <button class="btn ghost" data-close>離開</button>`);
   const toDaily=id=>{m.remove();if(!done){toast('先答今日一題，才能開始練習');go('daily');return}go('daily');setTimeout(()=>{const b=$(id);if(b)b.click()},120)};
   m.querySelector('#lrev').onclick=()=>{m.remove();renderMistakes()};
   m.querySelector('#lmore').onclick=()=>toDaily('#more');
   m.querySelector('#lcard').onclick=()=>{m.remove();go('me')};
+  m.querySelector('#lwb').onclick=()=>{m.remove();renderWordbook('city')};
 }
 /* 大魔法師之塔：老師的公告和信箱 */
 /* 直接打開我的魔法花園（在我的家下面） */
@@ -2367,6 +2512,9 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-10',title:'單字本上線',items:[
+  ['book','依版本背單字','遊樂場和圖書館多了「單字本」：選你的版本（龍騰、三民、學測、多益…）和課數，用字卡背單字，再玩選意思、聽音選字、拼字、配對小遊戲賺金幣！',()=>renderWordbook('games')],
+ ]},
  {v:'2026-11-07',title:'聖誕節預告＋單字卡變整齊了',items:[
   ['xtree','廣場的聖誕樹','聖誕節要來了！廣場的聖誕樹每個禮拜都會多一點裝飾，點它可以偷看 12/1 會有什麼…',()=>{go('city');setTimeout(()=>cityTap(HW_STAND[0],HW_STAND[1]),300)}],
   ['card','單字卡收起來了','「我的」頁面的單字卡變成可以打開、收起來的選單，還可以搜尋和排序，不會再占一大片。',()=>go('me')],
