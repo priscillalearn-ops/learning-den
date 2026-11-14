@@ -884,6 +884,13 @@ async function visitRoom(who,uid,tier){
   const m=modal(`<h2>${esc(who)} 的房間</h2><p style="margin:0">${starStr(roomStars(roomScore(look.room)))} <span class="small">${roomScore(look.room)} 分</span></p>${roomSVG(look,look.outfit,who+' 的房間')}${uid&&uid!==ME||!uid&&!ONLINE?`<button class="btn" id="vwave" style="background:var(--mint);color:var(--night)">👋 對 ${esc(who)} 揮手</button>`:''}<div class="row"><button class="btn" data-close>回去</button><button class="btn gold" id="vgarden">看${esc(who)}的花園</button></div>`);
   m.querySelector('#vgarden').onclick=()=>{m.remove();gardenBack=back;renderGarden(uid||'bot',who)};
   if(m.querySelector('#vwave'))m.querySelector('#vwave').onclick=()=>{m.remove();sendWave(uid,who)};
+  /* 點同學頭像：還不是好友就可以直接按加好友 */
+  if(ONLINE&&uid&&uid!==ME&&friendTierOk(tier))cloud.friends().then(rows=>{if(!rows||!m.isConnected)return;
+    const f=rows.find(r=>r.requester===uid||r.addressee===uid);
+    const html=f?`<p class="small" style="margin:0;text-align:center">${f.status==='accepted'?'你們已經是好友了':f.requester===ME?'好友邀請已送出，等對方回覆':'對方邀請你當好友，到「好友」接受吧'}</p>`
+      :`<button class="btn gold" id="vadd">加 ${esc(who)} 好友</button>`;
+    m.querySelector('h2').insertAdjacentHTML('afterend',html);
+    if(m.querySelector('#vadd'))m.querySelector('#vadd').onclick=async e=>{e.target.disabled=true;if(await cloud.request(uid)!==undefined){toast(`已送出好友邀請給 ${who}`);e.target.outerHTML='<p class="small" style="margin:0;text-align:center">好友邀請已送出</p>'}else e.target.disabled=false}});
 }
 
 
@@ -1475,7 +1482,7 @@ function drawBank(){
 }
 
 /* ---------- 魔法城市 ----------
-   34×26 格的大地圖，畫面只顯示身邊 13×15 格，鏡頭跟著人走；按「全圖」可以看整張地圖、點哪裡走去哪裡。
+   34×26 格的大地圖，畫面只顯示身邊 13×17 格，鏡頭跟著人走；按「全圖」可以看整張地圖、點哪裡走去哪裡。
    地圖字元：. 草地  = 路  , 花  T 樹  w 湖  b 橋  s 沙灘  ~ 噴水池  B 建築  D 門  N 布告欄  Q 任務板
             L 路燈  f 柵欄  g 柵門  c 長椅  p 灌木（萬聖節期間變南瓜）
    線上版同年級的同學會即時出現在城市裡；NPC 同學會自己閒逛，寵物公園裡也有小動物。 */
@@ -1507,8 +1514,10 @@ const CITY_MAP=[
  '....T...BBBBB.T.p.....T...T...T...',
  'T...................p............T'
 ];
-/* 畫面顯示 13×15 格（直式，手機上格子比較大）；CSC=4 讓放大後還是清楚 */
-const CW=CITY_MAP[0].length,CH=CITY_MAP.length,TS=16,CSC=4,VW=13,VH=15,CITY_V=2;
+/* 畫面顯示 13×17 格（直式，手機上格子比較大）；CSC=4 讓放大後還是清楚 */
+const CW=CITY_MAP[0].length,CH=CITY_MAP.length,TS=16,CSC=4,VW=13,VH=17,CITY_V=2;
+/* 大頭菜市場的攤位（湖邊沙灘） */
+const MARKET_AT=[25,19];
 const BUILDINGS=[
  {id:'study',name:'讀書房',x:1,y:0,w:5,h:3,door:[3,3],roof:'#7a3f9e',wall:'#e8dcc4',open:()=>{S.freeRoom=false;save();go('room')}},
  {id:'academy',name:'魔法學院',x:7,y:0,w:6,h:3,door:[10,3],roof:'#2f6fb0',wall:'#f4ecd8',open:()=>go('daily')},
@@ -1532,7 +1541,7 @@ const SNOWMAN=[17,10];
 const xmasLeft=()=>{const d=new Date();return Math.round((new Date(d.getFullYear(),11,1)-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)};
 const standOn=()=>halloween()||xmasStage()>0;
 function buildCity(){return CITY_MAP.map(r=>[...r])}
-const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1])&&!(xmasHas('snowman')&&x===SNOWMAN[0]&&y===SNOWMAN[1]);
+const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1])&&!(xmasHas('snowman')&&x===SNOWMAN[0]&&y===SNOWMAN[1])&&!(x===MARKET_AT[0]&&y===MARKET_AT[1]);
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 const doorAt=(x,y)=>BUILDINGS.find(b=>b.door[0]===x&&b.door[1]===y);
 /* 圖書館：錯題本、單字卡 */
@@ -1601,32 +1610,16 @@ function renderCity(){
      <button class="chip" id="cmap" style="position:absolute;right:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--gold)">全圖</button>
    </div>
    ${reactBar()}
-   <p class="small" style="margin:0">點地面走路，點建築就會走過去進門；電腦也可以用方向鍵。城市很大，按「全圖」看整張地圖。<span style="color:var(--gold)">今天城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
-   ${newbieCard()}
-   ${suggOn()?`<button class="btn" id="suggbtn" style="background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="scroll" data-z="2"></span>上架建議箱：給建議最高拿 1000 金幣！</button>`:''}
-   <button class="btn" id="visitbtn" style="background:var(--plum);color:var(--paper)">今日訪客來了！（廣場）</button>
-   <div class="row"><button class="btn" id="fishbtn" style="background:#3a7bd5;color:var(--paper)">湖邊釣單字</button><button class="btn" id="marketbtn" style="background:#c98a3a;color:var(--night)">大頭菜市場<span id="mktip" class="small" style="display:block;font-size:11px"></span></button></div>
-   <button class="btn" id="gardenbtn" style="background:#3f8f5a;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px">${cropIcon('sunflower',22)}我的魔法花園（種菜、偷菜、換配件）</button>
-   ${halloween()?`<button class="btn" id="hwbtn" style="background:#ff8a5c;color:var(--night);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="ghost" data-z="3"></span>萬聖節糖果大作戰（廣場的南瓜攤）</button>`:''}
-   ${!halloween()&&xmasStage()?`<button class="btn" id="xmasbtn" style="background:#2f7045;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:8px"><span data-s="xtree" data-z="3"></span>${xmasStage()<4?`聖誕節預告・倒數 ${xmasLeft()} 天（廣場的聖誕樹）`:'聖誕節到了！降臨月曆（廣場的聖誕樹）'}</button>`:''}
-   <div class="chips">${BUILDINGS.map(b=>`<button class="chip" data-b="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-b="notice">布告欄</button><button class="chip" data-b="quest">任務板</button></div>`;
+   <p class="small" style="margin:0">點地面走路、點建築進門，按「全圖」快速移動。訪客、聖誕樹在廣場，釣魚在湖邊，市場在沙灘。<span style="color:var(--gold)">城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
+   ${newbieCard()}`;
   paintSprites($('#view'));
   $('#ctasks').onclick=()=>renderQuests();loadAnn();loadQuests();
   const cv=$('#ccv');
   cv.onclick=e=>{const r=cv.getBoundingClientRect(),[cx,cy]=cityCam(),tx=Math.floor(((e.clientX-r.left)/r.width*VW*TS+cx)/TS),ty=Math.floor(((e.clientY-r.top)/r.height*VH*TS+cy)/TS);cityTap(tx,ty)};
   $('#cmap').onclick=openCityMap;bindReacts();
-  $('#gardenbtn').onclick=openMyGarden;
-  $('#fishbtn').onclick=()=>cityTap(27,16);
-  $('#visitbtn').onclick=()=>cityTap(VISITOR_AT[0],VISITOR_AT[1]);
-  loadVisitor().then(v=>{const e=$('#visitbtn');if(e&&v)e.textContent=`今日訪客：${VISITORS[v.kind].name}（在廣場）`});
-  $('#marketbtn').onclick=()=>openMarket();
-  marketTip().then(t=>{const e=$('#mktip');if(e&&t)e.textContent=`今天${t.name} ×${t.mult.toFixed(1)}${t.mult>=1.5?'！':''}`});
-  if($('#suggbtn'))$('#suggbtn').onclick=openSuggest;
+  loadVisitor();
   if($('#nbcard'))$('#nbcard').onclick=openNewbie;
   if(!renderCity.nbLoading){renderCity.nbLoading=1;loadNewbie().then(st=>{renderCity.nbLoading=0;const had=!!$('#nbcard');if(curTab==='city'&&(!!st)!==had)renderCity();else if(st&&$('#nbcard'))$('#nbcard').outerHTML=newbieCard(),$('#nbcard').onclick=openNewbie,paintSprites($('#nbcard'))})}
-  if($('#hwbtn'))$('#hwbtn').onclick=()=>{if(city.hw)return;cityTap(HW_STAND[0],HW_STAND[1])};
-  if($('#xmasbtn'))$('#xmasbtn').onclick=()=>cityTap(HW_STAND[0],HW_STAND[1]);
-  $('#view').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{if(b.dataset.b==='notice')openNotice();else if(b.dataset.b==='quest')renderQuests();else{const x=BUILDINGS.find(y=>y.id===b.dataset.b);enterBuilding(x)}});
   joinCity();
   cancelAnimationFrame(cityLoop);let last=performance.now();
   const frame=t=>{if(curTab!=='city'||!$('#ccv'))return;const dt=Math.min(.05,(t-last)/1000);last=t;cityTick(dt);cityDraw();cityLoop=requestAnimationFrame(frame)};
@@ -1866,18 +1859,19 @@ function cityCam(){const me=city.me;return [Math.round(Math.max(0,Math.min(CW*TS
 function openCityMap(){
   const Z=4,m=modal(`<h2 style="text-align:center">魔法城市全圖</h2><canvas id="mmap" width="${CW*Z*2}" height="${CH*Z*2}" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);cursor:pointer"></canvas>
     <p class="small" style="margin:0;text-align:center">點地圖上的地方就會走過去・黃點是你</p>
-    <div class="chips" style="justify-content:center">${BUILDINGS.map(b=>`<button class="chip" data-mb="${b.id}">${b.name}</button>`).join('')}</div>
+    <div class="chips" style="justify-content:center">${BUILDINGS.map(b=>`<button class="chip" data-mb="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-mx="${HW_STAND[0]},${HW_STAND[1]}">廣場</button><button class="chip" data-mx="27,16">湖邊釣魚</button><button class="chip" data-mx="${MARKET_AT[0]},${MARKET_AT[1]}">大頭菜市場</button><button class="chip" data-mx="${NOTICE[0]},${NOTICE[1]}">布告欄</button><button class="chip" data-mx="${QUEST[0]},${QUEST[1]}">任務板</button></div>
     <button class="btn ghost" data-close>關閉</button>`);
   const cv=m.querySelector('#mmap'),c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);
   const col={'=':'#c9b98f',D:'#c9b98f',w:'#3a7bd5','~':'#8fc6f5',b:'#8b5e3c',s:'#e8d39a',T:'#2f7045',f:'#8b5e3c',g:'#8b5e3c',L:'#c9b98f',c:'#c9b98f',p:'#2f7045',N:'#c98a3a',Q:'#c98a3a'};
   CITY.forEach((r,y)=>r.forEach((ch,x)=>{c.fillStyle=col[ch]||((x+y)%2?'#3f8f5a':'#43965e');c.fillRect(x*Z,y*Z,Z,Z)}));
-  BUILDINGS.forEach(b=>{c.fillStyle=b.roof;c.fillRect(b.x*Z,b.y*Z,b.w*Z,b.h*Z)});
+  BUILDINGS.forEach(b=>{c.fillStyle=b.roof;c.fillRect(b.x*Z,b.y*Z,b.w*Z,b.h*Z)});c.fillStyle='#c98a3a';c.fillRect(MARKET_AT[0]*Z,MARKET_AT[1]*Z,Z,Z);
   c.font='5px "DotGothic16",sans-serif';c.textAlign='center';
   BUILDINGS.forEach(b=>{const n=b.short||b.name,w=c.measureText(n).width+3,X=(b.x+b.w/2)*Z,Y=(b.y+b.h/2)*Z;c.fillStyle='rgba(15,10,26,.75)';c.fillRect(X-w/2,Y-3.5,w,6);c.fillStyle='#f4ecd8';c.fillText(n,X,Y+1.5)});
   Object.values(city.peers).forEach(p=>{c.fillStyle='#9fe1cb';c.fillRect(p.px/TS*Z-1.5,p.py/TS*Z-1.5,3,3)});
   c.fillStyle='#ffd166';c.fillRect(city.me.px/TS*Z-2,city.me.py/TS*Z-2,4,4);c.strokeStyle='#1a1026';c.lineWidth=.6;c.strokeRect(city.me.px/TS*Z-2,city.me.py/TS*Z-2,4,4);
   cv.onclick=e=>{const r=cv.getBoundingClientRect(),tx=Math.floor((e.clientX-r.left)/r.width*CW),ty=Math.floor((e.clientY-r.top)/r.height*CH);m.remove();cityTap(tx,ty)};
   m.querySelectorAll('[data-mb]').forEach(b=>b.onclick=()=>{const x=BUILDINGS.find(y=>y.id===b.dataset.mb);m.remove();cityTap(x.door[0],x.door[1])});
+  m.querySelectorAll('[data-mx]').forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.mx.split(',').map(Number);m.remove();cityTap(x,y)});
 }
 function cityTap(tx,ty){
   const me=city.me;
@@ -1888,6 +1882,7 @@ function cityTap(tx,ty){
     if(best){me.path=best;me.goal='fish';if(!best.length){me.goal=null;openFishing()}}return}
   if(city.hw){const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal=null}return}
   if(halloween()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='hw';if(!p.length){me.goal=null;hwOpen()}}return}
+  if(tx===MARKET_AT[0]&&ty===MARKET_AT[1]){const p=bfs(me.x,me.y,MARKET_AT[0],MARKET_AT[1]+1);if(p){me.path=p;me.goal='market';if(!p.length){me.goal=null;openMarket()}}return}
   if(xmasStage()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='xmas';if(!p.length){me.goal=null;xmasOpen()}}return}
   const npc=city.npcs.find(n=>n.x===tx&&n.y===ty);
   if(npc){const talk=BOT_TALK[S.tier];city.bubbles.push({who:npc,txt:['嗨！','今天打卡了嗎？',talk[hash(npc.name+Date.now())%talk.length],'一起去讀書房吧'][Math.floor(Math.random()*4)],until:performance.now()+2500});return}
@@ -1910,6 +1905,7 @@ function cityTick(dt){
     if(city.hw)me.armed=false;
     else if(!me.path.length&&me.goal==='hw'){me.goal=null;hwOpen()}
     else if(!me.path.length&&me.goal==='xmas'){me.goal=null;xmasOpen()}
+    else if(!me.path.length&&me.goal==='market'){me.goal=null;openMarket()}
     else if(!me.path.length&&me.goal==='fish'){me.goal=null;openFishing()}
     else if(!me.path.length&&me.goal==='visitor'){me.goal=null;openVisitor()}
     else{const door=doorAt(me.x,me.y);
@@ -2083,6 +2079,9 @@ function cityBase(){
     if(ch==='Q'||ch==='N'){R('rgba(0,0,0,.22)',X+2,Y+14,13,2);R('#5a3d2b',X+3,Y+9,2,7);R('#5a3d2b',X+11,Y+9,2,7);R('#8b5e3c',X+1,Y+1,14,10);R('#a8794e',X+1,Y+1,14,1);R('#6e472b',X+1,Y+10,14,1);
       R('#f4ecd8',X+3,Y+3,ch==='N'?4:10,6);if(ch==='N'){R('#fff6c9',X+9,Y+3,4,5);R('#d94f4f',X+4,Y+3,2,1);R('#3a7bd5',X+10,Y+3,2,1)}else{R('#d94f4f',X+4,Y+5,8,1);R('#c7b8e8',X+4,Y+7,5,1);R('#ffd166',X+12,Y+2,2,2)}}
   }
+  {const X=MARKET_AT[0]*TS,Y=MARKET_AT[1]*TS;R('rgba(0,0,0,.22)',X+1,Y+14,15,2);R('#7a5233',X+1,Y+3,2,12);R('#7a5233',X+13,Y+3,2,12);
+    R('#9a6b44',X,Y+8,16,6);R('#b07d52',X,Y+8,16,1);R('#6e472b',X,Y+13,16,1);[[2,'#ff8a5c'],[6,'#e8c35a'],[10,'#d94f4f']].forEach(([a,col])=>{R(col,X+a,Y+6,3,3);R(shadeHex(col,.3),X+a,Y+6,1,1)});
+    for(let i=0;i<8;i++)R(i%2?'#f4ecd8':'#c98a3a',X+i*2,Y,2,4);R('rgba(0,0,0,.2)',X,Y+4,16,1);R('#f4ecd8',X+4,Y+10,8,2);R('#d94f4f',X+5,Y+10,2,1);R('#3a7bd5',X+9,Y+11,2,1)}
   BUILDINGS.forEach(b=>{
     const X=b.x*TS,Y=b.y*TS,W=b.w*TS,H=b.h*TS;
     R('rgba(0,0,0,.2)',X+W,Y+14,3,H-14);R('rgba(0,0,0,.2)',X+3,Y+H,W,3);
@@ -2617,6 +2616,10 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-14b',title:'加好友更簡單＋城市變大',items:[
+  ['chat','用名字加好友','到「好友」輸入同學的名字就能找到，按「加入」送出邀請；在城市點同學的頭像也能直接加好友。',()=>go('friends')],
+  ['star','城市畫面變大','下面的捷徑拿掉了，城市地圖變得更大！訪客、聖誕樹在廣場，釣魚在湖邊，大頭菜市場在沙灘的攤位，按「全圖」可以快速移動。',()=>go('city')],
+ ]},
  {v:'2026-11-14',title:'廣場聖誕布置＋城市畫面變精緻',items:[
   ['xtree','聖誕廣場','廣場布置好了！聖誕樹、禮物、雪人和閃閃的燈串，12/1 還會下雪。',()=>{go('city');setTimeout(()=>cityTap(HW_STAND[0],HW_STAND[1]),300)}],
   ['star','整體畫面升級','城市畫面變大變清楚，樹、湖、石板路、房子都重畫了；角色、寵物、家具和房間也變精緻（有光影、外框，角色眼睛會發亮）。',()=>go('city')],
@@ -3735,28 +3738,33 @@ async function renderFriends(){
     paintSprites($('#view'));return;
   }
   if(!ONLINE){$('#view').innerHTML=`${head}<div class="box" style="background:var(--deep)"><p style="margin:0;line-height:1.7">好友和私訊要在網頁版用 Google 登入後才能用。</p></div>`;paintSprites($('#view'));return}
-  const myCode=ME.slice(0,6).toUpperCase();
   $('#view').innerHTML=`${head}
    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px">
-     <div class="bar"><span class="small">我的好友代碼</span><span class="timer" style="font-size:26px">${myCode}</span></div>
-     <label for="fcode" class="small">輸入同學的好友代碼</label>
-     <div class="row"><input type="text" id="fcode" maxlength="6" placeholder="例如 7F3A9C" autocomplete="off"><button class="btn gold" id="fadd" style="flex:0 0 auto">加好友</button></div>
+     <label for="fname" class="small">加好友：輸入同學的名字</label>
+     <div class="row"><input type="search" id="fname" maxlength="16" placeholder="例如 小明" autocomplete="off"><button class="btn gold" id="fsearch" style="flex:0 0 auto">找</button></div>
      <p class="err" id="ferr" role="alert"></p>
+     <div id="fresults"></div>
+     <p class="small" style="margin:0">在城市或讀書房點同學的頭像，也可以直接加好友。</p>
    </div>
    <div id="flists"><p class="small">載入中…</p></div>
    <p class="demo" style="text-align:left;line-height:1.6">私訊只能傳給好友。不要傳電話、地址、照片，也不要約見面。管理員看得到私訊內容，被檢舉的訊息老師會處理。</p>`;
   paintSprites($('#view'));
-  $('#fcode').oninput=()=>$('#ferr').textContent='';
-  $('#fadd').onclick=async()=>{
-    const code=$('#fcode').value.trim().toUpperCase();
-    if(!/^[0-9A-F]{6}$/.test(code)){$('#ferr').textContent='好友代碼是 6 個英文或數字';return}
-    if(code===myCode){$('#ferr').textContent='這是你自己的代碼';return}
-    const r=await cloud.findByCode(code);if(r===undefined)return;
-    const who=r&&r[0];if(!who){$('#ferr').textContent='找不到這個代碼，再確認一次';return}
-    if(!friendTierOk(who.tier)){$('#ferr').textContent=S.tier==='kid'?`${who.name} 不是國小的同學，國小只能加國小`:`${who.name} 是國小的同學，國中、高中不能加國小`;return}
-    if(await cloud.request(who.id)!==undefined){toast(`已送出好友邀請給 ${who.name}`);renderFriends()}
-  };
   const [rows]=await Promise.all([cloud.friends(),loadAffinity()]);if(curTab!=='friends'||!$('#flists'))return;
+  /* 搜尋結果、同年級推薦：每個人一個「加入」按鈕；已經是好友或邀請中的會顯示狀態 */
+  const rel=uid=>{const f=(rows||[]).find(r=>r.requester===uid||r.addressee===uid);return !f?'':f.status==='accepted'?'已是好友':f.requester===ME?'邀請中':'對方邀請你'};
+  const showPeople=(list,title)=>{const box=$('#fresults');if(!box)return;
+    list=list.filter(p=>p.id!==ME&&friendTierOk(p.tier)&&!isBlocked(p.id));
+    box.innerHTML=list.length?`<p class="small" style="margin:4px 0 6px">${title}</p><div class="flist">${list.map(p=>{const st=rel(p.id);
+      return `<div class="frow"><span data-s="${TIERS[p.tier]?p.tier:'teen'}" data-z="3"></span><span class="grow">${esc(p.name||'同學')}${p.grade?` <span class="small">${esc(p.grade)}</span>`:''}</span>
+        ${st?`<span class="small">${st}</span>`:`<button class="btn gold mini" data-fadd="${p.id}" data-fn="${esc(p.name||'同學')}">加入</button>`}</div>`}).join('')}</div>`
+      :`<p class="small" style="margin:4px 0 0">${title==='同年級的同學'?'':'找不到這個名字，換個字試試看（打名字的一部分也可以）'}</p>`;
+    paintSprites(box);
+    box.querySelectorAll('[data-fadd]').forEach(b=>b.onclick=async()=>{b.disabled=true;if(await cloud.request(b.dataset.fadd)!==undefined){toast(`已送出好友邀請給 ${b.dataset.fn}`);b.outerHTML='<span class="small">邀請中</span>'}else b.disabled=false})};
+  const search=async()=>{const q=$('#fname').value.trim().replace(/[%_\\]/g,'');$('#ferr').textContent='';
+    if(!q){$('#ferr').textContent='輸入同學的名字（打一部分也可以）';return}
+    const r=await cloud.run(()=>sb.from('profiles').select('id,name,tier,grade').ilike('name',`%${q}%`).neq('id',ME).limit(15),true);if(r)showPeople(r,`找到「${q}」`)};
+  $('#fsearch').onclick=search;$('#fname').onkeydown=e=>{if(e.key==='Enter')search()};
+  if(gradeOK(S.tier,S.grade))cloud.run(()=>sb.from('profiles').select('id,name,tier,grade').eq('grade',S.grade).neq('id',ME).limit(12)).then(r=>{if(r&&!$('#fname').value.trim())showPeople(r.filter(p=>!rel(p.id)),'同年級的同學')});
   if(rows===undefined){$('#flists').innerHTML='<p class="small">好友名單載不到，檢查一下網路。</p>';return}
   const other=r=>r.requester===ME?{uid:r.addressee,...(r.ad||{})}:{uid:r.requester,...(r.rq||{})};
   const fr=rows.filter(r=>r.status==='accepted').map(other).filter(f=>!isBlocked(f.uid));
@@ -3767,7 +3775,7 @@ async function renderFriends(){
    ${inc.length?`<p class="small" style="margin:0 0 6px">好友邀請</p><div class="flist">${inc.map(f=>row(f,`<button class="btn gold mini" data-acc="${f.uid}">接受</button><button class="btn ghost mini" data-del="${f.uid}">略過</button>`)).join('')}</div>`:''}
    <div class="bar" style="margin:12px 0 6px"><span class="small">好友（${fr.length}）</span><button class="chip" id="affq" style="font-size:12px;padding:3px 8px">好感度怎麼算？</button></div>
    ${fr.length?`<div class="flist">${fr.map(f=>`<button class="frow" data-chat="${f.uid}" data-name="${esc(f.name||'同學')}"><span data-s="${TIERS[f.tier]?f.tier:'teen'}" data-z="3"></span><span class="grow">${esc(f.name||'同學')}</span>${unread[f.uid]?`<span class="badge" style="position:static">${unread[f.uid]}</span>`:'<span class="small">聊天</span>'}${affBadge(f.uid)}</button>`).join('')}</div>`
-     :'<p style="margin:0;line-height:1.6">還沒有好友。把你的好友代碼給同學，或在留言區的「⋯」選「加好友」。</p>'}
+     :'<p style="margin:0;line-height:1.6">還沒有好友。在上面輸入同學的名字，或在城市點同學的頭像就能加。</p>'}
    ${out.length?`<p class="small" style="margin:12px 0 6px">等對方回覆</p><div class="flist">${out.map(f=>row(f,`<button class="btn ghost mini" data-del="${f.uid}">取消</button>`)).join('')}</div>`:''}`;
   paintSprites($('#flists'));
   cloud.gifts().then(async gs=>{
