@@ -82,6 +82,7 @@ h2{font-size:17px;font-weight:400;margin:0}
 .modal{position:fixed;inset:0;background:rgba(15,10,26,.82);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .modal .box{background:var(--night);max-width:380px;width:100%;display:flex;flex-direction:column;gap:12px;max-height:90%;overflow-y:auto}
 .modal .box.paper{background:var(--paper)}
+.modal .box>*{flex-shrink:0}
 #mycards summary::-webkit-details-marker{display:none}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--gold);color:var(--night);border:3px solid var(--ink);padding:8px 14px;font-size:13px;z-index:20;max-width:90%}
 input[type=text]{font-family:inherit;font-size:15px;width:100%;padding:10px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)}
@@ -1484,13 +1485,13 @@ const BUILDINGS=[
 const NOTICE=[9,7],QUEST=[20,7],PARK=[29,6,3,4];
 let CITY=null,cityLoop=0,city=null;
 const halloween=()=>{const d=new Date(),m=d.getMonth()+1;return m===10||(m===11&&d.getDate()<=7)};
-/* 聖誕節：11/8 起廣場的聖誕樹一週一週布置起來（預告），12 月整個城市過聖誕
-   1 = 11/8～14 光禿禿的樹、2 = 11/15～21 掛上彩球、3 = 11/22～30 加燈和路燈花圈、4 = 12 月（星星、禮物、下雪、灌木變小松樹） */
-const xmasStage=()=>{const d=new Date(),m=d.getMonth()+1,day=d.getDate();return m===12?4:m===11&&day>=8?(day<15?1:day<22?2:3):0};
+/* 聖誕節：11/8 起廣場整個布置好（聖誕樹、禮物、雪人、燈串、路燈花圈、灌木變小松樹）＝ 3；12 月再下雪、開降臨月曆 ＝ 4 */
+const xmasStage=()=>{const d=new Date(),m=d.getMonth()+1,day=d.getDate();return m===12?4:m===11&&day>=8?3:0};
+const SNOWMAN=[17,10];
 const xmasLeft=()=>{const d=new Date();return Math.round((new Date(d.getFullYear(),11,1)-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)};
 const standOn=()=>halloween()||xmasStage()>0;
 function buildCity(){return CITY_MAP.map(r=>[...r])}
-const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1]);
+const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1])&&!(xmasHas('snowman')&&x===SNOWMAN[0]&&y===SNOWMAN[1]);
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 const doorAt=(x,y)=>BUILDINGS.find(b=>b.door[0]===x&&b.door[1]===y);
 /* 圖書館：錯題本、單字卡 */
@@ -1728,7 +1729,8 @@ function xmasOpen(){
   const pre=st<4;
   const m=modal(`<div style="display:flex;justify-content:center;gap:8px"><span data-s="xtree" data-z="6"></span><span data-s="gift" data-z="6"></span></div>
     <h2 style="text-align:center">${pre?`聖誕節倒數 ${xmasLeft()} 天`:'聖誕快樂！'}</h2>
-    <p style="margin:0;line-height:1.7;text-align:center">${pre?`廣場的聖誕樹正在布置中，${['','先把樹搬來了','掛上彩球了','燈也亮起來了'][st]}！<br>每個禮拜都會多一點裝飾，<b style="color:var(--gold)">12/1</b> 整個城市一起過聖誕。`:'城裡下雪了！聖誕限定商品在百貨公司，只到 12/31。'}</p>
+    <p style="margin:0;line-height:1.7;text-align:center">${pre?(()=>{const n=xmasCount(),d=XMAS_DECO;return `廣場每天會多一個聖誕裝飾！今天新增：<b style="color:var(--gold)">${d[n-1][1]}</b><br>${n<d.length?'明天還會有新的，記得回來看。':'裝飾全部到齊了！'}<b style="color:var(--gold)">12/1</b> 開始下雪、開放降臨月曆。</p>
+      <div class="box" style="background:var(--deep);padding:8px 10px"><p class="lbl" style="margin:0 0 6px">廣場布置進度 ${n}／${d.length}</p><div class="chips">${d.map((x,i)=>`<span class="chip" style="${i<n?'background:var(--mint);color:var(--night)':'opacity:.55'}">${i<n?'✓ '+x[1]:'？？？'}</span>`).join('')}</div></div><p style="display:none">`})():'城裡下雪了！聖誕限定商品在百貨公司，只到 12/31。'}</p>
     ${pre?`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px"><p class="lbl" style="margin:0">12/1 登場（先偷看一點點）</p>
       ${teasers.map(([sp,a,b])=>`<div style="display:flex;gap:10px;align-items:center"><span data-s="${sp}" data-z="4"></span><span><b>${a}</b><br><span class="small">${b}</span></span></div>`).join('')}</div>
       <div class="box" style="background:var(--deep)"><p class="lbl" style="margin:0 0 6px">聖誕限定商品（還看不清楚）</p>
@@ -1981,45 +1983,130 @@ function openNotice(tab){
   m.querySelectorAll('[data-nt]').forEach(b=>b.onclick=()=>show(b.dataset.nt));show(tab||'ann');
 }
 /* 畫面：草地、路、樹、噴水池、建築、人物 */
+/* ---------- 城市畫面（精緻像素，2026-11-14） ----------
+   不會動的東西（地面、樹、建築、路燈、柵欄…）先畫在一張離屏畫布存起來，季節變了才重畫；
+   會動的（湖面反光、噴水、路燈光暈、聖誕燈）每一格畫面再疊上去。1 單位 = 畫面上 2 個像素。 */
+const rnd3=(x,y,k=0)=>(((x*73856093)^(y*19349663)^(k*83492791))>>>0)%1000/1000;
+let cityBaseC=null,cityBaseKey='';
+function cityBase(){
+  const hw=halloween(),key=[hw,xmasHas('wreath'),xmasHas('pine')].join();
+  if(cityBaseC&&cityBaseKey===key)return cityBaseC;
+  const cv=document.createElement('canvas');cv.width=CW*TS;cv.height=CH*TS;const c=cv.getContext('2d');
+  const R=(col,x,y,w,h)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
+  const at=(x,y)=>(CITY[y]&&CITY[y][x])||'';
+  const path=(x,y)=>'=D'.includes(at(x,y))&&at(x,y)!=='',wet=(x,y)=>at(x,y)===''||'wb'.includes(at(x,y)),pool=(x,y)=>at(x,y)==='~';
+  /* 圓滾滾的樹冠／灌木：左上亮、右下暗，邊緣深色 */
+  const blob=(X,Y,cx,cy,rx,ry,seed,pal)=>{for(let py=Math.floor(cy-ry);py<cy+ry;py++)for(let px=Math.floor(cx-rx);px<cx+rx;px++){
+    const dx=(px+.5-cx)/rx,dy=(py+.5-cy)/ry,d=dx*dx+dy*dy;if(d>1)continue;
+    const l=-(dx*.6+dy*.8)+(rnd3(seed+px,py,7)-.5)*.4;R(d>.78?pal[0]:l>.5?pal[4]:l>.1?pal[3]:l>-.3?pal[2]:pal[1],X+px,Y+py,1,1)}};
+  const LEAF=['#1f5a34','#2f7045','#3a8a48','#4caf50','#7fd08a'];
+  const grass=(X,Y,x,y)=>{R((x+y)%2?'#3f8d58':'#42925c',X,Y,TS,TS);
+    for(let k=0;k<6;k++)R(k<3?'#37804e':'#55a46b',X+Math.floor(rnd3(x,y,k)*16),Y+Math.floor(rnd3(x,y,k+9)*16),1,1);
+    if(rnd3(x,y,20)<.35){const a=2+Math.floor(rnd3(x,y,21)*11),b=4+Math.floor(rnd3(x,y,22)*9);R('#2f7045',X+a,Y+b,1,2);R('#2f7045',X+a+2,Y+b-1,1,3);R('#5fb072',X+a+1,Y+b,1,1)}};
+  for(let y=0;y<CH;y++)for(let x=0;x<CW;x++){
+    const ch=at(x,y),X=x*TS,Y=y*TS;
+    if(path(x,y)){R('#cdbd93',X,Y,TS,TS);
+      for(let row=0;row<2;row++){const yy=Y+row*8,off=((y*2+row)%2)*4;R('#b4a37a',X,yy+7,TS,1);
+        for(let cx=-off;cx<TS;cx+=8){if(cx>=0)R('#b4a37a',X+cx,yy,1,7);R('#dccfa8',X+Math.max(0,cx+1),yy,Math.min(5,TS-Math.max(0,cx+1)),1)}}
+      if(!path(x,y-1))R('#a8976d',X,Y,TS,1);if(!path(x,y+1)){R('#a8976d',X,Y+15,TS,1)}
+      if(!path(x-1,y))R('#a8976d',X,Y,1,TS);if(!path(x+1,y))R('#a8976d',X+15,Y,1,TS)}
+    else if(ch==='w'||ch==='b'){R('#3a7bd5',X,Y,TS,TS);for(let k=0;k<4;k++)R('#3470c6',X+Math.floor(rnd3(x,y,k)*14),Y+Math.floor(rnd3(x,y,k+4)*15),3,1);
+      if(!wet(x,y-1)){R('#8a93a6',X,Y,TS,2);R('#b6d9f5',X,Y+2,TS,1)}if(!wet(x,y+1)){R('#2f66b3',X,Y+13,TS,1);R('#8a93a6',X,Y+14,TS,2)}
+      if(!wet(x-1,y)){R('#8a93a6',X,Y,2,TS);R('#b6d9f5',X+2,Y,1,TS)}if(!wet(x+1,y)){R('#8a93a6',X+14,Y,2,TS)}
+      if(ch==='b'){R('#9a6b44',X,Y+2,TS,12);for(let i=0;i<4;i++){R('#7a5233',X+i*4+3,Y+2,1,12);R('#b07d52',X+i*4,Y+3,3,1)}
+        R('#5a3d2b',X,Y+1,TS,2);R('#5a3d2b',X,Y+13,TS,2);R('#7a5233',X,Y+1,TS,1);if(x%2===0){R('#3f2a1c',X,Y,2,4);R('#3f2a1c',X,Y+12,2,4)}}}
+    else if(ch==='~'){R('#8fc6f5',X,Y,TS,TS);R('#a9d6f7',X+3,Y+3,10,10);
+      if(!pool(x,y-1)){R('#b9c0cc',X,Y,TS,3);R('#8a93a6',X,Y+3,TS,1)}if(!pool(x,y+1)){R('#8a93a6',X,Y+12,TS,1);R('#b9c0cc',X,Y+13,TS,3)}
+      if(!pool(x-1,y)){R('#b9c0cc',X,Y,3,TS);R('#8a93a6',X+3,Y,1,TS)}if(!pool(x+1,y)){R('#8a93a6',X+12,Y,1,TS);R('#b9c0cc',X+13,Y,3,TS)}}
+    else if(ch==='s'){R('#e8d39a',X,Y,TS,TS);for(let k=0;k<7;k++)R(k%2?'#dcc386':'#f2e2b0',X+Math.floor(rnd3(x,y,k)*16),Y+Math.floor(rnd3(x,y,k+7)*16),1+k%2,1);
+      if(rnd3(x,y,30)<.12){R('#f4a6c6',X+7,Y+8,3,2);R('#fbd0e0',X+7,Y+8,1,1)}}
+    else grass(X,Y,x,y);
+    if(ch===','){[[3,4,'#f4a6c6'],[10,8,'#ffd166'],[6,11,'#f4ecd8'],[12,2,'#c7b8e8']].forEach(([a,b,col],k)=>{if(k===3&&rnd3(x,y,40)<.5)return;
+      R('#2f7045',X+a+1,Y+b+2,1,3);R(col,X+a,Y+b+1,3,1);R(col,X+a+1,Y+b,1,3);R('#ffd166',X+a+1,Y+b+1,1,1)})}
+    if(ch==='T'){R('rgba(0,0,0,.22)',X+3,Y+14,10,2);R('rgba(0,0,0,.14)',X+2,Y+15,12,1);
+      R('#7a5233',X+6,Y+9,4,6);R('#8b5e3c',X+6,Y+9,1,6);R('#5a3d2b',X+9,Y+9,1,6);blob(X,Y,8,5.5,7.5,6,x*31+y,LEAF)}
+    if(ch==='p'){R('rgba(0,0,0,.2)',X+3,Y+14,10,2);
+      if(hw){blob(X,Y,8,10,6.5,5,x+y,['#7a2f0c','#c25a1c','#e5713c','#ff8a5c','#ffb38f']);R('#c25a1c',X+7,Y+6,2,8);R('#2f7045',X+7,Y+3,2,3);R('#4caf50',X+8,Y+3,1,1);
+        R('#1a1026',X+4,Y+8,2,2);R('#1a1026',X+10,Y+8,2,2);R('#1a1026',X+5,Y+12,6,1);R('#ffd166',X+4,Y+8,1,1);R('#ffd166',X+10,Y+8,1,1)}
+      else if(xmasHas('pine')){R('#5a3d2b',X+7,Y+13,2,3);[[2,9,12,4],[4,5,8,4],[6,2,4,3]].forEach(([a,b,w,h])=>{R('#2f7045',X+a,Y+b,w,h);R('#4caf50',X+a,Y+b,Math.ceil(w/3),h);R('#1f5a34',X+a,Y+b+h-1,w,1);R('#f4ecd8',X+a+1,Y+b,w-2,1)});
+        R('#d94f4f',X+5,Y+11,1,1);R('#ffd166',X+10,Y+7,1,1);R('#8fc6f5',X+7,Y+10,1,1)}
+      else{blob(X,Y,8,9,6.5,5.5,x*7+y,LEAF);R('#d94f4f',X+10,Y+8,2,2);R('#ff8a8a',X+10,Y+8,1,1);R('#d94f4f',X+5,Y+11,1,1)}}
+    if(ch==='L'){R('rgba(0,0,0,.2)',X+4,Y+15,8,1);R('#2b2b33',X+7,Y+5,2,10);R('#4a4a58',X+7,Y+5,1,10);R('#2b2b33',X+5,Y+13,6,3);R('#4a4a58',X+5,Y+13,6,1);
+      R('#2b2b33',X+4,Y-1,8,2);R('#2b2b33',X+5,Y+1,6,5);R('#ffe08a',X+6,Y+1,4,4);R('#fff6c9',X+6,Y+1,2,2);R('#2b2b33',X+7,Y-2,2,1);
+      if(xmasHas('wreath')){R('#1f5a34',X+4,Y+6,8,5);R('#2f7045',X+5,Y+6,6,4);R('#4caf50',X+5,Y+6,2,2);R('#2b2b33',X+7,Y+7,2,3);R('#d94f4f',X+6,Y+10,4,2);R('#d94f4f',X+6,Y+12,1,2);R('#d94f4f',X+9,Y+12,1,2);R('#ffd166',X+5,Y+8,1,1);R('#ffd166',X+10,Y+7,1,1)}}
+    if(ch==='f'){R('rgba(0,0,0,.15)',X,Y+14,TS,1);R('#7a5233',X+1,Y+3,3,12);R('#9a6b44',X+1,Y+3,1,12);R('#9a6b44',X+1,Y+2,3,1);R('#7a5233',X+12,Y+3,3,12);R('#9a6b44',X+12,Y+3,1,12);R('#9a6b44',X+12,Y+2,3,1);
+      R('#8b5e3c',X,Y+6,TS,2);R('#a8794e',X,Y+6,TS,1);R('#8b5e3c',X,Y+11,TS,2);R('#a8794e',X,Y+11,TS,1)}
+    if(ch==='g'){R('#7a5233',X,Y+2,2,13);R('#9a6b44',X,Y+2,1,13);R('#7a5233',X+14,Y+2,2,13);R('#9a6b44',X+14,Y+2,1,13);R('#8b5e3c',X,Y+1,TS,2);R('#a8794e',X,Y+1,TS,1);R('#ffd166',X+7,Y+1,2,2)}
+    if(ch==='c'){R('rgba(0,0,0,.22)',X+1,Y+13,14,2);R('#5a3d2b',X+2,Y+9,2,5);R('#5a3d2b',X+12,Y+9,2,5);R('#9a6b44',X+1,Y+7,14,3);R('#b07d52',X+1,Y+7,14,1);
+      R('#8b5e3c',X+1,Y+3,14,2);R('#a8794e',X+1,Y+3,14,1);R('#5a3d2b',X+2,Y+5,1,2);R('#5a3d2b',X+13,Y+5,1,2)}
+    if(ch==='Q'||ch==='N'){R('rgba(0,0,0,.22)',X+2,Y+14,13,2);R('#5a3d2b',X+3,Y+9,2,7);R('#5a3d2b',X+11,Y+9,2,7);R('#8b5e3c',X+1,Y+1,14,10);R('#a8794e',X+1,Y+1,14,1);R('#6e472b',X+1,Y+10,14,1);
+      R('#f4ecd8',X+3,Y+3,ch==='N'?4:10,6);if(ch==='N'){R('#fff6c9',X+9,Y+3,4,5);R('#d94f4f',X+4,Y+3,2,1);R('#3a7bd5',X+10,Y+3,2,1)}else{R('#d94f4f',X+4,Y+5,8,1);R('#c7b8e8',X+4,Y+7,5,1);R('#ffd166',X+12,Y+2,2,2)}}
+  }
+  BUILDINGS.forEach(b=>{
+    const X=b.x*TS,Y=b.y*TS,W=b.w*TS,H=b.h*TS;
+    R('rgba(0,0,0,.2)',X+W,Y+14,3,H-14);R('rgba(0,0,0,.2)',X+3,Y+H,W,3);
+    R(b.wall,X,Y+12,W,H-12);for(let yy=Y+18;yy<Y+H-3;yy+=5)R('rgba(0,0,0,.06)',X,yy,W,1);
+    R('rgba(0,0,0,.08)',X,Y+12,2,H-12);R('rgba(0,0,0,.08)',X+W-2,Y+12,2,H-12);R('rgba(0,0,0,.16)',X,Y+H-3,W,3);
+    R(b.roof,X-2,Y,W+4,13);R('rgba(255,255,255,.22)',X-2,Y,W+4,1);
+    for(let yy=Y+3,r=0;yy<Y+12;yy+=3,r++){R('rgba(0,0,0,.18)',X-2,yy,W+4,1);for(let xx=X-2+(r%2)*3;xx<X+W+2;xx+=6)R('rgba(0,0,0,.14)',xx,yy+1,1,2)}
+    R('rgba(0,0,0,.32)',X-2,Y+12,W+4,1);R('rgba(0,0,0,.14)',X,Y+13,W,2);
+    const tall=b.h>=3,wy=Y+19;
+    for(let i=X+6;i<X+W-8;i+=14){if(Math.abs(i+4-(b.door[0]*TS+8))<=10)continue;
+      R('#3a2f55',i-1,wy-1,10,10);R('#9fd0f5',i,wy,8,4);R('#79b6e8',i,wy+4,8,4);R('#e6f4ff',i+1,wy+1,2,1);R('#e6f4ff',i+1,wy+2,1,1);R('#f4ecd8',i+3,wy,1,8);R('#f4ecd8',i,wy+3,8,1);R('#f4ecd8',i-1,wy+9,10,1);
+      if(tall&&rnd3(i,Y)<.5){R('#8b5e3c',i,wy+10,8,2);R('#2f7045',i,wy+10,8,1);R('#f4a6c6',i+1,wy+9,1,1);R('#ffd166',i+4,wy+9,1,1);R('#f4a6c6',i+6,wy+9,1,1)}}
+    const dx=b.door[0]*TS+4;
+    if(b.door[1]>=b.y+b.h){const dy=Y+H-13;R('#3a2f55',dx-1,dy-1,10,14);R('#7a5233',dx,dy,8,13);R('#9a6b44',dx,dy,8,1);R('#6e472b',dx+1,dy+2,2,4);R('#6e472b',dx+5,dy+2,2,4);R('#6e472b',dx+1,dy+8,6,3);R('#ffd166',dx+6,dy+7,1,1);
+      R('#ffd166',dx+3,dy-4,2,2);R('#fff6c9',dx+3,dy-4,1,1)}
+    else{R('#3a2f55',dx-1,Y-3,10,5);R('#7a5233',dx,Y-2,8,4);R('#9a6b44',dx,Y-2,8,1)}
+    R('#1a1026',X,Y+H-1,W,1);
+  });
+  cityBaseC=cv;cityBaseKey=key;return cv;
+}
+/* ---------- 聖誕廣場：11/14 起每天多一個裝飾，11/23 全部到齊；12 月下雪 ---------- */
+const XMAS_DECO=[['tree','聖誕樹'],['ornament','彩球'],['lights','樹上的小燈'],['star','樹頂的星星'],['gifts','禮物堆'],['snowman','雪人'],['wreath','路燈花圈'],['garland','廣場燈串'],['pine','小松樹'],['cane','拐杖糖']];
+const xmasCount=()=>{const st=xmasStage();if(!st)return 0;if(st===4)return XMAS_DECO.length;return Math.max(1,Math.min(XMAS_DECO.length,new Date().getDate()-13))};
+const xmasHas=k=>{if(halloween())return false;const i=XMAS_DECO.findIndex(x=>x[0]===k);return i>=0&&i<xmasCount()};
+function drawXmasPlaza(c,t){
+  if(!xmasCount())return;
+  const R=(col,x,y,w,h)=>{c.fillStyle=col;c.fillRect(x,y,w,h)},X=HW_STAND[0]*TS,Y=HW_STAND[1]*TS;
+  const disc=(cx,cy,r,lit,mid,dark)=>{for(let py=-r;py<r;py++)for(let px=-r;px<r;px++){const dx=(px+.5)/r,dy=(py+.5)/r,d=dx*dx+dy*dy;if(d>1)continue;R(d>.8?dark:-(dx*.6+dy*.8)>.2?lit:mid,cx+px,cy+py,1,1)}};
+  /* 燈串：在廣場的路燈之間垂下來 */
+  if(xmasHas('garland'))[[8,14],[16,21]].forEach(([a,b])=>{const x1=a*TS+8,x2=b*TS+8,y0=5*TS+2;
+    for(let x=x1;x<=x2;x+=2){const k=(x-x1)/(x2-x1),yy=Math.round(y0+Math.sin(k*Math.PI)*9);R('#1f5a34',x,yy,2,1);
+      if((x-x1)%6===0){const cols=['#d94f4f','#ffd166','#8fc6f5','#9fe1cb'];R(Math.sin(t*3+x*.7)>-.2?cols[((x-x1)/6)%4]:'#fff6c9',x,yy+1,2,2)}}});
+  /* 聖誕樹 */
+  R('rgba(0,0,0,.22)',X,Y+14,16,2);R('#8b5e3c',X+5,Y+11,6,4);R('#a8794e',X+5,Y+11,6,1);R('#d94f4f',X+5,Y+13,6,1);
+  [[-10,0],[-4,1],[3,2]].forEach(([top,k])=>{const rows=k===2?8:7;for(let r=0;r<rows;r++){const hw=Math.min(7.5,1+r*.9+k*.7),y=Y+top+r,x1=Math.round(X+8-hw),w=Math.round(hw*2);
+    R('#2f7045',x1,y,w,1);R('#4caf50',x1,y,Math.max(1,Math.round(w*.35)),1);R('#1f5a34',x1+w-Math.max(1,Math.round(w*.25)),y,Math.max(1,Math.round(w*.25)),1);if(r===rows-1)R('#1f5a34',x1,y,w,1)}});
+  if(xmasHas('ornament'))[[4,8,'#d94f4f'],[11,6,'#ffd166'],[6,1,'#8fc6f5'],[10,0,'#d94f4f'],[8,-6,'#ffd166'],[12,9,'#8fc6f5'],[3,2,'#f4a6c6']].forEach(([dx,dy,col])=>{R(col,X+dx,Y+dy,2,2);R('#fff',X+dx,Y+dy,1,1)});
+  if(xmasHas('lights'))[[7,-7],[5,-3],[10,-2],[3,4],[8,3],[13,4],[5,9],[10,10],[2,10],[8,-1]].forEach(([dx,dy],i)=>R(Math.sin(t*4+i*1.7)>0?'#fff6c9':['#f4a6c6','#9fe1cb','#ffd166'][i%3],X+dx,Y+dy,1,1));
+  if(xmasHas('star')){const g=.18+.1*Math.sin(t*3);c.fillStyle=`rgba(255,209,102,${g})`;c.fillRect(X+3,Y-17,10,10);R('#ffd166',X+7,Y-16,2,7);R('#ffd166',X+5,Y-14,6,2);R('#ffd166',X+6,Y-12,1,2);R('#ffd166',X+9,Y-12,1,2);R('#fff6c9',X+7,Y-14,2,2)}
+  if(xmasHas('gifts'))[[-3,11,5,5,'#d94f4f','#ffd166'],[1,13,4,3,'#3a7bd5','#f4ecd8'],[12,12,5,4,'#7a3f9e','#9fe1cb'],[15,13,3,3,'#4caf50','#d94f4f']].forEach(([dx,dy,w,h,a,b])=>{R('rgba(0,0,0,.2)',X+dx+1,Y+dy+h,w,1);R(a,X+dx,Y+dy,w,h);R(b,X+dx+Math.floor(w/2),Y+dy,1,h);R(b,X+dx,Y+dy+1,w,1);R(b,X+dx+Math.floor(w/2)-1,Y+dy-1,3,1)});
+  if(xmasHas('cane'))[[-6,2],[20,2]].forEach(([dx,dy])=>{for(let i=0;i<12;i++)R(i%3<2?'#d94f4f':'#f4ecd8',X+dx+1,Y+dy+2+i,2,1);R('#d94f4f',X+dx+1,Y+dy,3,2);R('#f4ecd8',X+dx+3,Y+dy+1,2,1);R('#d94f4f',X+dx+4,Y+dy+2,1,2);R('rgba(0,0,0,.2)',X+dx,Y+dy+14,4,1)});
+  if(xmasHas('snowman')){const SX=SNOWMAN[0]*TS,SY=SNOWMAN[1]*TS;R('rgba(0,0,0,.22)',SX+2,SY+14,12,2);
+    disc(SX+8,SY+10,5,'#ffffff','#f4ecd8','#c7cfe0');disc(SX+8,SY+3,4,'#ffffff','#f4ecd8','#c7cfe0');
+    R('#1a1026',SX+6,SY+2,1,1);R('#1a1026',SX+9,SY+2,1,1);R('#ff8a5c',SX+8,SY+3,3,1);R('#1a1026',SX+7,SY+9,1,1);R('#1a1026',SX+7,SY+11,1,1);
+    R('#d94f4f',SX+4,SY+6,9,2);R('#d94f4f',SX+10,SY+7,2,4);R('#2b2b33',SX+4,SY-2,9,1);R('#2b2b33',SX+5,SY-6,7,4);R('#d94f4f',SX+5,SY-3,7,1);
+    R('#7a5233',SX+1,SY+7,3,1);R('#7a5233',SX,SY+6,1,1);R('#7a5233',SX+13,SY+7,3,1);R('#7a5233',SX+16,SY+6,1,1)}
+  if(xmasStage()<4){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';const txt=`聖誕倒數 ${xmasLeft()} 天`,w=c.measureText(txt).width+6,by=Y-24+Math.round(Math.sin(t*2));
+    c.fillStyle='rgba(15,10,26,.8)';c.fillRect(X+8-w/2,by-7,w,10);c.fillStyle='#ffd166';c.fillText(txt,X+8,by)}
+}
 function cityDraw(){
   const cv=$('#ccv');if(!cv)return;const c=cv.getContext('2d');c.imageSmoothingEnabled=false;
   const [camX,camY]=cityCam();
   c.setTransform(CSC,0,0,CSC,-camX*CSC,-camY*CSC);
   const t=performance.now()/1000,hw=halloween(),xs=hw?0:xmasStage();
+  c.drawImage(cityBase(),0,0);
   const x0=Math.floor(camX/TS),y0=Math.floor(camY/TS);
   for(let y=y0;y<Math.min(CH,y0+VH+1);y++)for(let x=x0;x<Math.min(CW,x0+VW+1);x++){
     const ch=CITY[y][x],X=x*TS,Y=y*TS;
-    c.fillStyle=(x+y)%2?'#3f8f5a':'#43965e';c.fillRect(X,Y,TS,TS);
-    if(ch==='='||ch==='D'){c.fillStyle='#c9b98f';c.fillRect(X,Y,TS,TS);c.fillStyle='#b3a37a';c.fillRect(X+((y%2)*8),Y+7,6,2);c.fillRect(X+2,Y+14,5,1)}
-    else if(ch===','){c.fillStyle=['#f4a6c6','#ffd166','#f4ecd8'][(x*7+y)%3];c.fillRect(X+4,Y+5,2,2);c.fillRect(X+10,Y+9,2,2);c.fillStyle='#2f7045';c.fillRect(X+5,Y+7,1,3);c.fillRect(X+11,Y+11,1,3)}
-    else if(ch==='.'&&(x*3+y*5)%7===0){c.fillStyle='#2f7045';c.fillRect(X+6,Y+8,1,2);c.fillRect(X+8,Y+7,1,3)}
-    if(ch==='T'){c.fillStyle='#8b5e3c';c.fillRect(X+6,Y+10,4,6);c.fillStyle='#2f7045';c.fillRect(X+2,Y+1,12,10);c.fillStyle='#4caf50';c.fillRect(X+4,Y+2,6,5)}
-    if(ch==='w'){c.fillStyle='#9aa3b5';c.fillRect(X,Y,TS,TS);c.fillStyle='#3a7bd5';c.fillRect(X+1,Y+1,TS-2,TS-2);c.fillStyle='#8fc6f5';c.fillRect(X+3+Math.round(Math.sin(t*2+x)*2),Y+4+((y*5)%6),4,1)}
-    if(ch==='~'){c.fillStyle='#9aa3b5';c.fillRect(X,Y,TS,TS);c.fillStyle='#8fc6f5';c.fillRect(X+1,Y+1,TS-2,TS-2);c.fillStyle='#f4ecd8';c.fillRect(X+3+Math.round(Math.sin(t*3+x+y)*2),Y+6,3,1)}
-    if(ch==='b'){c.fillStyle='#3a7bd5';c.fillRect(X,Y,TS,TS);c.fillStyle='#8b5e3c';c.fillRect(X,Y+2,TS,12);c.fillStyle='#6e472b';for(let i=0;i<TS;i+=4)c.fillRect(X+i,Y+2,1,12);c.fillStyle='#5a3d2b';c.fillRect(X,Y+2,TS,1);c.fillRect(X,Y+13,TS,1)}
-    if(ch==='s'){c.fillStyle='#e8d39a';c.fillRect(X,Y,TS,TS);c.fillStyle='#d9c084';c.fillRect(X+((x*5+y*3)%11),Y+((x*7+y)%12),2,1);if((x*7+y*3)%13===0){c.fillStyle='#f4a6c6';c.fillRect(X+7,Y+8,3,2)}}
-    if(ch==='L'){c.fillStyle='#2b2b33';c.fillRect(X+7,Y+3,2,13);c.fillRect(X+5,Y+14,6,2);c.fillStyle='#ffd166';c.fillRect(X+5,Y,6,4);c.fillStyle='rgba(255,209,102,.18)';c.fillRect(X+2,Y-2,12,8);
-      if(xs>=3){c.fillStyle='#2f7045';c.fillRect(X+4,Y+6,8,3);c.fillStyle='#d94f4f';c.fillRect(X+6,Y+7,4,2);c.fillRect(X+7,Y+9,2,3)}}
-    if(ch==='f'||ch==='g'){c.fillStyle=ch==='g'?'#43965e':'#8b5e3c';if(ch==='f'){c.fillRect(X+1,Y+4,2,11);c.fillRect(X+13,Y+4,2,11);c.fillRect(X,Y+6,TS,2);c.fillRect(X,Y+11,TS,2)}else{c.fillStyle='#8b5e3c';c.fillRect(X,Y+2,2,13);c.fillRect(X+14,Y+2,2,13);c.fillRect(X,Y+2,TS,2)}}
-    if(ch==='c'){c.fillStyle='#8b5e3c';c.fillRect(X+1,Y+6,14,3);c.fillRect(X+1,Y+3,14,2);c.fillStyle='#5a3d2b';c.fillRect(X+2,Y+9,2,5);c.fillRect(X+12,Y+9,2,5)}
-    if(ch==='p'){if(hw){c.fillStyle='#ff8a5c';c.fillRect(X+3,Y+6,10,8);c.fillRect(X+2,Y+8,12,4);c.fillStyle='#c25a1c';c.fillRect(X+7,Y+6,2,8);c.fillStyle='#4caf50';c.fillRect(X+7,Y+3,2,3);c.fillStyle='#1a1026';c.fillRect(X+4,Y+8,2,2);c.fillRect(X+10,Y+8,2,2);c.fillRect(X+5,Y+11,6,1)}
-      else if(xs>=4){c.fillStyle='#5a3d2b';c.fillRect(X+7,Y+13,2,3);c.fillStyle='#2f7045';c.fillRect(X+3,Y+9,10,4);c.fillRect(X+5,Y+5,6,4);c.fillRect(X+7,Y+2,2,3);c.fillStyle='#f4ecd8';c.fillRect(X+5,Y+5,6,1);c.fillRect(X+3,Y+9,10,1);c.fillStyle='#d94f4f';c.fillRect(X+5,Y+11,2,1);c.fillStyle='#ffd166';c.fillRect(X+10,Y+7,1,1)}
-      else{c.fillStyle='#2f7045';c.fillRect(X+2,Y+5,12,10);c.fillStyle='#4caf50';c.fillRect(X+4,Y+6,5,4);c.fillStyle='#d94f4f';c.fillRect(X+10,Y+8,2,2)}}
-    if(ch==='Q'){c.fillStyle='#5a3d2b';c.fillRect(X+7,Y+10,2,6);c.fillStyle='#c98a3a';c.fillRect(X+1,Y+1,14,2);c.fillRect(X+1,Y+10,14,2);c.fillStyle='#f4ecd8';c.fillRect(X+2,Y+3,12,7);c.fillStyle='#d94f4f';c.fillRect(X+4,Y+5,8,1);c.fillRect(X+4,Y+7,5,1)}
-    if(ch==='N'){c.fillStyle='#5a3d2b';c.fillRect(X+3,Y+10,2,6);c.fillRect(X+11,Y+10,2,6);c.fillStyle='#c98a3a';c.fillRect(X+1,Y+2,14,9);c.fillStyle='#f4ecd8';c.fillRect(X+3,Y+4,4,2);c.fillRect(X+9,Y+4,4,2);c.fillRect(X+3,Y+7,10,1)}
+    if(ch==='w'&&(x*7+y*3)%3===0){c.fillStyle='#cfe8fb';c.fillRect(X+4+Math.round(Math.sin(t*2+x)*3),Y+5+((y*5)%6),4,1);c.fillRect(X+5+Math.round(Math.sin(t*2+x)*3),Y+6+((y*5)%6),2,1)}
+    if(ch==='~'){c.fillStyle='rgba(255,255,255,.55)';c.fillRect(X+3+Math.round(Math.sin(t*3+x+y)*2),Y+6+((x+y)%2)*4,4,1)}
+    if(ch==='L'){const a=.09+.04*Math.sin(t*2+x);c.fillStyle=`rgba(255,209,102,${a})`;c.fillRect(X+1,Y-4,14,12);c.fillStyle=`rgba(255,230,150,${a+.06})`;c.fillRect(X+4,Y-2,8,8)}
   }
   /* 噴水 */
-  c.fillStyle='#f4ecd8';const jh=8+Math.round(Math.sin(t*4)*2);c.fillRect(15*TS+7,9*TS-jh,2,jh);c.fillRect(15*TS+5,9*TS-jh,6,1);
-  BUILDINGS.forEach(b=>{
-    const X=b.x*TS,Y=b.y*TS,W=b.w*TS,H=b.h*TS;
-    c.fillStyle=b.wall;c.fillRect(X,Y+10,W,H-10);
-    c.fillStyle=b.roof;c.fillRect(X-1,Y,W+2,14);
-    c.fillStyle='rgba(0,0,0,.18)';for(let i=0;i<W;i+=6)c.fillRect(X+i,Y,2,14);
-    c.fillStyle='#8fc6f5';for(let i=X+6;i<X+W-8;i+=14){if(Math.abs(i+4-(b.door[0]*TS+8))>10){c.fillRect(i,Y+22,8,7);c.fillStyle='#f4ecd8';c.fillRect(i+3,Y+22,1,7);c.fillStyle='#8fc6f5'}}
-    const top=b.door[1]<b.y,dy=top?Y+14:Y+H-12;if(!top){c.fillStyle='#5a3d2b';c.fillRect(b.door[0]*TS+4,dy,8,12);c.fillStyle='#ffd166';c.fillRect(b.door[0]*TS+10,dy+6,1,1)}
-    else{c.fillStyle='#5a3d2b';c.fillRect(b.door[0]*TS+4,Y-2,8,4)}
-    c.fillStyle='#1a1026';c.fillRect(X,Y+H-1,W,1);
-  });
+  const jh=9+Math.round(Math.sin(t*4)*2);c.fillStyle='#e6f4ff';c.fillRect(15*TS+7,9*TS-jh,2,jh);c.fillStyle='#fff';c.fillRect(15*TS+7,9*TS-jh,1,jh);
+  c.fillStyle='#cfe8fb';c.fillRect(15*TS+4,9*TS-jh,8,1);c.fillRect(15*TS+3+Math.round(Math.sin(t*5)),9*TS-jh+2,2,1);c.fillRect(15*TS+11-Math.round(Math.sin(t*5)),9*TS-jh+2,2,1);
   c.font='7px "DotGothic16", sans-serif';c.textAlign='center';
   BUILDINGS.forEach(b=>{const X=(b.x+b.w/2)*TS,Y=b.y*TS+(b.door[1]<b.y?b.h*TS-6:20),w=c.measureText(b.name).width+6;c.fillStyle='rgba(15,10,26,.8)';c.fillRect(X-w/2,Y-7,w,10);c.fillStyle='#f4ecd8';c.fillText(b.name,X,Y)});
   /* 地圖金幣：轉來轉去 */
@@ -2028,17 +2115,7 @@ function cityDraw(){
   /* 萬聖節南瓜攤 */
   if(hw){const X=HW_STAND[0]*TS,Y=HW_STAND[1]*TS;c.fillStyle='#5a3d2b';c.fillRect(X+1,Y+6,14,10);c.fillStyle='#7a3f9e';c.fillRect(X,Y,16,5);c.fillStyle='#ff8a5c';c.fillRect(X+3,Y+8,10,6);c.fillStyle='#1a1026';c.fillRect(X+5,Y+10,2,1);c.fillRect(X+9,Y+10,2,1);
     if(!city.hw){const by=Y-10+Math.round(Math.sin(t*5)*2);c.fillStyle='#ff8a5c';c.fillRect(X+5,by,6,8);c.fillStyle='#1a1026';c.fillRect(X+7,by+1,2,4);c.fillRect(X+7,by+6,2,1)}}
-  /* 廣場的聖誕樹：越接近 12 月布置得越多 */
-  if(xs){const X=HW_STAND[0]*TS,Y=HW_STAND[1]*TS;
-    c.fillStyle='rgba(0,0,0,.2)';c.fillRect(X+1,Y+14,14,2);c.fillStyle='#5a3d2b';c.fillRect(X+6,Y+11,4,4);
-    c.fillStyle='#2f7045';c.fillRect(X+1,Y+5,14,7);c.fillRect(X+3,Y-1,10,7);c.fillRect(X+5,Y-6,6,6);c.fillRect(X+7,Y-9,2,4);
-    c.fillStyle='#4caf50';c.fillRect(X+3,Y+6,3,2);c.fillRect(X+5,Y,2,2);c.fillRect(X+7,Y-5,2,2);
-    if(xs>=2)[[3,9,'#d94f4f'],[11,7,'#ffd166'],[5,3,'#8fc6f5'],[10,1,'#d94f4f'],[8,-3,'#ffd166'],[13,10,'#8fc6f5']].forEach(([dx,dy,col])=>{c.fillStyle=col;c.fillRect(X+dx,Y+dy,2,2)});
-    if(xs>=3)[[7,-6],[4,-1],[11,-1],[2,4],[8,4],[13,4],[5,10],[10,10]].forEach(([dx,dy],i)=>{c.fillStyle=Math.sin(t*4+i*1.7)>0?'#fff6c9':'#f4a6c6';c.fillRect(X+dx,Y+dy,1,1)});
-    if(xs>=4){c.fillStyle='#ffd166';c.fillRect(X+7,Y-14,2,6);c.fillRect(X+5,Y-12,6,2);c.fillStyle='#fff6c9';c.fillRect(X+7,Y-12,2,2);
-      [[0,'#d94f4f','#ffd166'],[11,'#3a7bd5','#f4ecd8']].forEach(([dx,a,b])=>{c.fillStyle=a;c.fillRect(X+dx,Y+11,5,5);c.fillStyle=b;c.fillRect(X+dx+2,Y+11,1,5);c.fillRect(X+dx,Y+13,5,1)})}
-    else{c.font='7px "DotGothic16", sans-serif';c.textAlign='center';const txt=`聖誕倒數 ${xmasLeft()} 天`,w=c.measureText(txt).width+6,by=Y-20+Math.round(Math.sin(t*2)*1);
-      c.fillStyle='rgba(15,10,26,.8)';c.fillRect(X+8-w/2,by-7,w,10);c.fillStyle='#ffd166';c.fillText(txt,X+8,by)}}
+  drawXmasPlaza(c,t);
   if(city.hw){const h=city.hw;
     h.candies.forEach(cd=>{const X=cd.x*TS+8,Y=cd.y*TS+9+Math.round(Math.sin(t*4+cd.x)*1);c.fillStyle=['#f4a6c6','#9fe1cb','#ffd166'][cd.k];c.fillRect(X-3,Y-2,6,4);c.fillStyle='#f4ecd8';c.fillRect(X-6,Y-1,3,2);c.fillRect(X+3,Y-1,3,2);c.fillRect(X-1,Y-2,1,1)});
     h.ghosts.forEach(g=>{c.globalAlpha=.75+Math.sin(t*4+g.px)*.15;const G=SPR.ghost,X=Math.round(g.px-8),Y=Math.round(g.py-12+Math.sin(t*3+g.py)*2);
@@ -2059,6 +2136,7 @@ function cityDraw(){
     c.fillStyle='rgba(0,0,0,.25)';c.fillRect(X+3,Y+15,10,2);
     let g,pal;if(p.ghost){g=SPR.ghost;pal=PAL}else if(p.outfit){({g,pal}=avatarGrid(p.outfit))}else{g=SPR[p.sp];pal=PAL}
     c.globalAlpha=p.ghost?.6+Math.sin(t*3)*.15:p.blink?(Math.sin(t*30)>0?.35:1):1;
+    c.fillStyle='rgba(15,10,26,.85)';g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){const fx=p.face<0?7-xx:xx;c.fillRect(X+fx*2-1,Y+yy*2+bob-1,4,4)}}));
     g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=pal[ch];if(col&&ch!=='.'){c.fillStyle=col;const fx=p.face<0?7-xx:xx;c.fillRect(X+fx*2,Y+yy*2+bob,2,2)}}));
     c.globalAlpha=1;
     if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle='rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle='#f4ecd8';c.fillText(p.name,p.px,Y-3)}
@@ -2083,6 +2161,7 @@ function drawPet(c,id,x,y,face,hop){
   const it=ITEM[id];if(!it||!it.g||!SHAPE[it.g])return;
   const g=SHAPE[it.g],cl=it.c||[],pal={...RPAL,'1':cl[0],'2':cl[1]},z=1.5,X=Math.round(x-6),Y=Math.round(y-12-hop);
   c.fillStyle='rgba(0,0,0,.22)';c.fillRect(X+2,Math.round(y-1),8,2);
+  c.fillStyle='rgba(15,10,26,.8)';g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){const fx=face<0?7-xx:xx;c.fillRect(X+fx*z-.5,Y+yy*z-.5,z+1,z+1)}}));
   g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=pal[ch];if(col&&ch!=='.'){c.fillStyle=col;const fx=face<0?7-xx:xx;c.fillRect(X+fx*z,Y+yy*z,z,z)}}));
 }
 /* 城市即時在線（線上版） */
@@ -2499,11 +2578,15 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-14',title:'廣場聖誕布置＋城市畫面變精緻',items:[
+  ['xtree','聖誕廣場','廣場布置好了！聖誕樹、禮物、雪人和閃閃的燈串，12/1 還會下雪。',()=>{go('city');setTimeout(()=>cityTap(HW_STAND[0],HW_STAND[1]),300)}],
+  ['star','城市畫面升級','樹、湖、石板路、房子都重畫了，有光影和更多細節，人物也加了外框。',()=>go('city')],
+ ]},
  {v:'2026-11-10',title:'單字本上線',items:[
   ['book','依版本背單字','遊樂場和圖書館多了「單字本」：選你的版本（龍騰、三民、學測、多益…）和課數，用字卡背單字，再玩選意思、聽音選字、拼字、配對小遊戲賺金幣！',()=>renderWordbook('games')],
  ]},
  {v:'2026-11-07',title:'聖誕節預告＋單字卡變整齊了',items:[
-  ['xtree','廣場的聖誕樹','聖誕節要來了！廣場的聖誕樹每個禮拜都會多一點裝飾，點它可以偷看 12/1 會有什麼…',()=>{go('city');setTimeout(()=>cityTap(HW_STAND[0],HW_STAND[1]),300)}],
+  ['xtree','廣場的聖誕樹','聖誕節要來了！廣場的聖誕樹點它可以偷看 12/1 會有什麼…',()=>{go('city');setTimeout(()=>cityTap(HW_STAND[0],HW_STAND[1]),300)}],
   ['card','單字卡收起來了','「我的」頁面的單字卡變成可以打開、收起來的選單，還可以搜尋和排序，不會再占一大片。',()=>go('me')],
  ]},
  {v:'2026-10-29',title:'萬聖節新遊戲＋新品上架',items:[
