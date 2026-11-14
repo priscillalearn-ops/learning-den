@@ -190,7 +190,7 @@ const SPR={
  chat:['........','.BBBBBB.','BBBBBBBB','BwBwBwBB','BBBBBBBB','.BBBBBB.','..BB....','.B......'],
  dog:['o......o','oo.oo.oo','.oooooo.','.okooko.','.oooooo.','..okko..','.oooooo.','.o....o.']
 };
-function sprite(name,z){const m=SPR[name]||SPR.bento;let r='';m.forEach((row,y)=>[...row].forEach((c,x)=>{if(PAL[c])r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`}));return `<svg width="${8*z}" height="${8*z}" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block" aria-hidden="true">${r}</svg>`}
+function sprite(name,z){const m=SPR[name]||SPR.bento;return `<svg width="${8*z}" height="${8*z}" viewBox="-.5 -.5 9 9" shape-rendering="crispEdges" style="display:block" aria-hidden="true">${fineRects(m,0,0,PAL,['kid','teen','sage','master','granny'].includes(name))}</svg>`}
 /* 看圖題的圖：每個出題的地方都要放，不然只剩 What is this? */
 const qPic=(q,z=6)=>q&&q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="${z}"></span></div>`:'';
 function paintSprites(root=document){root.querySelectorAll('[data-s]').forEach(e=>{e.innerHTML=sprite(e.dataset.s,+e.dataset.z||4)})}
@@ -684,25 +684,65 @@ function avatarGrid(outfit){
   const hair=ITEM[outfit.hair]||ITEM.hair_brown,skin=ITEM[outfit.skin]||ITEM.skin_1;
   return{g,pal:{...RPAL,h:(hat.c||['#8a5cd6'])[0],c:top.c[0],o:hair.c[0],s:skin.c[0]}};
 }
+/* ---------- 精緻像素（2026-11-14）：8×8 的圖放大成 16×16（Scale2x 讓斜線圓順），自動加亮面、暗面、外框；
+   角色再加眼睛反光和腮紅。角色、商品、房間家具、介面小圖都走這裡，新商品也會自動變精緻。 ---------- */
+const FINE=new Map(),INK='#1a1026';
+function shadeHex(hex,k){if(!/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(hex))return hex;let h=hex.slice(1);if(h.length===3)h=[...h].map(c=>c+c).join('');
+  const v=[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)).map(c=>Math.round(k>0?c+(255-c)*k:c*(1+k)));return '#'+v.map(c=>c.toString(16).padStart(2,'0')).join('')}
+function fineOf(g,pal,face){
+  const key=g.join('|')+'#'+Object.values(pal).join(',')+(face?'f':'');let F=FINE.get(key);if(F)return F;
+  const h=g.length,w=Math.max(...g.map(r=>r.length)),A=[];
+  for(let y=0;y<h;y++){A.push([]);for(let x=0;x<w;x++){const ch=g[y][x];A[y].push(ch&&ch!=='.'&&pal[ch]?pal[ch]:null)}}
+  const a=(x,y)=>y<0||y>=h||x<0||x>=w?null:A[y][x],C=Array.from({length:h*2},()=>Array(w*2).fill(null));
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const E=A[y][x],B=a(x,y-1),D=a(x-1,y),Fr=a(x+1,y),H=a(x,y+1);
+    C[y*2][x*2]=D===B&&B!==Fr&&D!==H?D:E;C[y*2][x*2+1]=B===Fr&&B!==D&&Fr!==H?Fr:E;C[y*2+1][x*2]=D===H&&D!==B&&H!==Fr?D:E;C[y*2+1][x*2+1]=H===Fr&&D!==H&&B!==Fr?Fr:E}
+  const W=w*2,Hh=h*2,c=(x,y)=>y<0||y>=Hh||x<0||x>=W?null:C[y][x],S=C.map(r=>r.slice());
+  for(let y=0;y<Hh;y++)for(let x=0;x<W;x++){const col=C[y][x];if(!col)continue;
+    if(c(x,y+1)!==col)S[y][x]=shadeHex(col,-.22);else if(c(x+1,y)===null)S[y][x]=shadeHex(col,-.12);else if(c(x,y-1)!==col)S[y][x]=shadeHex(col,.2)}
+  if(face&&h===8){[3,5].forEach(ex=>{if(g[4][ex]==='k'){S[8][ex*2]='#ffffff';S[9][ex*2+1]=INK}});
+    if(g[5]&&g[5][2]==='s'&&pal.s){S[10][4]=S[10][11]=shadeHex(pal.s,-.08).replace(/^#(..)/,'#f4')}}
+  /* 外框：多留一圈 */
+  const O=Array.from({length:Hh+2},()=>Array(W+2).fill(null));
+  for(let y=0;y<Hh;y++)for(let x=0;x<W;x++)O[y+1][x+1]=S[y][x];
+  for(let y=0;y<Hh+2;y++)for(let x=0;x<W+2;x++)if(!O[y][x]&&[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const v=O[y+dy]&&O[y+dy][x+dx];return v&&v!==INK&&C[y+dy-1]&&C[y+dy-1][x+dx-1]}))O[y][x]=INK;
+  F={w:W+2,h:Hh+2,M:O};FINE.set(key,F);if(FINE.size>600)FINE.delete(FINE.keys().next().value);return F;
+}
+/* 精緻圖 → SVG 方塊（同一列同色的連在一起，方塊比較少）；x、y 是原本 8 格座標，一個細格 = 0.5 */
+function fineRects(g,x,y,pal,face){const F=fineOf(g,pal,face);let r='';
+  F.M.forEach((row,yy)=>{for(let xx=0;xx<row.length;){const col=row[xx];let n=1;while(xx+n<row.length&&row[xx+n]===col)n++;
+    if(col)r+=`<rect x="${x-.5+xx/2}" y="${y-.5+yy/2}" width="${n/2}" height=".5" fill="${col}"/>`;xx+=n}});return r}
+/* 精緻圖畫到 canvas：u = 原本一格的大小，face<0 左右翻 */
+function fineDraw(c,g,pal,X,Y,u,flip,face){const F=fineOf(g,pal,face),q=u/2;
+  F.M.forEach((row,yy)=>row.forEach((col,xx)=>{if(!col)return;c.fillStyle=col;const fx=flip?F.w-1-xx:xx;c.fillRect(X+(fx-1)*q,Y+(yy-1)*q,q,q)}))}
 function gridRects(g,x,y,pal){let r='';g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=pal[ch];if(col&&ch!=='.')r+=`<rect x="${x+xx}" y="${y+yy}" width="1" height="1" fill="${col}"/>`}));return r}
-function avatarSVG(outfit,z){const {g,pal}=avatarGrid(outfit);return `<svg width="${8*z}" height="${8*z}" viewBox="0 0 8 8" shape-rendering="crispEdges" style="display:block" aria-hidden="true">${gridRects(g,0,0,pal)}</svg>`}
-function itemRects(id,x,y){const it=ITEM[id];if(!it||!it.g)return '';const c=it.c||[];return gridRects(SHAPE[it.g],x,y,{...RPAL,'1':c[0],'2':c[1]})}
-/* 房間：64×48 像素 */
+function avatarSVG(outfit,z){const {g,pal}=avatarGrid(outfit);return `<svg width="${8*z}" height="${8*z}" viewBox="-.5 -.5 9 9" shape-rendering="crispEdges" style="display:block" aria-hidden="true">${fineRects(g,0,0,pal,true)}</svg>`}
+function itemRects(id,x,y){const it=ITEM[id];if(!it||!it.g)return '';const c=it.c||[];return fineRects(SHAPE[it.g],x,y,{...RPAL,'1':c[0],'2':c[1]})}
+/* 房間：64×48（家具和角色用精緻像素，一細格 0.5） */
 function roomSVG(look,outfit,label){
   const R=look.room,wall=ITEM[R.wall],floor=ITEM[R.floor];let r='';
-  r+=`<rect x="0" y="0" width="64" height="32" fill="${wall.c[0]}"/>`;
-  if(wall.aurora){const ac=['#5dcaa5','#8a5cd6','#9fe1cb'];for(let x=0;x<64;x++){const y0=6+Math.round(Math.sin(x/6)*3);ac.forEach((c,k)=>r+=`<rect x="${x}" y="${y0+k*3}" width="1" height="3" fill="${c}" opacity=".7"/>`)}for(let i=0;i<14;i++)r+=`<rect x="${(i*23+5)%64}" y="${(i*11+2)%28}" width="1" height="1" fill="#f4ecd8"/>`}
-  else if(wall.books){const bc=['#d94f4f','#3a7bd5','#ffd166','#5dcaa5','#f4a6c6','#f4ecd8'];for(let y=2;y<30;y+=9){r+=`<rect x="0" y="${y+7}" width="64" height="1" fill="${wall.c[1]}"/>`;for(let x=1;x<63;x+=3)r+=`<rect x="${x}" y="${y+1+(x*7+y)%3}" width="2" height="${6-(x*7+y)%3}" fill="${bc[(x*5+y)%6]}"/>`}}
-  else if(wall.stars){for(let i=0;i<22;i++)r+=`<rect x="${(i*29+7)%64}" y="${(i*17+3)%30}" width="1" height="1" fill="${wall.c[1]}"/>`}
-  else for(let x=5;x<64;x+=8)r+=`<rect x="${x}" y="0" width="1" height="32" fill="${wall.c[1]}"/>`;
-  r+=`<rect x="0" y="32" width="64" height="16" fill="${floor.c[0]}"/>`;
-  if(floor.check){for(let y=32;y<48;y+=4)for(let x=((y/4)%2)*4;x<64;x+=8)r+=`<rect x="${x}" y="${y}" width="4" height="4" fill="${floor.c[1]}"/>`}
-  else for(let y=35;y<48;y+=4)r+=`<rect x="0" y="${y}" width="64" height="1" fill="${floor.c[1]}"/>`;
-  r+=`<rect x="0" y="31" width="64" height="1" fill="#1a1026" opacity=".35"/>`;
-  r+=itemRects(R.window,5,5)+itemRects(R.poster,44,6)+itemRects(R.bed,46,27)+itemRects(R.lamp,40,23)+itemRects(R.plant,28,25);
-  r+=itemRects(R.desk,5,27)+itemRects(R.chair,18,26)+itemRects(R.rug,22,40);
-  if(outfit){const {g,pal}=avatarGrid(outfit);r+=gridRects(g,12,36,pal)}
-  r+=itemRects(R.pet,38,38);
+  const rc=(x,y,w,h,f,o)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}"${o!=null?` opacity="${o}"`:''}/>`;
+  r+=rc(0,0,64,32,wall.c[0]);
+  if(wall.aurora){const ac=['#5dcaa5','#8a5cd6','#9fe1cb'];for(let x=0;x<64;x++){const y0=6+Math.round(Math.sin(x/6)*3);ac.forEach((c,k)=>r+=rc(x,y0+k*3,1,3,c,.7))}for(let i=0;i<14;i++)r+=rc((i*23+5)%64,(i*11+2)%28,1,1,'#f4ecd8')}
+  else if(wall.books){const bc=['#d94f4f','#3a7bd5','#ffd166','#5dcaa5','#f4a6c6','#f4ecd8'];for(let y=2;y<30;y+=9){r+=rc(0,y+7,64,1,wall.c[1])+rc(0,y+7.5,64,.5,'#000',.2);for(let x=1;x<63;x+=3){const hh=6-(x*7+y)%3,col=bc[(x*5+y)%6];r+=rc(x,y+1+(x*7+y)%3,2,hh,col)+rc(x,y+1+(x*7+y)%3,.5,hh,'#fff',.25)+rc(x+1.5,y+1+(x*7+y)%3,.5,hh,'#000',.2)}}}
+  else if(wall.stars){for(let i=0;i<22;i++){const x=(i*29+7)%64,y=(i*17+3)%30;r+=rc(x,y,1,1,wall.c[1])+(i%4===0?rc(x-.5,y+.25,2,.5,wall.c[1],.6)+rc(x+.25,y-.5,.5,2,wall.c[1],.6):'')}}
+  else for(let x=5;x<64;x+=8)r+=rc(x,0,1,32,wall.c[1])+rc(x+1,0,.5,32,'#fff',.08);
+  /* 天花板陰影、踢腳板 */
+  r+=rc(0,0,64,1.5,'#000',.18)+rc(0,1.5,64,1,'#000',.08)+rc(0,29.5,64,2.5,shadeHex(wall.c[0],-.35))+rc(0,29.5,64,.5,'#fff',.15);
+  r+=rc(0,32,64,16,floor.c[0]);
+  if(floor.check){for(let y=32;y<48;y+=4)for(let x=((y/4)%2)*4;x<64;x+=8)r+=rc(x,y,4,4,floor.c[1])+rc(x,y,4,.5,'#fff',.12)}
+  else for(let y=32,k=0;y<48;y+=4,k++){r+=rc(0,y+3,64,1,floor.c[1])+rc(0,y,64,.5,'#fff',.1);for(let x=(k%2)*9+4;x<64;x+=18)r+=rc(x,y,.5,3,floor.c[1])}
+  r+=rc(0,32,64,1.5,'#000',.22)+rc(0,33.5,64,1,'#000',.08);
+  /* 窗戶照進來的光 */
+  if(R.window&&R.window!=='win_none')r+=`<polygon points="5,32 17,32 25,48 9,48" fill="#fff6c9" opacity=".12"/>`;
+  r+=itemRects(R.window,5,5)+itemRects(R.poster,44,6);
+  /* 家具影子 */
+  const sh=(x,y,w)=>rc(x,y,w,1.5,'#000',.22)+rc(x+1,y+1.5,w-2,.5,'#000',.12);
+  if(R.rug&&R.rug!=='rug_none')r+=itemRects(R.rug,22,40);
+  r+=sh(45,32.5,17)+sh(4,32.5,13)+sh(18,33.5,6);if(R.lamp&&R.lamp!=='lamp_none')r+=sh(40,32.5,5);if(R.plant&&R.plant!=='plant_none')r+=sh(28,32.5,6);
+  r+=itemRects(R.bed,46,27)+itemRects(R.lamp,40,23)+itemRects(R.plant,28,25);
+  r+=itemRects(R.desk,5,27)+itemRects(R.chair,18,26);
+  if(outfit){const {g,pal}=avatarGrid(outfit);r+=sh(12.5,43.5,7)+fineRects(g,12,36,pal,true)}
+  if(R.pet&&R.pet!=='pet_none')r+=sh(38.5,45.5,7)+itemRects(R.pet,38,38);
   return `<svg viewBox="0 0 64 48" width="100%" shape-rendering="crispEdges" style="display:block;width:100%;height:auto;aspect-ratio:4/3;flex-shrink:0;image-rendering:pixelated;border:3px solid var(--ink)" role="img" aria-label="${esc(label||'房間')}">${r}</svg>`;
 }
 /* 商店預覽小圖 */
@@ -1448,7 +1488,7 @@ function drawBank(){
 }
 
 /* ---------- 魔法城市 ----------
-   34×26 格的大地圖，畫面只顯示身邊 20×14 格，鏡頭跟著人走；按「全圖」可以看整張地圖、點哪裡走去哪裡。
+   34×26 格的大地圖，畫面只顯示身邊 13×15 格，鏡頭跟著人走；按「全圖」可以看整張地圖、點哪裡走去哪裡。
    地圖字元：. 草地  = 路  , 花  T 樹  w 湖  b 橋  s 沙灘  ~ 噴水池  B 建築  D 門  N 布告欄  Q 任務板
             L 路燈  f 柵欄  g 柵門  c 長椅  p 灌木（萬聖節期間變南瓜）
    線上版同年級的同學會即時出現在城市裡；NPC 同學會自己閒逛，寵物公園裡也有小動物。 */
@@ -1480,7 +1520,8 @@ const CITY_MAP=[
  '....T...BBBBB.T.p.....T...T...T...',
  'T...................p............T'
 ];
-const CW=CITY_MAP[0].length,CH=CITY_MAP.length,TS=16,CSC=2,VW=20,VH=14,CITY_V=2;
+/* 畫面顯示 13×15 格（直式，手機上格子比較大）；CSC=4 讓放大後還是清楚 */
+const CW=CITY_MAP[0].length,CH=CITY_MAP.length,TS=16,CSC=4,VW=13,VH=15,CITY_V=2;
 const BUILDINGS=[
  {id:'study',name:'讀書房',x:1,y:0,w:5,h:3,door:[3,3],roof:'#7a3f9e',wall:'#e8dcc4',open:()=>{S.freeRoom=false;save();go('room')}},
  {id:'academy',name:'魔法學院',x:7,y:0,w:6,h:3,door:[10,3],roof:'#2f6fb0',wall:'#f4ecd8',open:()=>go('daily')},
@@ -2149,8 +2190,7 @@ function cityDraw(){
     c.fillStyle='rgba(0,0,0,.25)';c.fillRect(X+3,Y+15,10,2);
     let g,pal;if(p.ghost){g=SPR.ghost;pal=PAL}else if(p.outfit){({g,pal}=avatarGrid(p.outfit))}else{g=SPR[p.sp];pal=PAL}
     c.globalAlpha=p.ghost?.6+Math.sin(t*3)*.15:p.blink?(Math.sin(t*30)>0?.35:1):1;
-    c.fillStyle='rgba(15,10,26,.85)';g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){const fx=p.face<0?7-xx:xx;c.fillRect(X+fx*2-1,Y+yy*2+bob-1,4,4)}}));
-    g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=pal[ch];if(col&&ch!=='.'){c.fillStyle=col;const fx=p.face<0?7-xx:xx;c.fillRect(X+fx*2,Y+yy*2+bob,2,2)}}));
+    fineDraw(c,g,pal,X,Y+bob,2,p.face<0,!p.ghost);
     c.globalAlpha=1;
     if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle='rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle='#f4ecd8';c.fillText(p.name,p.px,Y-3)}
   });
@@ -2174,8 +2214,7 @@ function drawPet(c,id,x,y,face,hop){
   const it=ITEM[id];if(!it||!it.g||!SHAPE[it.g])return;
   const g=SHAPE[it.g],cl=it.c||[],pal={...RPAL,'1':cl[0],'2':cl[1]},z=1.5,X=Math.round(x-6),Y=Math.round(y-12-hop);
   c.fillStyle='rgba(0,0,0,.22)';c.fillRect(X+2,Math.round(y-1),8,2);
-  c.fillStyle='rgba(15,10,26,.8)';g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){const fx=face<0?7-xx:xx;c.fillRect(X+fx*z-.5,Y+yy*z-.5,z+1,z+1)}}));
-  g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{const col=pal[ch];if(col&&ch!=='.'){c.fillStyle=col;const fx=face<0?7-xx:xx;c.fillRect(X+fx*z,Y+yy*z,z,z)}}));
+  fineDraw(c,g,pal,X,Y,z,face<0);
 }
 /* 城市即時在線（線上版） */
 let cityChan=null,cityChanName='';
@@ -2593,7 +2632,7 @@ async function showStarter(){
 const CHANGES=[
  {v:'2026-11-14',title:'廣場聖誕布置＋城市畫面變精緻',items:[
   ['xtree','聖誕廣場','廣場布置好了！聖誕樹、禮物、雪人和閃閃的燈串，12/1 還會下雪。',()=>{go('city');setTimeout(()=>cityTap(HW_STAND[0],HW_STAND[1]),300)}],
-  ['star','城市畫面升級','樹、湖、石板路、房子都重畫了，有光影和更多細節，人物也加了外框。',()=>go('city')],
+  ['star','整體畫面升級','城市畫面變大變清楚，樹、湖、石板路、房子都重畫了；角色、寵物、家具和房間也變精緻（有光影、外框，角色眼睛會發亮）。',()=>go('city')],
  ]},
  {v:'2026-11-10',title:'單字本上線',items:[
   ['book','依版本背單字','遊樂場和圖書館多了「單字本」：選你的版本（龍騰、三民、學測、多益…）和課數，用字卡背單字，再玩選意思、聽音選字、拼字、配對小遊戲賺金幣！',()=>renderWordbook('games')],
