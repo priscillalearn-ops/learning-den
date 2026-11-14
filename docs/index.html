@@ -270,7 +270,7 @@ function dayBots(){
 }
 /* NPC 的造型：用名字決定，同一位 NPC 走到哪裡都穿一樣 */
 function botOutfit(name){
-  const o={};WEAR_SLOTS.forEach(([sl])=>{const l=SHOP.filter(i=>i.slot===sl&&!i.cards);o[sl]=l[hash(name+sl)%l.length].id});return o;
+  const o={};WEAR_SLOTS.forEach(([sl])=>{const l=SHOP.filter(i=>i.slot===sl&&!i.cards);o[sl]=l[hash(name+sl)%l.length].id});if(hash(name+'ride?')%4)o.ride='ride_none';return o;
 }
 const STICKERS=['讚','好難','我答對','加油','好好玩'];
 const BAD=['笨蛋','白痴','白癡','智障','幹','靠北','去死','stupid','idiot','fuck','shit','damn'];
@@ -427,6 +427,11 @@ const SHAPE={
  ghostpet:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','.wwPPww.','.wwwwww.','.wwwwww.','.w.ww.w.'],
  pumpkinpet:['...G....','..GG....','.111111.','11k11k11','11111111','11kkkk11','.111111.','........'],
  snowman:['...kk...','..kkkk..','..wwww..','.wkwwkw.','.wwOOww.','..rrrr..','.wwwrww.','.wwwwww.'],
+ rskate:['........','........','11111111','.k....k.'],
+ rbroom:['........','.......2','11122222','11......'],
+ rbike:['...2.22.','..2222..','kk.2.2kk','kyk..kyk','kk....kk'],
+ rcloud:['..111...','.11111..','11111112','.222222.'],
+ runicorn:['......y.','.....11y','111111k.','1211111.','.1.1.1..','.1.1.1..'],
  skelpet:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','..wkkw..','...ww...','.wwwwww.','.w.ww.w.'],
  candymon:['........','r.yyyy.r','rryyyyrr','.ykyyky.','.yyyyyy.','.yyrryy.','r.yyyy.r','..y..y..'],
  cauldron:['.G..G.','G.GG.G','.GGGG.','kkkkkk','k1111k','k1111k','.kkkk.','.r..r.'],
@@ -631,6 +636,13 @@ const SHOP=[
  {id:'skin_5',slot:'skin',name:'膚色五',price:0,c:['#5c3a24']},
  {id:'skin_6',slot:'skin',name:'膚色六',price:0,c:['#f8d5b8']},
  {id:'acc_none',slot:'acc',name:'不戴配件',price:0},
+ /* 坐騎（2026-11-14）：spd 走路變快的倍數、lift 人物抬高幾格、fly 會飄 */
+ {id:'ride_none',slot:'ride',name:'不騎',price:0},
+ {id:'ride_skate',slot:'ride',name:'滑板',price:200,g:'rskate',c:['#3a7bd5','#ffd166'],spd:1.3,lift:2},
+ {id:'ride_broom',slot:'ride',name:'魔法掃帚',price:350,g:'rbroom',c:['#e8c35a','#8b5e3c'],spd:1.45,lift:4,fly:1},
+ {id:'ride_bike',slot:'ride',name:'腳踏車',price:500,g:'rbike',c:['#d94f4f','#ffd166'],spd:1.6,lift:4},
+ {id:'ride_cloud',slot:'ride',name:'筋斗雲',price:900,g:'rcloud',c:['#f4ecd8','#c7cfe0'],spd:1.75,lift:5,fly:1},
+ {id:'ride_unicorn',slot:'ride',name:'小獨角獸',price:1500,g:'runicorn',c:['#f4ecd8','#f4a6c6'],spd:1.9,lift:6},
  {id:'acc_ninja',slot:'acc',name:'忍者面罩',price:0,acc:'ninja'},
  {id:'acc_eyepatch',slot:'acc',name:'海盜眼罩',price:0,acc:'eyepatch'},
  {id:'acc_mustache',slot:'acc',name:'紳士鬍子',price:0,acc:'mustache'},
@@ -653,10 +665,10 @@ const SHOP=[
 const ITEM={};SHOP.forEach(i=>ITEM[i.id]=i);
 const ROOM_SLOTS=[['wall','壁紙'],['floor','地板'],['window','窗戶'],['poster','海報'],['bed','床'],['desk','書桌'],['chair','椅子'],['lamp','立燈'],['plant','植物'],['rug','地毯']];
 const PET_SLOTS=[['pet','寵物']];
-const WEAR_SLOTS=[['hat','帽子'],['top','衣服'],['acc','配件'],['hair','髮色'],['skin','膚色']];
+const WEAR_SLOTS=[['hat','帽子'],['top','衣服'],['acc','配件'],['hair','髮色'],['skin','膚色'],['ride','坐騎']];
 const DEFAULT_LOOK={
  room:{wall:'wall_lilac',floor:'floor_wood',window:'win_day',poster:'poster_none',bed:'bed_blue',desk:'desk_wood',chair:'chair_wood',lamp:'lamp_none',plant:'plant_none',rug:'rug_none',pet:'pet_none'},
- outfit:{kid:{hat:'hat_wiz_p',top:'top_blue',acc:'acc_none',hair:'hair_brown',skin:'skin_1'},teen:{hat:'hat_helmet',top:'top_red',acc:'acc_none',hair:'hair_brown',skin:'skin_1'},sage:{hat:'hat_wiz_p',top:'top_purple',acc:'acc_beard',hair:'hair_brown',skin:'skin_1'}}
+ outfit:{kid:{hat:'hat_wiz_p',top:'top_blue',acc:'acc_none',hair:'hair_brown',skin:'skin_1',ride:'ride_none'},teen:{hat:'hat_helmet',top:'top_red',acc:'acc_none',hair:'hair_brown',skin:'skin_1',ride:'ride_none'},sage:{hat:'hat_wiz_p',top:'top_purple',acc:'acc_beard',hair:'hair_brown',skin:'skin_1',ride:'ride_none'}}
 };
 function lookOf(l,tier){
   l=l||{};const o=DEFAULT_LOOK.outfit[tier]||DEFAULT_LOOK.outfit.teen;
@@ -1065,8 +1077,8 @@ let gardenBack=null;
 /* ---------- 遊戲區：單字翻牌、60 秒快答、雙倍挑戰、銀行 ----------
    線上版的金幣進出全部由資料庫函式處理（claim_game、start/submit_challenge、bank_move），
    網頁只顯示結果；單機版在瀏覽器裡用同樣的規則模擬。 */
-const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower','halloween','trick','words'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
-function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,trick:0,words:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
+const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower','halloween','trick','words','adventure','hideseek'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
+function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,trick:0,words:0,adventure:0,hideseek:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
 /* 資料庫回傳錢包餘額時，用它校正本機的流水帳總和 */
 function syncWallet(w){if(typeof w==='number'){S.tx=w-(coinsEarned()-coinsSpent());save()}}
 function gameShell(title,body,back){
@@ -1081,6 +1093,7 @@ function renderGames(){
   $('#view').innerHTML=`${header()}<div class="bar"><h2>遊樂場</h2><button class="btn ghost" id="gcity" style="padding:5px 10px;font-size:13px">← 城市</button></div>
    <div class="flist">
      ${halloween()?card('trick','candy','🎃 不給糖就搗蛋','敲門答萬聖節單字換糖果・只到 11/7',`今天 ${g.trick}/${GAME_CAP}`):''}
+     ${card('adv','castle','冒險打怪','用英文打倒怪物，闖過 15 層',`今天 ${g.adventure||0}/${GAME_CAP}`)}
      ${card('wb','book','單字本','依課本版本背單字、玩單字小遊戲',`今天 ${g.words}/${GAME_CAP}`)}
      ${card('match','card','單字翻牌',`翻牌配對英文和中文・第 ${lvOpen('match')}／4 關`,`今天 ${g.match}/${GAME_CAP}`)}
      ${card('speed','lamp','60 秒快答',`跟時間賽跑・第 ${lvOpen('speed')}／4 關`,`今天 ${g.speed}/${GAME_CAP}`)}
@@ -1093,7 +1106,7 @@ function renderGames(){
    <p class="demo" style="text-align:left;line-height:1.6">小遊戲每場最多 ${GAME_MAX}～${lvMax(4)} 金幣（關卡越後面越多），每種每天最多 ${GAME_CAP}。雙倍挑戰要靠實力，不是靠運氣。</p>`;
   paintSprites($('#view'));
   $('#gcity').onclick=()=>go('city');
-  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{chal:gChal,gacha:gGacha,bank:gBank,trick:gTrick,wb:()=>renderWordbook('games')}[b.dataset.g])());
+  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{chal:gChal,gacha:gGacha,bank:gBank,trick:gTrick,wb:()=>renderWordbook('games'),adv:renderAdventure}[b.dataset.g])());
 }
 /* ---------- 單字本：依版本 → 冊 → 課 背單字，玩單字小遊戲 ----------
    單字表在 banks/words-{kid,teen,sage}.json，由 tools/wordbook.py 從題庫產生（每個字：英文、中文、詞性、例句）。
@@ -1149,7 +1162,7 @@ function wbOpenUnit(u){
 function wbCards(u){
   wbUnit=u;const k=wbKnown(u);let q=[...u.words.filter(w=>!k.has(w[0])),...u.words.filter(w=>k.has(w[0]))],seen=0,learned=0;
   const show=()=>{
-    if(!q.length){wbShell('背完了！',`<div class="box" style="background:var(--deep);text-align:center;line-height:1.8"><span data-s="star" data-z="6"></span><h2>這課背完一輪了</h2><p style="margin:0">這輪記住了 ${learned} 個字，整課記住了 ${wbKnown(u).size}／${u.words.length} 個</p></div>
+    if(!q.length){did('words');wbShell('背完了！',`<div class="box" style="background:var(--deep);text-align:center;line-height:1.8"><span data-s="star" data-z="6"></span><h2>這課背完一輪了</h2><p style="margin:0">這輪記住了 ${learned} 個字，整課記住了 ${wbKnown(u).size}／${u.words.length} 個</p></div>
       <div class="row"><button class="btn" id="wagain">再背一輪</button><button class="btn gold" id="wgame">去玩小遊戲</button></div>`);
       paintSprites($('#view'));$('#wagain').onclick=()=>wbCards(u);$('#wgame').onclick=()=>wbOpenUnit(u);return}
     const w=q[0];let flip=false;
@@ -1168,6 +1181,7 @@ function wbCards(u){
 }
 /* 小遊戲共用：10 題，答對的字變成單字卡，最後領金幣 */
 async function wbFinish(u,title,ok,total,missed){
+  did('words');
   const score=Math.min(15,ok+(ok===total?3:0)),r=ok?await claimGame('words',score,1):0;
   wbShell(title,`<div class="box" style="background:var(--deep);text-align:center;line-height:1.8"><h2 style="margin:0">答對 ${ok}／${total}</h2>
       <p style="margin:0;color:var(--gold)">${ok?(r?`+${r} 金幣`:'今天單字本的金幣領滿了（明天再來）'):'再試一次！'}</p></div>
@@ -1274,7 +1288,7 @@ async function claimGame(game,score,lv=1){
   S.gamesPlayed=(S.gamesPlayed||0)+1;
   const g=gday();let r;
   if(ONLINE){const res=await cloud.rpc('claim_game',{p_game:game,p_score:score,p_level:lv});if(!res)return 0;r=res.reward;syncWallet(res.wallet)}
-  else{r=Math.max(0,Math.min(score,game==='halloween'||game==='trick'?HW_MAX:lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
+  else{r=Math.max(0,Math.min(score,game==='halloween'||game==='trick'||game==='adventure'?20:game==='hideseek'?15:lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
   g[game]+=r;g.plays=(g.plays||0)+1;save();return r;
 }
 /* 單字翻牌：6 組英文／中文 */
@@ -1531,6 +1545,8 @@ const CITY_MAP=[
 const CW=CITY_MAP[0].length,CH=CITY_MAP.length,TS=16,CSC=4,VW=13,VH=17,CITY_V=2;
 /* 大頭菜市場的攤位（湖邊沙灘） */
 const MARKET_AT=[25,19];
+/* 冒險之門（城市左下角） */
+const ADV_GATE=[4,23];
 const BUILDINGS=[
  {id:'study',name:'讀書房',x:1,y:0,w:5,h:3,door:[3,3],roof:'#7a3f9e',wall:'#e8dcc4',open:()=>{S.freeRoom=false;save();go('room')}},
  {id:'academy',name:'魔法學院',x:7,y:0,w:6,h:3,door:[10,3],roof:'#2f6fb0',wall:'#f4ecd8',open:()=>go('daily')},
@@ -1554,7 +1570,7 @@ const SNOWMAN=[17,10];
 const xmasLeft=()=>{const d=new Date();return Math.round((new Date(d.getFullYear(),11,1)-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)};
 const standOn=()=>halloween()||xmasStage()>0;
 function buildCity(){return CITY_MAP.map(r=>[...r])}
-const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1])&&!(xmasHas('snowman')&&x===SNOWMAN[0]&&y===SNOWMAN[1])&&!(x===MARKET_AT[0]&&y===MARKET_AT[1]);
+const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1])&&!(xmasHas('snowman')&&x===SNOWMAN[0]&&y===SNOWMAN[1])&&!(x===MARKET_AT[0]&&y===MARKET_AT[1])&&!(x===ADV_GATE[0]&&y===ADV_GATE[1]);
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 const doorAt=(x,y)=>BUILDINGS.find(b=>b.door[0]===x&&b.door[1]===y);
 /* 圖書館：錯題本、單字卡 */
@@ -1621,6 +1637,8 @@ function renderCity(){
    <div id="cwrap" style="position:relative;width:100%;aspect-ratio:${VW}/${VH};border:3px solid var(--ink);touch-action:manipulation">
      <canvas id="ccv" width="${VW*TS*CSC}" height="${VH*TS*CSC}" style="width:100%;height:100%;display:block;image-rendering:pixelated;cursor:pointer" aria-label="魔法城市地圖，點地面走路，點建築走進去"></canvas>
      <button class="chip" id="cmap" style="position:absolute;right:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--gold)">全圖</button>
+     <button class="chip" id="chs" style="position:absolute;left:6px;top:6px;padding:4px 10px;font-size:12px;background:rgba(15,10,26,.8);color:var(--mint)">躲貓貓</button>
+     <div id="hsbar" style="position:absolute;left:6px;right:6px;bottom:6px"></div>
    </div>
    ${reactBar()}
    <p class="small" style="margin:0">點地面走路、點建築進門，按「全圖」快速移動。訪客、聖誕樹在廣場，釣魚在湖邊，市場在沙灘。<span style="color:var(--gold)">城裡還藏著 ${mapCoins().filter(c=>!c.got).length} 枚金幣！</span></p>
@@ -1629,7 +1647,7 @@ function renderCity(){
   $('#ctasks').onclick=()=>renderQuests();loadAnn();loadQuests();
   const cv=$('#ccv');
   cv.onclick=e=>{const r=cv.getBoundingClientRect(),[cx,cy]=cityCam(),tx=Math.floor(((e.clientX-r.left)/r.width*VW*TS+cx)/TS),ty=Math.floor(((e.clientY-r.top)/r.height*VH*TS+cy)/TS);cityTap(tx,ty)};
-  $('#cmap').onclick=openCityMap;bindReacts();
+  $('#cmap').onclick=openCityMap;bindReacts();$('#chs').onclick=()=>hsStart();hsBar();
   loadVisitor();
   if($('#nbcard'))$('#nbcard').onclick=openNewbie;
   if(!renderCity.nbLoading){renderCity.nbLoading=1;loadNewbie().then(st=>{renderCity.nbLoading=0;const had=!!$('#nbcard');if(curTab==='city'&&(!!st)!==had)renderCity();else if(st&&$('#nbcard'))$('#nbcard').outerHTML=newbieCard(),$('#nbcard').onclick=openNewbie,paintSprites($('#nbcard'))})}
@@ -1888,6 +1906,8 @@ function openCityMap(){
 }
 function cityTap(tx,ty){
   const me=city.me;
+  if(HS&&HS.phase==='hide'&&HS.seeker===ME){toast('你是鬼，先閉上眼睛數數！');return}
+  if(HS&&HS.phase!=='lobby'){const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal=null}return}
   if(!city.hw&&visitorCache&&tx===VISITOR_AT[0]&&ty===VISITOR_AT[1]){const p=bfs(me.x,me.y,VISITOR_AT[0],VISITOR_AT[1]+1);if(p){me.path=p;me.goal='visitor';if(!p.length){me.goal=null;openVisitor()}}return}
   if(!city.hw&&((CITY[ty]&&CITY[ty][tx]==='w')||(tx===27&&ty===16))){let best=null;
     for(let r=0;r<=3&&!best;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const x=tx+dx,y=ty+dy;
@@ -1895,6 +1915,8 @@ function cityTap(tx,ty){
     if(best){me.path=best;me.goal='fish';if(!best.length){me.goal=null;openFishing()}}return}
   if(city.hw){const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal=null}return}
   if(halloween()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='hw';if(!p.length){me.goal=null;hwOpen()}}return}
+  if(tx===ADV_GATE[0]&&ty===ADV_GATE[1]){const p=bfs(me.x,me.y,ADV_GATE[0]+1,ADV_GATE[1]);if(p){me.path=p;me.goal='adv';if(!p.length){me.goal=null;renderAdventure()}}return}
+  {const gd=GUIDES.find(g=>g.at[0]===tx&&g.at[1]===ty);if(gd){const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal='guide:'+gd.id;if(!p.length){me.goal=null;guideTalk(gd.id)}}return}}
   if(tx===MARKET_AT[0]&&ty===MARKET_AT[1]){const p=bfs(me.x,me.y,MARKET_AT[0],MARKET_AT[1]+1);if(p){me.path=p;me.goal='market';if(!p.length){me.goal=null;openMarket()}}return}
   if(xmasStage()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='xmas';if(!p.length){me.goal=null;xmasOpen()}}return}
   const npc=city.npcs.find(n=>n.x===tx&&n.y===ty);
@@ -1909,16 +1931,18 @@ function cityTap(tx,ty){
 }
 function cityTick(dt){
   const me=city.me;
-  if(!me.path.length&&city.keys.size){
+  if(!me.path.length&&city.keys.size&&!(HS&&HS.phase==='hide'&&HS.seeker===ME)){
     const k=[...city.keys].pop(),d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]}[k];
     if(d&&walk(me.x+d[0],me.y+d[1])){me.path=[[me.x+d[0],me.y+d[1]]];me.goal=null}
   }
-  if(stepWalker(me,dt,72)){
+  if(!(HS&&HS.phase==='hide'&&HS.seeker===ME)&&stepWalker(me,dt,72*rideSpd())){
     mapCoins().forEach(c=>{if(!c.got&&c.x===me.x&&c.y===me.y)pickCoin(c.i)});
     if(city.hw)me.armed=false;
     else if(!me.path.length&&me.goal==='hw'){me.goal=null;hwOpen()}
     else if(!me.path.length&&me.goal==='xmas'){me.goal=null;xmasOpen()}
     else if(!me.path.length&&me.goal==='market'){me.goal=null;openMarket()}
+    else if(!me.path.length&&me.goal==='adv'){me.goal=null;renderAdventure()}
+    else if(!me.path.length&&me.goal&&me.goal.startsWith('guide:')){const id=me.goal.slice(6);me.goal=null;guideTalk(id)}
     else if(!me.path.length&&me.goal==='fish'){me.goal=null;openFishing()}
     else if(!me.path.length&&me.goal==='visitor'){me.goal=null;openVisitor()}
     else{const door=doorAt(me.x,me.y);
@@ -1928,7 +1952,7 @@ function cityTick(dt){
     if(!me.path.length&&me.goal==='quest'){me.goal=null;renderQuests();return}
     if(!me.path.length&&me.goal){const b=BUILDINGS.find(x=>x.id===me.goal);me.goal=null;if(b&&doorAt(me.x,me.y)===b)enterBuilding(b)}}
   }
-  hwTick(dt);
+  hwTick(dt);hsTick(dt);
   city.npcs.forEach(n=>{
     if(!n.path.length){n.wait-=dt;if(n.wait<=0){n.wait=2+Math.random()*4;
       for(let i=0;i<8;i++){const tx=n.x+Math.round(Math.random()*6-3),ty=n.y+Math.round(Math.random()*6-3);if(walk(tx,ty)&&!doorAt(tx,ty)){const p=bfs(n.x,n.y,tx,ty);if(p&&p.length<8){n.path=p;break}}}}}
@@ -1945,7 +1969,7 @@ function cityTick(dt){
   const now=performance.now();city.bubbles=city.bubbles.filter(b=>b.until>now);
   /* 省即時訊息額度：只有城市裡有別的同學時才傳位置，最多 1 秒一次，停下來再補傳最後位置 */
   const moved=me.px!==city.lastX||me.py!==city.lastY,someone=Object.keys(city.peers).length>0;
-  if(ONLINE&&cityChan&&someone&&moved&&(now-city.sent>1000||!me.path.length)){city.sent=now;city.lastX=me.px;city.lastY=me.py;cityTrack()}
+  if(ONLINE&&cityChan&&someone&&moved&&(now-city.sent>(HS&&HS.phase!=='lobby'?250:1000)||!me.path.length)){city.sent=now;city.lastX=me.px;city.lastY=me.py;cityTrack()}
 }
 function enterBuilding(b){
   S.citySpawn=b.door;save();
@@ -2033,6 +2057,206 @@ function openNotice(tab){
   m.querySelectorAll('[data-nt]').forEach(b=>b.onclick=()=>show(b.dataset.nt));show(tab||'ann');
 }
 /* 畫面：草地、路、樹、噴水池、建築、人物 */
+/* ---------- 坐騎、今天做過的事 ---------- */
+const rideSpd=()=>(ITEM[myLook().outfit.ride]||{}).spd||1;
+function did(k){if(!S.did||S.did.d!==today())S.did={d:today(),k:{}};S.did.k[k]=1;save()}
+const didToday=k=>!!(S.did&&S.did.d===today()&&S.did.k[k]);
+/* ---------- 任務 NPC：站在各個地方，頭上有「!」就是有事要拜託你，做完當天就消失 ---------- */
+const GUIDES=[
+ {id:'owl',name:'貓頭鷹教授',at:[11,4],tier:'sage',outfit:{hat:'hat_grad',top:'top_purple',acc:'acc_glasses'},say:'今天的每日一題答了嗎？答對還能拿單字卡！',btn:'去答題',done:()=>!!S.answers[dkey()],go:()=>go('daily')},
+ {id:'keeper',name:'讀書房管理員',at:[4,4],tier:'teen',outfit:{hat:'hat_cap',top:'top_green'},say:'來讀書房專注一次吧！大家都在一起努力，讀越久金幣越多。',btn:'去讀書房',done:()=>(S.minutes[today()]||0)>0,go:()=>go('room')},
+ {id:'libr',name:'圖書館員',at:[19,4],tier:'sage',outfit:{hat:'hair_bun',top:'top_red',acc:'acc_glasses'},say:'單字本今天背了嗎？背一課字卡、玩一場單字小遊戲都算！',btn:'打開單字本',done:()=>didToday('words'),go:()=>renderWordbook('city')},
+ {id:'chef',name:'餐廳主廚',at:[4,12],tier:'teen',outfit:{hat:'hat_chef',top:'top_white'},say:'肚子餓了吧？先吃飯才有力氣讀書，不然會餓倒喔！',btn:'去吃飯',done:()=>!!S.meals[today()],go:()=>renderFood()},
+ {id:'gardener',name:'園丁爺爺',at:[11,18],tier:'sage',outfit:{hat:'hat_straw',top:'top_green',acc:'acc_beard'},say:'你的魔法花園該照顧囉！澆水、收成，作物可以拿去市場賣錢。',btn:'去花園',done:()=>didToday('garden'),go:()=>openMyGarden()},
+ {id:'fisher',name:'老漁夫',at:[22,15],tier:'sage',outfit:{hat:'hat_fisher',top:'top_blue',acc:'acc_beard'},say:'湖裡有 14 種魚，答對單字才釣得上來，今天來釣一隻吧！',btn:'去釣魚',done:()=>didToday('fish'),go:()=>openFishing()},
+ {id:'knight',name:'冒險公會騎士',at:[6,23],tier:'teen',outfit:{hat:'hat_helmet',top:'top_red'},say:'城外出現怪物了！穿過冒險之門，用英文打倒牠們！',btn:'出發冒險',done:()=>didToday('adv'),go:()=>renderAdventure()},
+ {id:'snow',name:'愛玩的小雪',at:[19,9],tier:'kid',outfit:{hat:'hair_ponytail',top:'top_pink'},face:-1,say:'要不要玩躲貓貓？按地圖左上角的「躲貓貓」，城裡的同學都可以加入！',btn:'玩躲貓貓',done:()=>didToday('hs'),go:()=>{go('city');setTimeout(hsStart,300)}}
+];
+function guideTalk(id){
+  const gd=GUIDES.find(g=>g.id===id);if(!gd)return;const ok=gd.done(),n=GUIDES.filter(g=>g.done()).length;
+  const m=modal(`<div style="display:flex;gap:12px;align-items:center">${avatarSVG(lookOf({outfit:gd.outfit},gd.tier).outfit,9)}
+      <div class="box paper" style="flex:1;padding:10px 12px;line-height:1.7"><b style="color:var(--plum)">${esc(gd.name)}</b><br>${ok?'做得好！今天這件事完成了，明天再來找我喔。':esc(gd.say)}</div></div>
+    <p class="small" style="margin:0;text-align:center">今天幫了 ${n}／${GUIDES.length} 位城裡的人・頭上有 <b style="color:var(--gold)">!</b> 的人有事找你</p>
+    ${ok?'':`<button class="btn gold" id="ggo">${esc(gd.btn)}</button>`}<button class="btn ghost" data-close>${ok?'好':'等一下'}</button>`);
+  if(m.querySelector('#ggo'))m.querySelector('#ggo').onclick=()=>{m.remove();gd.go()};
+}
+/* ---------- 冒險：用英文打怪（15 層，每 5 層一隻頭目） ----------
+   答對攻擊怪物（連對 3 題以上會心一擊 2 倍），答錯被怪物打掉 1 顆心，答錯的題目進錯題本。
+   打倒一般怪 +2、頭目 +6，結算時領金幣（每場最多 20、每天最多 40，線上版走 claim_game('adventure')）。 */
+const MONS={
+ slime:{name:'果凍史萊姆',c:['#5dcaa5','#2f8f73'],g:['........','...11...','..1111..','.1w11w1.','.1k11k1.','11111111','11122111','.111111.']},
+ bat:{name:'夜行蝙蝠',c:['#8a5cd6','#5a3d8a'],g:['........','1......1','11.11.11','11111111','.1y11y1.','..1221..','...11...','........']},
+ shroom:{name:'毒蘑菇',c:['#d94f4f','#f4ecd8'],g:['..1111..','.1w11w1.','11111111','.222222.','..k22k..','..2222..','..2..2..','........']},
+ ghost:{name:'迷路幽靈',c:['#f4ecd8','#c7b8e8'],g:['..1111..','.111111.','.1k11k1.','.111111.','.112211.','.111111.','.111111.','.1.11.1.']},
+ goblin:{name:'洞穴哥布林',c:['#7fb069','#8b5e3c'],g:['1......1','.111111.','.1k11k1.','.111111.','..1rr1..','.222222.','.2.22.2.','..1..1..']},
+ ice:{name:'冰晶精靈',c:['#8fc6f5','#e6f4ff'],g:['...11...','..1221..','.122221.','1k2222k1','.122221.','..1221..','.1.11.1.','1......1']},
+ skeleton:{name:'骷髏兵',c:['#f4ecd8','#9aa3b5'],g:['..1111..','.111111.','.1k11k1.','..1221..','..2..2..','.111111.','..1..1..','.1....1.']},
+ golem:{name:'岩石魔像',c:['#9aa3b5','#6b7280'],g:['.111111.','11211211','1y1111y1','11111111','.122221.','11111111','11.11.11','11....11']},
+ knight:{name:'暗影騎士',c:['#3a2f55','#8a5cd6'],g:['..1111..','.111111.','.1r11r1.','.111111.','2.2222.2','.222222.','..2..2..','.11..11.']},
+ treeking:{name:'森林樹王',boss:1,c:['#2f7045','#8b5e3c'],g:['.111111.','11111111','1y1111y1','11111111','.111111.','..2222..','.2.22.2.','22.22.22']},
+ dragon:{name:'水晶巨龍',boss:1,c:['#3a7bd5','#8fc6f5'],g:['1.....11','11...1y1','.11111k1','1111111.','2111111.','.111112.','.1.1.1..','11.1.11.']},
+ demon:{name:'暗影魔王',boss:1,c:['#7a3f9e','#d94f4f'],g:['1.1111.1','11111111','1r1111r1','11111111','.122221.','11111111','1.1111.1','.11..11.']}
+};
+const AREAS=[{name:'迷霧森林',bg:['#3f8f5a','#1f4a2e'],mons:['slime','bat','shroom'],boss:'treeking'},{name:'水晶洞穴',bg:['#2f5f8f','#141a3a'],mons:['ghost','goblin','ice'],boss:'dragon'},{name:'暗影城堡',bg:['#3a2f55','#0f0a1a'],mons:['skeleton','golem','knight'],boss:'demon'}];
+const ADV_FLOORS=15,advArea=f=>AREAS[Math.floor((f-1)/5)];
+const advState=()=>{S.adv=S.adv||{max:1};return S.adv};
+const monSVG=(id,z,cls='')=>{const M=MONS[id];return `<svg class="${cls}" width="${8*z}" height="${8*z}" viewBox="-.5 -.5 9 9" shape-rendering="crispEdges" style="display:block">${fineRects(M.g,0,0,{...RPAL,'1':M.c[0],'2':M.c[1]})}</svg>`};
+function advCSS(){if($('#advcss'))return;document.head.insertAdjacentHTML('beforeend',`<style id="advcss">
+.mbob{animation:mbob 1.4s ease-in-out infinite}@keyframes mbob{50%{transform:translateY(-6px)}}
+.mhit{animation:mhit .35s}@keyframes mhit{0%,100%{transform:none;filter:none}30%{transform:translateX(8px);filter:brightness(3)}60%{transform:translateX(-6px)}}
+.shake{animation:shake .35s}@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.dmg{position:absolute;left:50%;top:40%;font:bold 28px 'DotGothic16';color:#ffd166;text-shadow:3px 3px 0 #1a1026;animation:dmg .8s forwards;pointer-events:none}@keyframes dmg{to{transform:translate(-50%,-50px);opacity:0}}
+.mdie{animation:mdie .6s forwards}@keyframes mdie{to{transform:scale(.2) rotate(40deg);opacity:0}}</style>`)}
+function renderAdventure(){
+  advCSS();const st=advState();curTab='games';
+  gameShell('冒險',`<div class="box" style="background:var(--deep);display:flex;gap:10px;align-items:center">${avatarSVG(myLook().outfit,6)}
+      <div style="line-height:1.6"><b>穿過冒險之門，用英文打倒怪物！</b><br><span class="small">答對就攻擊，連對 3 題會心一擊；答錯被打掉 1 顆心。打倒怪物拿金幣，過關開下一層。</span></div></div>
+    ${AREAS.map((a,k)=>`<div class="box" style="background:linear-gradient(135deg,${a.bg[0]},${a.bg[1]});display:flex;flex-direction:column;gap:8px">
+      <div class="bar"><b style="color:var(--paper)">${a.name}</b><span style="display:flex;gap:4px">${a.mons.map(id=>monSVG(id,3)).join('')}${monSVG(a.boss,4)}</span></div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${[1,2,3,4,5].map(i=>{const f=k*5+i,lock=f>st.max,boss=i===5;
+        return `<button class="btn" data-af="${f}" style="padding:8px 2px;${lock?'opacity:.45;':''}${boss?'background:var(--coral);color:var(--night);':''}">${lock?'🔒':boss?'頭目':f}${!lock&&!boss&&f<st.max?'<br><span class="small">✓</span>':''}</button>`}).join('')}</div></div>`).join('')}
+    <p class="small" style="margin:0">今天冒險領了 ${gday().adventure||0}／${GAME_CAP} 金幣・題目用你的題目範圍（${esc(scopeName())}）</p>`,'city');
+  $('#view').querySelectorAll('[data-af]').forEach(b=>b.onclick=()=>{const f=+b.dataset.af;if(f>st.max){toast(`先打過第 ${f-1} 層`);return}advBattle(f)});
+}
+function advBattle(f){
+  advCSS();const area=advArea(f),boss=f%5===0;
+  const foes=boss?[pick(area.mons),area.boss]:[0,1,2].map(i=>area.mons[(f+i)%3]);
+  const src=pool().filter(q=>q.q.length<=120&&q.o&&q.o.length===4);const used=new Set();
+  let i=0,hp=0,hearts=5,combo=0,coins=0,kills=0,busy=false;
+  const maxHp=id=>MONS[id].boss?5+Math.ceil(f/2):2+Math.floor(f/4);
+  gameShell(`冒險・第 ${f} 層`,`<div id="arena" style="position:relative;background:linear-gradient(${area.bg[0]},${area.bg[1]});border:3px solid var(--ink);padding:10px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:230px">
+      <p class="small" id="afoe" style="margin:0;color:var(--paper)"></p><b id="aname" style="color:var(--gold)"></b>
+      <div class="lock" style="width:70%;height:10px"><i id="ahp" style="background:var(--coral)"></i></div><div id="amon" style="margin-top:6px"></div></div>
+    <div class="bar"><span style="display:flex;align-items:center;gap:6px">${avatarSVG(myLook().outfit,4)}<span id="ahearts" style="color:var(--coral);font-size:18px"></span></span><span id="acombo" class="small"></span><span class="small" id="acoins"></span></div>
+    <div id="aq"></div>`,'games');
+  $('#gback').textContent='← 冒險';$('#gback').onclick=()=>renderAdventure();
+  const hud=()=>{$('#ahearts').textContent='♥'.repeat(hearts)+'♡'.repeat(5-hearts);$('#acombo').textContent=combo>=2?`連對 ${combo}！`:'';$('#acoins').textContent=`金幣 +${coins}`;
+    const id=foes[i];$('#ahp').style.width=`${Math.max(0,hp/maxHp(id)*100)}%`};
+  const spawn=()=>{const id=foes[i];hp=maxHp(id);$('#afoe').textContent=`${area.name}・第 ${i+1}／${foes.length} 隻`;$('#aname').textContent=`${MONS[id].boss?'👑 ':''}${MONS[id].name}・HP ${hp}`;
+    $('#amon').innerHTML=monSVG(id,MONS[id].boss?16:12,'mbob');hud();ask()};
+  const ask=()=>{let q;for(let k=0;k<30;k++){q=pick(src);if(!used.has(q.id))break}used.add(q.id);busy=false;
+    $('#aq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px">${qPic(q,5)}<div class="qtext">${esc(q.q)}</div>
+      ${q.o.map((o,k)=>`<button class="btn opt" data-ao="${k}" style="padding:7px 10px">${'ABCD'[k]}. ${esc(o)}</button>`).join('')}</div>`;paintSprites($('#aq'));
+    $('#aq').querySelectorAll('[data-ao]').forEach(b=>b.onclick=()=>{if(busy)return;busy=true;const ok=+b.dataset.ao===q.a;
+      $('#aq').querySelectorAll('[data-ao]').forEach(x=>{x.disabled=true;if(+x.dataset.ao===q.a)x.classList.add('right')});
+      const fx=(txt,col)=>{const d=document.createElement('div');d.className='dmg';d.textContent=txt;d.style.color=col;$('#arena').appendChild(d);setTimeout(()=>d.remove(),800)};
+      if(ok){combo++;const dmg=combo>=3?2:1;hp-=dmg;const sv=$('#amon svg');sv.classList.remove('mbob');sv.classList.add('mhit');fx(dmg>1?`會心一擊 -${dmg}`:`-${dmg}`,'#ffd166');
+        setTimeout(()=>{if(!$('#amon'))return;if(hp<=0){const id=foes[i];kills++;coins+=MONS[id].boss?6:2;$('#amon svg').classList.add('mdie');
+          setTimeout(()=>{if(!$('#amon'))return;i++;if(i>=foes.length)finish(true);else spawn()},600)}else{sv.classList.remove('mhit');sv.classList.add('mbob');hud();$('#aname').textContent=`${MONS[foes[i]].boss?'👑 ':''}${MONS[foes[i]].name}・HP ${hp}`;ask()}},500)}
+      else{combo=0;hearts--;b.classList.add('wrong');addWrong(q);$('#arena').classList.add('shake');fx('-1 ♥','#d94f4f');setTimeout(()=>$('#arena')&&$('#arena').classList.remove('shake'),400);hud();
+        setTimeout(()=>{if(!$('#aq'))return;if(hearts<=0)finish(false);else ask()},1300)}
+      hud()})};
+  const finish=async win=>{const st=advState();let unlocked=false;if(win&&f>=st.max&&f<ADV_FLOORS){st.max=f+1;unlocked=true}save();did('adv');
+    const score=Math.min(20,coins),r=score?await claimGame('adventure',score,1):0;
+    const m=modal(`<div style="display:flex;justify-content:center">${win?monSVG(foes[foes.length-1],7):avatarSVG(myLook().outfit,7)}</div>
+      <h2 style="text-align:center">${win?(boss?`打倒 ${MONS[foes[foes.length-1]].name}！`:`第 ${f} 層過關！`):'被打倒了…'}</h2>
+      <p style="text-align:center;margin:0">打倒 ${kills} 隻怪物${unlocked?`・<b style="color:var(--mint)">第 ${f+1} 層開放了</b>`:''}</p>
+      <p style="text-align:center;margin:0;color:var(--gold)">${score?(r?`+${r} 金幣`:'今天冒險的金幣領滿了'):'沒有拿到金幣，再挑戰一次！'}</p>
+      ${win?'':'<p class="small" style="text-align:center;margin:0">答錯的題目已經放進錯題本，複習完再來！</p>'}
+      <div class="row"><button class="btn" id="aback">回冒險地圖</button><button class="btn gold" id="anext">${win&&f<ADV_FLOORS?'下一層':'再挑戰'}</button></div>`);
+    m.querySelector('#aback').onclick=()=>{m.remove();renderAdventure()};
+    m.querySelector('#anext').onclick=()=>{m.remove();advBattle(win&&f<ADV_FLOORS?f+1:f)}};
+  spawn();
+}
+/* ---------- 躲貓貓（在城市地圖上玩） ----------
+   線上：按「躲貓貓」開房 15 秒，城裡的同學按「加入」；隨機一個人當鬼，其他人有 20 秒躲起來，鬼再找 75 秒。
+   躲起來的人：鬼要走到附近才看得到（站在樹、灌木、房子旁邊更難被發現）；鬼走到 1 格內就抓到。
+   城裡沒有別人（或單機版）就和 NPC 玩。訊息走城市的即時頻道（broadcast 'hs'）。
+   金幣：鬼每抓一個 +4（加基本 3），沒被抓到 +15，被抓到 +5；每場最多 15、每天最多 40（claim_game('hideseek')）。 */
+const HS_LOBBY=15,HS_HIDE=20,HS_SEEK=75;
+let HS=null,hsInvite=null;
+const hsNow=()=>performance.now();
+function hsSend(m){if(ONLINE&&cityChan)cityChan.send({type:'broadcast',event:'hs',payload:m})}
+const COVER='TpBfNQLcg';
+function hsCovered(px,py){const x=Math.round((px-8)/TS),y=Math.round((py-8)/TS);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const ch=CITY[y+dy]&&CITY[y+dy][x+dx];if(ch&&COVER.includes(ch))return true}return false}
+function hsPos(id){if(id===ME||id==='me')return city.me;if(HS&&HS.bots){const b=HS.bots.find(x=>x.id===id);if(b)return b}return city.peers[id]}
+function hsAlpha(id){
+  if(!HS||HS.phase==='lobby')return 1;const pl=HS.players[id];if(!pl)return HS.bots?1:.5;
+  if(pl.caught)return .35;if(id===HS.seeker)return 1;
+  const myId=ME||'me';
+  if(HS.seeker===myId){if(HS.phase==='hide')return 0;const o=hsPos(id);if(!o)return 0;const d=Math.hypot(o.px-city.me.px,o.py-city.me.py)/TS;return d<=(hsCovered(o.px,o.py)?1.6:3.2)?1:0}
+  return .55;
+}
+function hsStart(){
+  if(curTab!=='city'||!city){go('city');setTimeout(hsStart,400);return}
+  if(HS){toast(HS.phase==='lobby'?'正在等人加入':'躲貓貓進行中');return}
+  if(ONLINE&&cityChan&&Object.keys(city.peers).length){
+    HS={id:Math.random().toString(36).slice(2,8),host:ME,phase:'lobby',end:hsNow()+HS_LOBBY*1000,players:{[ME]:{name:S.name}}};
+    hsSend({t:'open',id:HS.id,host:ME,name:S.name,ms:HS_LOBBY*1000});toast('躲貓貓開房了！等城裡的同學加入');hsBar()
+  }else hsBotGame();
+}
+function hsBotGame(){
+  const me=city.me,myId=ME||'me',spots=[];
+  for(let y=me.y-3;y<=me.y+3;y++)for(let x=me.x-3;x<=me.x+3;x++)if(walk(x,y)&&!doorAt(x,y)&&(x!==me.x||y!==me.y))spots.push([x,y]);
+  const bots=dayBots().slice(0,4).map(([n,tier],k)=>{const [x,y]=spots[(k*7)%Math.max(1,spots.length)]||[me.x,me.y];return {id:'bot'+k,name:n,tier,outfit:lookOf({outfit:botOutfit(n)},tier).outfit,x,y,px:x*TS+8,py:y*TS+8,path:[],face:1,wait:0}});
+  const ids=[myId,...bots.map(b=>b.id)],seeker=Math.random()<.4?myId:pick(bots).id;
+  HS={id:'local',host:myId,bots,seeker,phase:'hide',end:hsNow()+HS_HIDE*1000,players:Object.fromEntries(ids.map(id=>[id,{name:id===myId?S.name:bots.find(b=>b.id===id).name,caught:false}])),catches:0};
+  /* NPC 躲的地方：附近有掩護、離鬼遠一點 */
+  const sk=hsPos(seeker),cand=[];for(let y=2;y<CH-1;y++)for(let x=1;x<CW-1;x++)if(walk(x,y)&&!doorAt(x,y)&&Math.abs(x-me.x)+Math.abs(y-me.y)<14&&hsCovered(x*TS+8,y*TS+8))cand.push([x,y]);
+  bots.forEach(b=>{if(b.id===seeker)return;const far=cand.filter(([x,y])=>Math.hypot(x*TS+8-sk.px,y*TS+8-sk.py)>5*TS);for(let k=0;k<6;k++){const [x,y]=pick(far.length?far:cand)||[b.x,b.y];const p=bfs(b.x,b.y,x,y);if(p){b.path=p;break}}});
+  me.path=[];toast(seeker===myId?'你是鬼！閉上眼睛數到 20':'快躲起來！鬼是 '+HS.players[seeker].name);hsBar();
+}
+function hsMsg(m){
+  if(!m||!city)return;const now=hsNow();
+  if(m.t==='open'&&!HS){hsInvite={id:m.id,host:m.host,name:m.name,until:now+m.ms};hsBar()}
+  else if(m.t==='join'&&HS&&HS.host===ME&&HS.id===m.id&&HS.phase==='lobby'){HS.players[m.uid]={name:m.name};hsBar()}
+  else if(m.t==='start'&&HS&&HS.id===m.id&&HS.host!==ME){HS.players=m.players;HS.seeker=m.seeker;HS.phase='hide';HS.end=now+m.hide;HS.catches=0;city.me.path=[];
+    toast(m.seeker===ME?'你是鬼！閉上眼睛數到 20':'快躲起來！鬼是 '+m.players[m.seeker].name);hsBar()}
+  else if(m.t==='caught'&&HS&&HS.id===m.id&&HS.players[m.uid]){HS.players[m.uid].caught=true;if(m.uid===ME)toast('被鬼抓到了！在旁邊看大家玩吧');hsBar()}
+}
+function hsJoin(){if(!hsInvite)return;HS={id:hsInvite.id,host:hsInvite.host,phase:'lobby',end:hsInvite.until,players:{}};hsSend({t:'join',id:HS.id,uid:ME,name:S.name});hsInvite=null;toast('加入了！等開始');hsBar()}
+function hsTick(dt){
+  const now=hsNow();if(hsInvite&&now>hsInvite.until){hsInvite=null;hsBar()}
+  if(!HS)return;const myId=ME||'me';
+  if(HS.phase==='lobby'){
+    if(HS.host===ME&&now>=HS.end){const ids=Object.keys(HS.players);
+      if(ids.length<2){HS=null;toast('沒有人加入，改跟城裡的 NPC 玩！');hsBotGame();return}
+      const seeker=pick(ids),pl=Object.fromEntries(ids.map(id=>[id,{name:HS.players[id].name,caught:false}]));
+      HS.players=pl;HS.seeker=seeker;HS.phase='hide';HS.end=now+HS_HIDE*1000;HS.catches=0;city.me.path=[];
+      hsSend({t:'start',id:HS.id,seeker,players:pl,hide:HS_HIDE*1000});toast(seeker===ME?'你是鬼！閉上眼睛數到 20':'快躲起來！鬼是 '+pl[seeker].name);hsBar()}
+    else if(HS.host!==ME&&now>HS.end+6000){HS=null;toast('躲貓貓沒有開始');hsBar()}
+    return}
+  if(HS.phase==='hide'&&now>=HS.end){HS.phase='seek';HS.end=now+HS_SEEK*1000;toast(HS.seeker===myId?'開始找！走到大家旁邊就抓到了':'鬼出發了！別被找到');hsBar()}
+  /* NPC：躲的人照路線走；當鬼的 NPC 先亂找，看到人就追 */
+  if(HS.bots)HS.bots.forEach(b=>{
+    if(b.id===HS.seeker){if(HS.phase!=='seek')return;
+      const tg=Object.entries(HS.players).filter(([id,p])=>id!==b.id&&!p.caught).map(([id])=>hsPos(id)).filter(o=>o&&Math.hypot(o.px-b.px,o.py-b.py)/TS<=(hsCovered(o.px,o.py)?1.6:3.2))[0];
+      if(tg&&(!b.path.length||b.chase!==tg)){const p=bfs(b.x,b.y,Math.round((tg.px-8)/TS),Math.round((tg.py-8)/TS));if(p){b.path=p;b.chase=tg}}
+      if(!b.path.length){b.chase=null;for(let k=0;k<8;k++){const x=b.x+Math.round(Math.random()*12-6),y=b.y+Math.round(Math.random()*12-6);if(walk(x,y)){const p=bfs(b.x,b.y,x,y);if(p&&p.length){b.path=p;break}}}}
+      stepWalker(b,dt,58)}
+    else stepWalker(b,dt,66)});
+  /* 抓人：鬼走到 1 格內 */
+  if(HS.phase==='seek'){const sk=hsPos(HS.seeker);
+    if(sk&&(HS.seeker===myId||(HS.bots&&HS.seeker.startsWith('bot'))))Object.entries(HS.players).forEach(([id,p])=>{if(id===HS.seeker||p.caught)return;const o=hsPos(id);if(!o)return;
+      if(Math.hypot(o.px-sk.px,o.py-sk.py)<=TS*1.15){p.caught=true;if(HS.seeker===myId)HS.catches++;city.bubbles.push({who:o,txt:'被抓到了！',until:now+1500});
+        if(id===myId)toast('被鬼抓到了！');if(HS.id!=='local')hsSend({t:'caught',id:HS.id,uid:id});hsBar()}});
+    const left=Object.entries(HS.players).filter(([id,p])=>id!==HS.seeker&&!p.caught).length;
+    if(now>=HS.end||!left){hsFinish();return}}
+  if(!HS.barT||now-HS.barT>500){HS.barT=now;hsBar()}
+}
+async function hsFinish(){
+  const h=HS;HS=null;if(!h)return;const myId=ME||'me',me=h.players[myId];did('hs');hsBar();
+  const seeker=h.seeker===myId,score=seeker?Math.min(15,3+h.catches*4):me&&me.caught?5:15;
+  const r=await claimGame('hideseek',score,1);
+  const list=Object.entries(h.players).map(([id,p])=>`<div class="frow"><span class="grow">${esc(p.name)}${id===h.seeker?' <b style="color:var(--coral)">（鬼）</b>':''}${id===myId?'（你）':''}</span><span class="small">${id===h.seeker?`抓到 ${Object.values(h.players).filter(x=>x.caught).length} 人`:p.caught?'被抓到':'<b style="color:var(--mint)">沒被找到！</b>'}</span></div>`).join('');
+  const m=modal(`<h2 style="text-align:center">${seeker?`抓到 ${h.catches} 個人！`:me&&me.caught?'被抓到了，下次躲好一點！':'躲得太好了，沒被找到！'}</h2>
+    <div class="flist">${list}</div><p style="text-align:center;margin:0;color:var(--gold)">${r?`+${r} 金幣`:'今天躲貓貓的金幣領滿了'}</p>
+    <div class="row"><button class="btn" data-close>回城市</button><button class="btn gold" id="hsre">再玩一場</button></div>`);
+  m.querySelector('#hsre').onclick=()=>{m.remove();hsStart()};
+}
+function hsBar(){const el=$('#hsbar');if(!el)return;const now=hsNow(),myId=ME||'me';
+  if(hsInvite&&!HS){el.innerHTML=`<div class="box" style="background:rgba(15,10,26,.9);padding:6px 8px;display:flex;align-items:center;gap:8px"><span class="grow small" style="color:var(--paper)">${esc(hsInvite.name)} 開了一場躲貓貓！（${Math.max(0,Math.ceil((hsInvite.until-now)/1000))} 秒）</span><button class="btn gold mini" id="hsjoin">加入</button></div>`;$('#hsjoin').onclick=hsJoin;return}
+  if(HS&&HS.phase==='lobby'){el.innerHTML=`<div class="box" style="background:rgba(15,10,26,.9);padding:6px 8px"><span class="small" style="color:var(--paper)">躲貓貓等人加入中…已經 ${Object.keys(HS.players).length} 人・${Math.max(0,Math.ceil((HS.end-now)/1000))} 秒後開始</span></div>`;return}
+  el.innerHTML='';
+}
+/* 躲貓貓畫面：鬼數數時全黑、上方顯示時間 */
+function hsDraw(c,t){if(!HS||HS.phase==='lobby')return;const myId=ME||'me',left=Math.max(0,Math.ceil((HS.end-hsNow())/1000)),sk=HS.seeker===myId,me=HS.players[myId];
+  c.save();c.setTransform(CSC,0,0,CSC,0,0);
+  if(HS.phase==='hide'&&sk){c.fillStyle='rgba(15,10,26,.93)';c.fillRect(0,0,VW*TS,VH*TS);c.textAlign='center';c.fillStyle='#ffd166';c.font='14px "DotGothic16",sans-serif';c.fillText(`你是鬼！閉上眼睛數到 ${HS_HIDE}`,VW*TS/2,VH*TS/2-10);c.font='30px "DotGothic16",sans-serif';c.fillText(String(left),VW*TS/2,VH*TS/2+24)}
+  const total=Object.keys(HS.players).length-1,caught=Object.values(HS.players).filter(p=>p.caught).length;
+  const txt=HS.phase==='hide'?(sk?'':`快躲好！鬼 ${left} 秒後出發・躲在樹叢、房子旁邊比較難被找到`):sk?`找到 ${caught}／${total} 人・剩 ${left} 秒`:me&&me.caught?`你被抓到了・剩 ${left} 秒`:`躲好別被抓！鬼是 ${HS.players[HS.seeker].name}・剩 ${left} 秒`;
+  if(txt){c.font='8px "DotGothic16",sans-serif';c.textAlign='left';const w=Math.min(VW*TS-8,c.measureText(txt).width+10);c.fillStyle='rgba(15,10,26,.85)';c.fillRect(4,22,w,13);c.fillStyle=sk?'#ff8a5c':'#9fe1cb';c.fillText(txt,9,32)}
+  c.restore()}
 /* ---------- 城市畫面（精緻像素，2026-11-14） ----------
    不會動的東西（地面、樹、建築、路燈、柵欄…）先畫在一張離屏畫布存起來，季節變了才重畫；
    會動的（湖面反光、噴水、路燈光暈、聖誕燈）每一格畫面再疊上去。1 單位 = 畫面上 2 個像素。 */
@@ -2092,6 +2316,8 @@ function cityBase(){
     if(ch==='Q'||ch==='N'){R('rgba(0,0,0,.22)',X+2,Y+14,13,2);R('#5a3d2b',X+3,Y+9,2,7);R('#5a3d2b',X+11,Y+9,2,7);R('#8b5e3c',X+1,Y+1,14,10);R('#a8794e',X+1,Y+1,14,1);R('#6e472b',X+1,Y+10,14,1);
       R('#f4ecd8',X+3,Y+3,ch==='N'?4:10,6);if(ch==='N'){R('#fff6c9',X+9,Y+3,4,5);R('#d94f4f',X+4,Y+3,2,1);R('#3a7bd5',X+10,Y+3,2,1)}else{R('#d94f4f',X+4,Y+5,8,1);R('#c7b8e8',X+4,Y+7,5,1);R('#ffd166',X+12,Y+2,2,2)}}
   }
+  {const X=ADV_GATE[0]*TS,Y=ADV_GATE[1]*TS;R('rgba(0,0,0,.25)',X,Y+14,16,2);R('#6b7280',X,Y-6,16,22);R('#9aa3b5',X,Y-6,16,1);R('#9aa3b5',X,Y-6,1,22);R('#4b5160',X+15,Y-6,1,22);
+    for(let yy=Y-3;yy<Y+16;yy+=4)for(let xx=X+((yy/4)%2?0:3);xx<X+16;xx+=6)R('#565c6b',xx,yy,1,2);R('#1a1026',X+3,Y-2,10,18);R('#2b1d4a',X+4,Y-1,8,17);R('#ffd166',X+5,Y-9,6,3);R('#d94f4f',X+6,Y-8,4,1)}
   {const X=MARKET_AT[0]*TS,Y=MARKET_AT[1]*TS;R('rgba(0,0,0,.22)',X+1,Y+14,15,2);R('#7a5233',X+1,Y+3,2,12);R('#7a5233',X+13,Y+3,2,12);
     R('#9a6b44',X,Y+8,16,6);R('#b07d52',X,Y+8,16,1);R('#6e472b',X,Y+13,16,1);[[2,'#ff8a5c'],[6,'#e8c35a'],[10,'#d94f4f']].forEach(([a,col])=>{R(col,X+a,Y+6,3,3);R(shadeHex(col,.3),X+a,Y+6,1,1)});
     for(let i=0;i<8;i++)R(i%2?'#f4ecd8':'#c98a3a',X+i*2,Y,2,4);R('rgba(0,0,0,.2)',X,Y+4,16,1);R('#f4ecd8',X+4,Y+10,8,2);R('#d94f4f',X+5,Y+10,2,1);R('#3a7bd5',X+9,Y+11,2,1)}
@@ -2169,6 +2395,7 @@ function cityDraw(){
   if(hw){const X=HW_STAND[0]*TS,Y=HW_STAND[1]*TS;c.fillStyle='#5a3d2b';c.fillRect(X+1,Y+6,14,10);c.fillStyle='#7a3f9e';c.fillRect(X,Y,16,5);c.fillStyle='#ff8a5c';c.fillRect(X+3,Y+8,10,6);c.fillStyle='#1a1026';c.fillRect(X+5,Y+10,2,1);c.fillRect(X+9,Y+10,2,1);
     if(!city.hw){const by=Y-10+Math.round(Math.sin(t*5)*2);c.fillStyle='#ff8a5c';c.fillRect(X+5,by,6,8);c.fillStyle='#1a1026';c.fillRect(X+7,by+1,2,4);c.fillRect(X+7,by+6,2,1)}}
   drawXmasPlaza(c,t);
+  {const X=ADV_GATE[0]*TS,Y=ADV_GATE[1]*TS;for(let i=0;i<6;i++){const a=t*2+i,r=2+((t*3+i)%4);c.fillStyle=['#8a5cd6','#c7b8e8','#5dcaa5'][i%3];c.fillRect(Math.round(X+8+Math.cos(a)*r)-1,Math.round(Y+6+Math.sin(a)*r*1.4)-1,2,2)}}
   if(city.hw){const h=city.hw;
     h.candies.forEach(cd=>{const X=cd.x*TS+8,Y=cd.y*TS+9+Math.round(Math.sin(t*4+cd.x)*1);c.fillStyle=['#f4a6c6','#9fe1cb','#ffd166'][cd.k];c.fillRect(X-3,Y-2,6,4);c.fillStyle='#f4ecd8';c.fillRect(X-6,Y-1,3,2);c.fillRect(X+3,Y-1,3,2);c.fillRect(X-1,Y-2,1,1)});
     h.ghosts.forEach(g=>{c.globalAlpha=.75+Math.sin(t*4+g.px)*.15;const G=SPR.ghost,X=Math.round(g.px-8),Y=Math.round(g.py-12+Math.sin(t*3+g.py)*2);
@@ -2180,23 +2407,29 @@ function cityDraw(){
   if(annNew())bang(NOTICE[0],NOTICE[1]);if(questReady())bang(QUEST[0],QUEST[1]);
   /* 人物依 y 排序，比較前面的蓋在後面的上面 */
   const petOf=(o,id)=>id&&ITEM[id]&&ITEM[id].g&&o.petX!=null?[{pet:id,px:o.petX,py:o.petY,face:o.face,hop:o.petMove?Math.abs(Math.sin(t*10+(o.px||0)))*3:0}]:[];
-  const people=[...city.npcs.flatMap(n=>[{px:n.px,py:n.py,face:n.face,outfit:lookOf({outfit:botOutfit(n.name)},n.tier).outfit,name:n.name},...petOf(n,npcPet(n.name))]),
-    ...Object.values(city.peers).flatMap(p=>[{px:p.px,py:p.py,face:p.face,outfit:lookOf({outfit:p.outfit},p.tier).outfit,name:p.name},...petOf(p,p.pet)]),
-    {px:city.me.px,py:city.me.py,face:city.me.face,outfit:myLook().outfit,name:'你',me:true,ghost:fainted(),blink:city.hw&&performance.now()<city.hw.safe},...petOf(city.me,myLook().room.pet)].sort((a,b)=>a.py-b.py);
+  const people=[...GUIDES.filter(()=>!HS).map(gd=>({px:gd.at[0]*TS+8,py:gd.at[1]*TS+8,face:gd.face||1,outfit:lookOf({outfit:gd.outfit},gd.tier).outfit,name:gd.name,guide:gd})),
+    ...(HS&&HS.bots?HS.bots.map(b=>({px:b.px,py:b.py,face:b.face,outfit:b.outfit,name:b.name,hs:b.id})):[]),
+    ...(HS&&HS.bots?[]:city.npcs).flatMap(n=>[{px:n.px,py:n.py,face:n.face,outfit:lookOf({outfit:botOutfit(n.name)},n.tier).outfit,name:n.name},...petOf(n,npcPet(n.name))]),
+    ...Object.values(city.peers).flatMap(p=>[{px:p.px,py:p.py,face:p.face,outfit:lookOf({outfit:p.outfit},p.tier).outfit,name:p.name,hs:p.uid},...(HS&&HS.phase!=='lobby'?[]:petOf(p,p.pet))]),
+    {px:city.me.px,py:city.me.py,face:city.me.face,outfit:myLook().outfit,name:'你',me:true,hs:ME||'me',ghost:fainted(),blink:city.hw&&performance.now()<city.hw.safe},...petOf(city.me,myLook().room.pet)].sort((a,b)=>a.py-b.py);
   people.forEach(p=>{
     if(p.pet){drawPet(c,p.pet,p.px,p.py,p.face,p.hop);return}
-    const X=Math.round(p.px-8),Y=Math.round(p.py-12),bob=p.me&&city.me.path.length?Math.round(Math.sin(t*16))*0:0;
+    const al=p.hs!=null?hsAlpha(p.hs):1;if(al<=0)return;
+    const rd=!p.ghost&&p.outfit&&ITEM[p.outfit.ride],rg=rd&&rd.g&&SHAPE[rd.g],fl=rd&&rd.fly?Math.round(Math.sin(t*3+p.px)*1.5):0;
+    let X=Math.round(p.px-8),Y=Math.round(p.py-12),bob=0;
     c.fillStyle='rgba(0,0,0,.25)';c.fillRect(X+3,Y+15,10,2);
+    if(rg){c.globalAlpha=al;const cl=rd.c||[];fineDraw(c,rg,{...RPAL,'1':cl[0],'2':cl[1]},X,Y+18-rg.length*2+fl,2,p.face<0);c.globalAlpha=1;Y-=rd.lift+(-fl)}
     let g,pal;if(p.ghost){g=SPR.ghost;pal=PAL}else if(p.outfit){({g,pal}=avatarGrid(p.outfit))}else{g=SPR[p.sp];pal=PAL}
-    c.globalAlpha=p.ghost?.6+Math.sin(t*3)*.15:p.blink?(Math.sin(t*30)>0?.35:1):1;
+    c.globalAlpha=(p.ghost?.6+Math.sin(t*3)*.15:p.blink?(Math.sin(t*30)>0?.35:1):1)*al;
     fineDraw(c,g,pal,X,Y+bob,2,p.face<0,!p.ghost);
     c.globalAlpha=1;
-    if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle='rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle='#f4ecd8';c.fillText(p.name,p.px,Y-3)}
+    if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle=p.guide?'rgba(122,63,158,.85)':'rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle=p.guide?'#ffd166':'#f4ecd8';c.fillText(p.name,p.px,Y-3)}
+    if(p.guide&&!p.guide.done()){const by=Y-19+Math.round(Math.sin(t*5+p.px)*2);c.fillStyle='#ffd166';c.fillRect(p.px-3,by,6,8);c.fillStyle='#1a1026';c.fillRect(p.px-1,by+1,2,4);c.fillRect(p.px-1,by+6,2,1)}
   });
   if(xs>=4){c.fillStyle='rgba(244,236,216,.85)';for(let i=0;i<46;i++){const sx=camX+((i*53+t*(8+i%4*3)+Math.sin(t+i)*6)%(VW*TS)+VW*TS)%(VW*TS),sy=camY+(i*97+t*(14+i%3*6))%(VH*TS);c.fillRect(Math.round(sx),Math.round(sy),i%5?1:2,i%5?1:2)}}
   c.font='7px "DotGothic16", sans-serif';
   if(city.hw){const h=city.hw;c.save();c.setTransform(CSC,0,0,CSC,0,0);const left=Math.max(0,Math.ceil((h.end-performance.now())/1000));c.fillStyle='rgba(15,10,26,.82)';c.fillRect(4,4,118,14);c.fillStyle='#ffd166';c.font='9px "DotGothic16",sans-serif';c.textAlign='left';c.fillText(`糖果 ${h.got}・剩 ${left} 秒・還有 ${h.candies.length} 顆`,8,14);c.restore();c.font='7px "DotGothic16", sans-serif'}
-  drawVisitor(c,t);c.font='7px "DotGothic16", sans-serif';
+  drawVisitor(c,t);hsDraw(c,t);c.font='7px "DotGothic16", sans-serif';
   city.bubbles.forEach(b=>{if(b.emo){const k=Math.min(1,1-(b.until-performance.now())/2200);c.save();c.globalAlpha=k>.8?(1-k)*5:1;c.font='13px sans-serif';c.textAlign='center';c.fillText(b.txt,b.who.px,b.who.py-24-k*10);c.restore();return}
     const w=c.measureText(b.txt).width+8,X=b.who.px-w/2,Y=b.who.py-34;c.fillStyle='#f4ecd8';c.fillRect(X,Y,w,12);c.fillStyle='#1a1026';c.textAlign='center';c.fillText(b.txt,b.who.px,Y+9)});
 }
@@ -2232,6 +2465,7 @@ function joinCity(){
     if(city&&Object.keys(seen).some(k=>!city.known||!city.known[k])){city.known=seen;city.lastX=null;city.sent=0}
   });
   listenSocial(cityChan);
+  cityChan.on('broadcast',{event:'hs'},({payload})=>hsMsg(payload));
   cityChan.subscribe(st=>{if(st==='SUBSCRIBED')cityTrack()});
 }
 function cityTrack(){if(cityChan&&city)cityChan.track({name:S.name,tier:S.tier,outfit:myLook().outfit,pet:myLook().room.pet,x:Math.round(city.me.px),y:Math.round(city.me.py)})}
@@ -2241,7 +2475,7 @@ document.addEventListener('keyup',e=>{if(!city)return;const k=e.key.length===1?e
 
 /* ---------- 我的家：在房間裡走動 ---------- */
 function renderHome(){
-  curTab='home';
+  curTab='home';did('garden');
   $('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current','false'));
   const L=myLook(),bg=lookOf({room:{...L.room,pet:'pet_none'},outfit:L.outfit},S.tier),pet=ITEM[L.room.pet];
   const petSvg=pet&&pet.g?`<svg viewBox="0 0 8 8" width="100%" shape-rendering="crispEdges">${itemRects(pet.id,0,0)}</svg>`:'';
@@ -2629,6 +2863,12 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-15',title:'冒險打怪、躲貓貓、坐騎、城裡的新朋友',items:[
+  ['castle','冒險打怪','城市左下角的冒險之門（或遊樂場的「冒險打怪」）：用英文打倒史萊姆、哥布林、巨龍…一共 15 層，打倒怪物拿金幣！',()=>renderAdventure()],
+  ['ghost','躲貓貓','按城市地圖左上角的「躲貓貓」，城裡的同學都能加入！鬼要走到旁邊才看得到人，躲在樹叢、房子旁邊更難被找到。沒人的時候就跟 NPC 玩。',()=>{go('city');setTimeout(hsStart,300)}],
+  ['star','坐騎','百貨公司「服裝」多了坐騎：滑板、魔法掃帚、腳踏車、筋斗雲、小獨角獸，騎上去走路變快！',()=>renderShop('wear','city')],
+  ['chat','城裡的新朋友','貓頭鷹教授、圖書館員、園丁爺爺、老漁夫…頭上有「!」就是有事拜託你，跟他們說話就知道今天可以做什麼。',()=>go('city')],
+ ]},
  {v:'2026-11-14b',title:'加好友更簡單＋城市變大',items:[
   ['chat','用名字加好友','到「好友」輸入同學的名字就能找到，按「加入」送出邀請；在城市點同學的頭像也能直接加好友。',()=>go('friends')],
   ['star','城市畫面變大','下面的捷徑拿掉了，城市地圖變得更大！訪客、聖誕樹在廣場，釣魚在湖邊，大頭菜市場在沙灘的攤位，按「全圖」可以快速移動。',()=>go('city')],
@@ -4084,7 +4324,7 @@ async function openFishing(){
       if(c!==q.a)addWrong(q);
       if(!res.caught){fq.innerHTML=`<p style="margin:0;text-align:center;line-height:1.7">答錯了，魚跑掉了…<br><span class="small">答案是 ${esc(q.o[q.a])}</span></p><button class="btn gold" id="fagain">再拋一次</button>`;fq.querySelector('#fagain').onclick=reset;return}
       const f=FISHI[res.species],isNew=wasNew;
-      if(!q.t||q.t==='v'){giveCard(q.w,q.zh);cloud.card(q.w)}
+      did('fish');if(!q.t||q.t==='v'){giveCard(q.w,q.zh);cloud.card(q.w)}
       fq.innerHTML=`<div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px">${fishSVG(f,80)}
         <h2 style="margin:0;color:${RARITY[f.r][1]}">${f.name} <span class="pill" style="background:${RARITY[f.r][1]};color:var(--night)">${f.r}</span>${isNew?' <b style="color:var(--coral)">NEW</b>':''}</h2>
         <p style="margin:0;line-height:1.6">${res.coins?`<b style="color:var(--gold)">+${res.coins} 金幣</b>`:'今天的釣魚金幣領滿了（還是會記進圖鑑）'}${res.bonus?`<br><b style="color:var(--gold)">圖鑑收集 ${res.kinds} 種！+${res.bonus} 金幣</b>`:''}${res.hat?'<br><b style="color:var(--gold)">14 種全部收齊！獲得「釣魚帽」</b>':''}${(!q.t||q.t==='v')?`<br><span class="small">也收到單字卡 ${esc(q.w)}</span>`:''}</p>
