@@ -771,7 +771,7 @@ function itemThumb(it){
    跟資料庫的 coins_earned() 同一套算法；線上版買東西時由資料庫再算一次，改網頁也灌不了金幣。 */
 const MILESTONES=[[3,20],[7,50],[15,100],[30,200],[60,400],[100,800]];
 /* 活動週（段考週加成）：線上版從資料庫 app_events 讀；單機版用這份。期間內答題、專注、任務金幣 × mult，答題／專注還會隨機掉盲盒券 */
-let EVENTS=[{name:'段考預備週加成',start:'2026-10-05',end:'2026-10-11',mult:2,drop:.4},{name:'段考週加成',start:'2026-10-12',end:'2026-10-18',mult:3,drop:.4}];
+let EVENTS=[{name:'段考預備週加成',start:'2026-10-05',end:'2026-10-11',mult:2,drop:.4},{name:'段考週加成',start:'2026-10-12',end:'2026-10-18',mult:3,drop:.4},{name:'段考預備週加成',start:'2026-11-16',end:'2026-11-22',mult:2,drop:.4}];
 const evMult=day=>EVENTS.reduce((m,e)=>day>=e.start&&day<=e.end?Math.max(m,e.mult):m,1);
 const curEvent=()=>EVENTS.filter(e=>today()>=e.start&&today()<=e.end).sort((a,b)=>b.mult-a.mult)[0]||null;
 async function eventRoll(kind){
@@ -1566,11 +1566,11 @@ let CITY=null,cityLoop=0,city=null;
 const halloween=()=>{const d=new Date(),m=d.getMonth()+1;return m===10||(m===11&&d.getDate()<=7)};
 /* 聖誕節：11/8 起廣場整個布置好（聖誕樹、禮物、雪人、燈串、路燈花圈、灌木變小松樹）＝ 3；12 月再下雪、開降臨月曆 ＝ 4 */
 const xmasStage=()=>{const d=new Date(),m=d.getMonth()+1,day=d.getDate();return m===12?4:m===11&&day>=8?3:0};
-const SNOWMAN=[17,10];
+const SNOWMAN=[17,10],SNOWMAN2=[13,13];
 const xmasLeft=()=>{const d=new Date();return Math.round((new Date(d.getFullYear(),11,1)-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)};
 const standOn=()=>halloween()||xmasStage()>0;
 function buildCity(){return CITY_MAP.map(r=>[...r])}
-const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1])&&!(xmasHas('snowman')&&x===SNOWMAN[0]&&y===SNOWMAN[1])&&!(x===MARKET_AT[0]&&y===MARKET_AT[1])&&!(x===ADV_GATE[0]&&y===ADV_GATE[1]);
+const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1])&&!(xmasHas('snowman')&&x===SNOWMAN[0]&&y===SNOWMAN[1])&&!(xmasStage()>=3&&!halloween()&&x===SNOWMAN2[0]&&y===SNOWMAN2[1])&&!(x===MARKET_AT[0]&&y===MARKET_AT[1])&&!(x===ADV_GATE[0]&&y===ADV_GATE[1]);
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 const doorAt=(x,y)=>BUILDINGS.find(b=>b.door[0]===x&&b.door[1]===y);
 /* 圖書館：錯題本、單字卡 */
@@ -1794,7 +1794,7 @@ function xmasOpen(){
   const pre=st<4;
   const m=modal(`<div style="display:flex;justify-content:center;gap:8px"><span data-s="xtree" data-z="6"></span><span data-s="gift" data-z="6"></span></div>
     <h2 style="text-align:center">${pre?`聖誕節倒數 ${xmasLeft()} 天`:'聖誕快樂！'}</h2>
-    <p style="margin:0;line-height:1.7;text-align:center">${pre?(()=>{const n=xmasCount(),d=XMAS_DECO;return `廣場每天會多一個聖誕裝飾！今天新增：<b style="color:var(--gold)">${d[n-1][1]}</b><br>${n<d.length?'明天還會有新的，記得回來看。':'裝飾全部到齊了！'}<b style="color:var(--gold)">12/1</b> 開始下雪、開放降臨月曆。</p>
+    <p style="margin:0;line-height:1.7;text-align:center">${pre?(()=>{const n=xmasCount(),d=XMAS_DECO;return `廣場每天會多一個聖誕裝飾！今天新增：<b style="color:var(--gold)">${d[n-1][1]}</b><br>${n<d.length?'明天還會有新的，記得回來看。':'裝飾全部到齊了！'}城裡已經開始下雪了，<b style="color:var(--gold)">12/1</b> 開放降臨月曆。</p>
       <div class="box" style="background:var(--deep);padding:8px 10px"><p class="lbl" style="margin:0 0 6px">廣場布置進度 ${n}／${d.length}</p><div class="chips">${d.map((x,i)=>`<span class="chip" style="${i<n?'background:var(--mint);color:var(--night)':'opacity:.55'}">${i<n?'✓ '+x[1]:'？？？'}</span>`).join('')}</div></div><p style="display:none">`})():'城裡下雪了！聖誕限定商品在百貨公司，只到 12/31。'}</p>
     ${pre?`<div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px"><p class="lbl" style="margin:0">12/1 登場（先偷看一點點）</p>
       ${teasers.map(([sp,a,b])=>`<div style="display:flex;gap:10px;align-items:center"><span data-s="${sp}" data-z="4"></span><span><b>${a}</b><br><span class="small">${b}</span></span></div>`).join('')}</div>
@@ -2263,7 +2263,7 @@ function hsDraw(c,t){if(!HS||HS.phase==='lobby')return;const myId=ME||'me',left=
 const rnd3=(x,y,k=0)=>(((x*73856093)^(y*19349663)^(k*83492791))>>>0)%1000/1000;
 let cityBaseC=null,cityBaseKey='';
 function cityBase(){
-  const hw=halloween(),key=[hw,xmasHas('wreath'),xmasHas('pine')].join();
+  const hw=halloween(),snow=!hw&&xmasStage()>=3,key=[hw,xmasHas('wreath'),xmasHas('pine'),snow].join();
   if(cityBaseC&&cityBaseKey===key)return cityBaseC;
   const cv=document.createElement('canvas');cv.width=CW*TS;cv.height=CH*TS;const c=cv.getContext('2d');
   const R=(col,x,y,w,h)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
@@ -2295,10 +2295,12 @@ function cityBase(){
     else if(ch==='s'){R('#e8d39a',X,Y,TS,TS);for(let k=0;k<7;k++)R(k%2?'#dcc386':'#f2e2b0',X+Math.floor(rnd3(x,y,k)*16),Y+Math.floor(rnd3(x,y,k+7)*16),1+k%2,1);
       if(rnd3(x,y,30)<.12){R('#f4a6c6',X+7,Y+8,3,2);R('#fbd0e0',X+7,Y+8,1,1)}}
     else grass(X,Y,x,y);
+    if(snow&&!path(x,y)&&!'wb~s'.includes(ch)){for(let k=0;k<3;k++){const a=Math.floor(rnd3(x,y,50+k)*14),b=Math.floor(rnd3(x,y,60+k)*15);R('#f4ecd8',X+a,Y+b,2,1);R('#ffffff',X+a,Y+b,1,1)}}
     if(ch===','){[[3,4,'#f4a6c6'],[10,8,'#ffd166'],[6,11,'#f4ecd8'],[12,2,'#c7b8e8']].forEach(([a,b,col],k)=>{if(k===3&&rnd3(x,y,40)<.5)return;
       R('#2f7045',X+a+1,Y+b+2,1,3);R(col,X+a,Y+b+1,3,1);R(col,X+a+1,Y+b,1,3);R('#ffd166',X+a+1,Y+b+1,1,1)})}
     if(ch==='T'){R('rgba(0,0,0,.22)',X+3,Y+14,10,2);R('rgba(0,0,0,.14)',X+2,Y+15,12,1);
-      R('#7a5233',X+6,Y+9,4,6);R('#8b5e3c',X+6,Y+9,1,6);R('#5a3d2b',X+9,Y+9,1,6);blob(X,Y,8,5.5,7.5,6,x*31+y,LEAF)}
+      R('#7a5233',X+6,Y+9,4,6);R('#8b5e3c',X+6,Y+9,1,6);R('#5a3d2b',X+9,Y+9,1,6);blob(X,Y,8,5.5,7.5,6,x*31+y,LEAF);
+      if(snow){R('#f4ecd8',X+4,Y,8,2);R('#ffffff',X+5,Y,5,1);R('#f4ecd8',X+2,Y+2,5,1);R('#f4ecd8',X+10,Y+3,3,1)}}
     if(ch==='p'){R('rgba(0,0,0,.2)',X+3,Y+14,10,2);
       if(hw){blob(X,Y,8,10,6.5,5,x+y,['#7a2f0c','#c25a1c','#e5713c','#ff8a5c','#ffb38f']);R('#c25a1c',X+7,Y+6,2,8);R('#2f7045',X+7,Y+3,2,3);R('#4caf50',X+8,Y+3,1,1);
         R('#1a1026',X+4,Y+8,2,2);R('#1a1026',X+10,Y+8,2,2);R('#1a1026',X+5,Y+12,6,1);R('#ffd166',X+4,Y+8,1,1);R('#ffd166',X+10,Y+8,1,1)}
@@ -2329,6 +2331,7 @@ function cityBase(){
     R(b.roof,X-2,Y,W+4,13);R('rgba(255,255,255,.22)',X-2,Y,W+4,1);
     for(let yy=Y+3,r=0;yy<Y+12;yy+=3,r++){R('rgba(0,0,0,.18)',X-2,yy,W+4,1);for(let xx=X-2+(r%2)*3;xx<X+W+2;xx+=6)R('rgba(0,0,0,.14)',xx,yy+1,1,2)}
     R('rgba(0,0,0,.32)',X-2,Y+12,W+4,1);R('rgba(0,0,0,.14)',X,Y+13,W,2);
+    if(snow){R('#f4ecd8',X-2,Y-1,W+4,4);R('#ffffff',X-2,Y-1,W+4,1);for(let xx=X;xx<X+W;xx+=5)R('#f4ecd8',xx+((xx*7)%3),Y+3,2,1+((xx*3)%3));for(let xx=X+3;xx<X+W;xx+=9)R('#e6f4ff',xx,Y+12,1,2)}
     const tall=b.h>=3,wy=Y+19;
     for(let i=X+6;i<X+W-8;i+=14){if(Math.abs(i+4-(b.door[0]*TS+8))<=10)continue;
       R('#3a2f55',i-1,wy-1,10,10);R('#9fd0f5',i,wy,8,4);R('#79b6e8',i,wy+4,8,4);R('#e6f4ff',i+1,wy+1,2,1);R('#e6f4ff',i+1,wy+2,1,1);R('#f4ecd8',i+3,wy,1,8);R('#f4ecd8',i,wy+3,8,1);R('#f4ecd8',i-1,wy+9,10,1);
@@ -2362,11 +2365,16 @@ function drawXmasPlaza(c,t){
   if(xmasHas('star')){const g=.18+.1*Math.sin(t*3);c.fillStyle=`rgba(255,209,102,${g})`;c.fillRect(X+3,Y-17,10,10);R('#ffd166',X+7,Y-16,2,7);R('#ffd166',X+5,Y-14,6,2);R('#ffd166',X+6,Y-12,1,2);R('#ffd166',X+9,Y-12,1,2);R('#fff6c9',X+7,Y-14,2,2)}
   if(xmasHas('gifts'))[[-3,11,5,5,'#d94f4f','#ffd166'],[1,13,4,3,'#3a7bd5','#f4ecd8'],[12,12,5,4,'#7a3f9e','#9fe1cb'],[15,13,3,3,'#4caf50','#d94f4f']].forEach(([dx,dy,w,h,a,b])=>{R('rgba(0,0,0,.2)',X+dx+1,Y+dy+h,w,1);R(a,X+dx,Y+dy,w,h);R(b,X+dx+Math.floor(w/2),Y+dy,1,h);R(b,X+dx,Y+dy+1,w,1);R(b,X+dx+Math.floor(w/2)-1,Y+dy-1,3,1)});
   if(xmasHas('cane'))[[-6,2],[20,2]].forEach(([dx,dy])=>{for(let i=0;i<12;i++)R(i%3<2?'#d94f4f':'#f4ecd8',X+dx+1,Y+dy+2+i,2,1);R('#d94f4f',X+dx+1,Y+dy,3,2);R('#f4ecd8',X+dx+3,Y+dy+1,2,1);R('#d94f4f',X+dx+4,Y+dy+2,1,2);R('rgba(0,0,0,.2)',X+dx,Y+dy+14,4,1)});
-  if(xmasHas('snowman')){const SX=SNOWMAN[0]*TS,SY=SNOWMAN[1]*TS;R('rgba(0,0,0,.22)',SX+2,SY+14,12,2);
+  const snowman=([sx,sy],scarf,sign)=>{const SX=sx*TS,SY=sy*TS;R('rgba(0,0,0,.22)',SX+2,SY+14,12,2);
     disc(SX+8,SY+10,5,'#ffffff','#f4ecd8','#c7cfe0');disc(SX+8,SY+3,4,'#ffffff','#f4ecd8','#c7cfe0');
     R('#1a1026',SX+6,SY+2,1,1);R('#1a1026',SX+9,SY+2,1,1);R('#ff8a5c',SX+8,SY+3,3,1);R('#1a1026',SX+7,SY+9,1,1);R('#1a1026',SX+7,SY+11,1,1);
-    R('#d94f4f',SX+4,SY+6,9,2);R('#d94f4f',SX+10,SY+7,2,4);R('#2b2b33',SX+4,SY-2,9,1);R('#2b2b33',SX+5,SY-6,7,4);R('#d94f4f',SX+5,SY-3,7,1);
-    R('#7a5233',SX+1,SY+7,3,1);R('#7a5233',SX,SY+6,1,1);R('#7a5233',SX+13,SY+7,3,1);R('#7a5233',SX+16,SY+6,1,1)}
+    R(scarf,SX+4,SY+6,9,2);R(scarf,SX+10,SY+7,2,4);
+    if(sign){R('#7a5233',SX+17,SY-1,2,15);R('#5a3d2b',SX+9,SY-11,26,11);R('#f4ecd8',SX+10,SY-10,24,9);R('#ffffff',SX+10,SY-10,24,1);c.font='6px "DotGothic16",sans-serif';c.textAlign='center';c.fillStyle='#d94f4f';c.fillText('段考加油',SX+22,SY-3);
+      R('#3a7bd5',SX+4,SY-2,9,1);R('#3a7bd5',SX+5,SY-5,7,3);R('#8fc6f5',SX+5,SY-5,2,1)}
+    else{R('#2b2b33',SX+4,SY-2,9,1);R('#2b2b33',SX+5,SY-6,7,4);R('#d94f4f',SX+5,SY-3,7,1)}
+    R('#7a5233',SX+1,SY+7,3,1);R('#7a5233',SX,SY+6,1,1);R('#7a5233',SX+13,SY+7,3,1);R('#7a5233',SX+16,SY+6,1,1)};
+  if(xmasHas('snowman'))snowman(SNOWMAN,'#d94f4f');
+  if(xmasStage()>=3)snowman(SNOWMAN2,'#4caf50',true);
   if(xmasStage()<4){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';const txt=`聖誕倒數 ${xmasLeft()} 天`,w=c.measureText(txt).width+6,by=Y-24+Math.round(Math.sin(t*2));
     c.fillStyle='rgba(15,10,26,.8)';c.fillRect(X+8-w/2,by-7,w,10);c.fillStyle='#ffd166';c.fillText(txt,X+8,by)}
 }
@@ -2426,7 +2434,7 @@ function cityDraw(){
     if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle=p.guide?'rgba(122,63,158,.85)':'rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle=p.guide?'#ffd166':'#f4ecd8';c.fillText(p.name,p.px,Y-3)}
     if(p.guide&&!p.guide.done()){const by=Y-19+Math.round(Math.sin(t*5+p.px)*2);c.fillStyle='#ffd166';c.fillRect(p.px-3,by,6,8);c.fillStyle='#1a1026';c.fillRect(p.px-1,by+1,2,4);c.fillRect(p.px-1,by+6,2,1)}
   });
-  if(xs>=4){c.fillStyle='rgba(244,236,216,.85)';for(let i=0;i<46;i++){const sx=camX+((i*53+t*(8+i%4*3)+Math.sin(t+i)*6)%(VW*TS)+VW*TS)%(VW*TS),sy=camY+(i*97+t*(14+i%3*6))%(VH*TS);c.fillRect(Math.round(sx),Math.round(sy),i%5?1:2,i%5?1:2)}}
+  if(xs>=3){c.fillStyle='rgba(244,236,216,.85)';for(let i=0;i<46;i++){const sx=camX+((i*53+t*(8+i%4*3)+Math.sin(t+i)*6)%(VW*TS)+VW*TS)%(VW*TS),sy=camY+(i*97+t*(14+i%3*6))%(VH*TS);c.fillRect(Math.round(sx),Math.round(sy),i%5?1:2,i%5?1:2)}}
   c.font='7px "DotGothic16", sans-serif';
   if(city.hw){const h=city.hw;c.save();c.setTransform(CSC,0,0,CSC,0,0);const left=Math.max(0,Math.ceil((h.end-performance.now())/1000));c.fillStyle='rgba(15,10,26,.82)';c.fillRect(4,4,118,14);c.fillStyle='#ffd166';c.font='9px "DotGothic16",sans-serif';c.textAlign='left';c.fillText(`糖果 ${h.got}・剩 ${left} 秒・還有 ${h.candies.length} 顆`,8,14);c.restore();c.font='7px "DotGothic16", sans-serif'}
   drawVisitor(c,t);hsDraw(c,t);c.font='7px "DotGothic16", sans-serif';
@@ -2863,6 +2871,10 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-16',title:'下雪了＋段考預備週加成',items:[
+  ['star','城裡下雪了','魔法城市開始下雪，屋頂和樹都積雪了！廣場旁邊還多了一個舉著「段考加油」牌子的雪人。',()=>go('city')],
+  ['fire','段考預備週加成','11/16～11/22 答今日一題、專注讀書、做任務的金幣 ×2，答題和專注還有機會掉盲盒券！',()=>go('daily')],
+ ]},
  {v:'2026-11-15',title:'冒險打怪、躲貓貓、坐騎、城裡的新朋友',items:[
   ['castle','冒險打怪','城市左下角的冒險之門（或遊樂場的「冒險打怪」）：用英文打倒史萊姆、哥布林、巨龍…一共 15 層，打倒怪物拿金幣！',()=>renderAdventure()],
   ['ghost','躲貓貓','按城市地圖左上角的「躲貓貓」，城裡的同學都能加入！鬼要走到旁邊才看得到人，躲在樹叢、房子旁邊更難被找到。沒人的時候就跟 NPC 玩。',()=>{go('city');setTimeout(hsStart,300)}],
