@@ -94,6 +94,20 @@ h2{font-size:17px;font-weight:400;margin:0}
 .modal .box{background:var(--night);max-width:380px;width:100%;display:flex;flex-direction:column;gap:12px;max-height:90%;overflow-y:auto}
 .modal .box.paper{background:var(--paper)}
 .modal .box>*{flex-shrink:0}
+/* 介面質感升級（2026-11-17）：按鈕有立體邊、卡片有影子、底部選單標出目前頁 */
+.app{background:linear-gradient(180deg,#33274f 0,#2b2140 220px,#251c38 100%)}
+.btn{box-shadow:inset 0 3px 0 rgba(255,255,255,.38),inset 0 -4px 0 rgba(0,0,0,.22),3px 3px 0 var(--ink);transition:transform .06s}
+.btn:active{transform:translate(2px,2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.25),inset 0 -2px 0 rgba(0,0,0,.2),1px 1px 0 var(--ink)}
+.btn.ghost{box-shadow:none}
+.box{box-shadow:4px 4px 0 rgba(0,0,0,.32)}
+.frow{box-shadow:inset 0 2px 0 rgba(255,255,255,.07),3px 3px 0 rgba(0,0,0,.3)}
+.sitem{box-shadow:inset 0 2px 0 rgba(255,255,255,.08),3px 3px 0 rgba(0,0,0,.3)}
+.chip{box-shadow:inset 0 2px 0 rgba(255,255,255,.14)}
+h2{text-shadow:2px 2px 0 var(--ink)}
+.nav{background:linear-gradient(#2a2042,#1d1630)}
+.nav button[aria-current="page"]::before{content:'';position:absolute;top:0;left:28%;right:28%;height:4px;background:var(--gold);box-shadow:0 0 8px rgba(255,209,102,.7)}
+.nav button[aria-current="page"] svg{filter:drop-shadow(0 0 4px rgba(255,209,102,.6))}
+.modal .box{box-shadow:6px 6px 0 rgba(0,0,0,.5)}
 #mycards summary::-webkit-details-marker{display:none}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--gold);color:var(--night);border:3px solid var(--ink);padding:8px 14px;font-size:13px;z-index:20;max-width:90%}
 input[type=text]{font-family:inherit;font-size:15px;width:100%;padding:10px;border:3px solid var(--ink);border-radius:0;background:var(--paper);color:var(--night)}
@@ -426,6 +440,7 @@ const SHAPE={
  winhallow:['222222222222','21111211yy12','2111121yyyy2','2k1k121yyyy2','222222222222','211k12111y12','211112111112','2k1112111k12','222222222222'],
  ghostpet:['..wwww..','.wwwwww.','.wkwwkw.','.wwwwww.','.wwPPww.','.wwwwww.','.wwwwww.','.w.ww.w.'],
  pumpkinpet:['...G....','..GG....','.111111.','11k11k11','11111111','11kkkk11','.111111.','........'],
+ babydragon:['.....rr.','....rrkr','.r..rrrr','rrrrrrO.','.rrrrrr.','.rOOrr..','.r..r...','........'],
  snowman:['...kk...','..kkkk..','..wwww..','.wkwwkw.','.wwOOww.','..rrrr..','.wwwrww.','.wwwwww.'],
  rskate:['........','........','11111111','.k....k.'],
  rbroom:['........','.......2','11122222','11......'],
@@ -534,6 +549,9 @@ const SHOP=[
  {id:'acc_catears',slot:'acc',name:'黑貓耳朵',price:150,acc:'catears',from:'10-01',until:'11-07',season:'萬聖節',fresh:1},
  {id:'hat_santa',slot:'hat',name:'聖誕帽',price:150,hat:'santa',c:['#d94f4f'],from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'pet_reindeer',slot:'pet',name:'麋鹿',price:400,g:'reindeer',from:'12-01',until:'12-31',season:'聖誕節'},
+ /* 探險隊才拿得到 */
+ {id:'hat_explorer',slot:'hat',name:'探險家帽',price:9999,hat:'cap',c:['#c98a3a'],bundle:'expedition'},
+ {id:'pet_babydragon',slot:'pet',name:'小火龍',price:9999,g:'babydragon',bundle:'expedition'},
  {id:'pet_snowman',slot:'pet',name:'雪人',price:9999,g:'snowman',bundle:'advent',from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'hat_goldsanta',slot:'hat',name:'金色聖誕帽',price:9999,hat:'santa',c:['#ffd166'],bundle:'advent',from:'12-01',until:'12-31',season:'聖誕節'},
  {id:'poster_xmas',slot:'poster',name:'聖誕樹海報',price:120,g:'pxmas',c:['#1d2a5c','#c98a3a'],from:'12-01',until:'12-31',season:'聖誕節'},
@@ -844,7 +862,7 @@ function bindReminder(){
 /* ---------- 房間與商店 ---------- */
 let shopCat='room',lookTimer=null,shopFrom='me';
 function saveLook(){
-  save();
+  did('dress');save();
   if(!ONLINE)return;
   clearTimeout(lookTimer);lookTimer=setTimeout(()=>{const l=myLook();cloud.saveLook(l.room,l.outfit);trackMe()},700);
 }
@@ -865,7 +883,7 @@ function renderShop(cat,from){
        const on=(slot in L.room?L.room[slot]:L.outfit[slot])===it.id,own=owns(it.id);
        return `<button class="sitem${on?' on':''}" data-it="${it.id}">${itemThumb(it)}<span>${esc(it.name)}${it.fresh&&!own?' <b style="color:var(--coral)">新</b>':''}</span>
          ${it.gacha?`<span class="pill" style="background:${RARITY[it.gacha][1]};color:var(--night)">盲盒 ${it.gacha}</span>`:it.rare?'<span class="pill" style="background:var(--gold);color:var(--night)">稀有</span>':it.season?`<span class="pill" style="background:var(--coral);color:var(--night)">${it.season}限定・到 ${it.until.replace('-','/')}</span>`:''}
-         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':it.bundle==='friend'?'好感度獎勵':it.bundle==='fish'?'釣魚圖鑑獎勵':it.bundle==='advent'?'降臨月曆獎勵':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
+         <span class="price">${on?'使用中':own?(it.cards?'已解鎖':it.price?'已擁有':'免費'):it.bundle?(it.bundle==='invite'?'邀請限定':it.bundle==='farm'?'花園交換':it.bundle==='friend'?'好感度獎勵':it.bundle==='fish'?'釣魚圖鑑獎勵':it.bundle==='advent'?'降臨月曆獎勵':it.bundle==='expedition'?'探險隊寶物':'禮包限定'):it.gacha?'盲盒限定':it.cards?`收集 ${it.cards} 張單字卡`:`<span data-s="coin" data-z="2"></span>${it.price}`}</span></button>`}).join('')}</div></div>`).join('')}
    <p class="demo" style="text-align:left;line-height:1.6">答今日一題 +10（答對再 +5）・專注每分鐘 +1（每天最多 ${FOCUS_CAP}）・連續打卡 3／7／15／30 天有額外獎勵。</p>`;
   paintSprites($('#view'));
   $('#sback').onclick=()=>shopFrom==='home'?renderHome():go(shopFrom);
@@ -881,7 +899,7 @@ function pickItem(it){
   if(owns(it.id)){equip(it);return}
   if(it.cards){const n=Object.keys(S.cards).length;modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div><h2 style="text-align:center">${esc(it.name)}</h2><p style="text-align:center;margin:0;line-height:1.6">收集 ${it.cards} 張單字卡就會自動得到，不能用金幣買。<br>你現在有 ${n} 張，還差 ${Math.max(0,it.cards-n)} 張。</p><button class="btn" data-close>好</button>`);return}
   if(it.gacha){toast(`${it.name}只能從遊樂場的魔法盲盒抽到（${it.gacha}）`);return}
-  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:it.bundle==='friend'?`${it.name}：和好友的好感度升級才拿得到`:it.bundle==='fish'?`${it.name}：魚圖鑑 14 種全部收齊就送你`:it.bundle==='advent'?`${it.name}：降臨月曆開滿 ${it.id==='pet_snowman'?10:20} 格就送你`:`${it.name}是新手大禮包限定的`);return}
+  if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:it.bundle==='friend'?`${it.name}：和好友的好感度升級才拿得到`:it.bundle==='fish'?`${it.name}：魚圖鑑 14 種全部收齊就送你`:it.bundle==='advent'?`${it.name}：降臨月曆開滿 ${it.id==='pet_snowman'?10:20} 格就送你`:it.bundle==='expedition'?`${it.name}：派探險隊去洞穴、城堡，運氣好就會帶回來`:`${it.name}是新手大禮包限定的`);return}
   if(!inWin(it)){toast('這個限定商品現在沒有販售');return}
   const bal=coins();
   const m=modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div>
@@ -892,7 +910,7 @@ function pickItem(it){
   const b=m.querySelector('#buy');if(!b)return;
   b.onclick=async()=>{
     b.disabled=true;b.textContent='購買中…';
-    let r=null;if(ONLINE){r=await cloud.buy(it.id);if(r===undefined){b.disabled=false;b.textContent='買下並使用';return}}
+    let r=null;if(ONLINE){r=await cloud.buy(it.id);if(r===undefined){b.disabled=false;b.textContent='買下並使用';return}}did('buy');
     S.owned[it.id]=it.price;syncWallet(r);m.remove();toast(`買到了 ${it.name}`);equip(it);
   };
 }
@@ -1078,7 +1096,7 @@ let gardenBack=null;
    線上版的金幣進出全部由資料庫函式處理（claim_game、start/submit_challenge、bank_move），
    網頁只顯示結果；單機版在瀏覽器裡用同樣的規則模擬。 */
 const GAME_CAP=40,GAME_KEYS=['match','speed','granny','tower','halloween','trick','words','adventure','hideseek'],GAME_MAX=15,CHAL_STAKES=[10,30,50,100],CHAL_PER_DAY=3,BANK_RATE=.02,BANK_DAY_MAX=20;
-function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,trick:0,words:0,adventure:0,hideseek:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);return S.gday}
+function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0,granny:0,tower:0,halloween:0,trick:0,words:0,adventure:0,hideseek:0,npc:0,chal:0};GAME_KEYS.forEach(k=>S.gday[k]=S.gday[k]||0);S.gday.npc=S.gday.npc||0;return S.gday}
 /* 資料庫回傳錢包餘額時，用它校正本機的流水帳總和 */
 function syncWallet(w){if(typeof w==='number'){S.tx=w-(coinsEarned()-coinsSpent());save()}}
 function gameShell(title,body,back){
@@ -1285,10 +1303,11 @@ function gameOver(game,lv,win,title,detail,r,score){
   if(m.querySelector('#gnext'))m.querySelector('#gnext').onclick=()=>{m.remove();run(lv+1)};
 }
 async function claimGame(game,score,lv=1){
+  if(game!=='npc')did('game');
   S.gamesPlayed=(S.gamesPlayed||0)+1;
   const g=gday();let r;
   if(ONLINE){const res=await cloud.rpc('claim_game',{p_game:game,p_score:score,p_level:lv});if(!res)return 0;r=res.reward;syncWallet(res.wallet)}
-  else{r=Math.max(0,Math.min(score,game==='halloween'||game==='trick'||game==='adventure'?20:game==='hideseek'?15:lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
+  else{r=Math.max(0,Math.min(score,game==='halloween'||game==='trick'||game==='adventure'?20:game==='hideseek'?15:game==='npc'?5:lvMax(lv),GAME_CAP-g[game]));S.tx=(S.tx||0)+r}
   g[game]+=r;g.plays=(g.plays||0)+1;save();return r;
 }
 /* 單字翻牌：6 組英文／中文 */
@@ -1499,7 +1518,7 @@ function drawBank(){
     if(!Number.isInteger(amt)||amt===0){$('#berr').textContent='輸入大於 0 的整數';return}
     if(amt>0&&amt>coins()){$('#berr').textContent='錢包的金幣不夠';return}
     if(amt<0&&-amt>S.bank.balance){$('#berr').textContent='存款不夠';return}
-    if(ONLINE){const r=await cloud.rpc('bank_move',{p_amount:amt});if(!r)return;S.bank={balance:r.balance,log:r.log||[]};syncWallet(r.wallet)}
+    did('bank');if(ONLINE){const r=await cloud.rpc('bank_move',{p_amount:amt});if(!r)return;S.bank={balance:r.balance,log:r.log||[]};syncWallet(r.wallet)}
     else{S.bank.balance+=amt;S.tx=(S.tx||0)-amt;S.bank.log.unshift({amount:Math.abs(amt),kind:amt>0?'deposit':'withdraw',created_at:new Date().toISOString()});S.bank.log=S.bank.log.slice(0,10);save()}
     toast(amt>0?`存入 ${amt} 金幣`:`領出 ${-amt} 金幣`);drawBank();
   };
@@ -2018,6 +2037,7 @@ async function loadQuests(force){
 }
 const questReady=()=>!!(questCache&&questCache.some(q=>!q.claimed&&q.progress>=q.target));
 async function renderQuests(){
+  did('quest');
   curTab='quest';$('#app').classList.remove('wide');
   $('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab==='city'?'page':'false'));
   $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="qback" style="padding:5px 10px;font-size:13px">← 城市</button><span>任務板</span>${coinChip()}</div>${eventBar()}<div id="qbody"><p class="small">載入中…</p></div>`;
@@ -2062,23 +2082,62 @@ const rideSpd=()=>(ITEM[myLook().outfit.ride]||{}).spd||1;
 function did(k){if(!S.did||S.did.d!==today())S.did={d:today(),k:{}};S.did.k[k]=1;save()}
 const didToday=k=>!!(S.did&&S.did.d===today()&&S.did.k[k]);
 /* ---------- 任務 NPC：站在各個地方，頭上有「!」就是有事要拜託你，做完當天就消失 ---------- */
+/* 每件事：說的話、按鈕、做完了沒、帶去哪裡 */
+const GTASK={
+ daily:{say:'今天的每日一題答了嗎？答對還能拿單字卡！',btn:'去答題',done:()=>!!S.answers[dkey()],go:()=>go('daily')},
+ practice:{say:'只答一題不夠喔，去「多練幾題」再練一下！',btn:'去練習',done:()=>didToday('practice'),go:()=>go('daily')},
+ review:{say:'錯過的題目最容易再錯，打開錯題本複習一下吧。',btn:'打開錯題本',done:()=>didToday('review'),go:()=>renderMistakes()},
+ focus:{say:'來讀書房專注一次吧！大家都在一起努力，讀越久金幣越多。',btn:'去讀書房',done:()=>(S.minutes[today()]||0)>0,go:()=>go('room')},
+ words:{say:'單字本今天背了嗎？背一課字卡、玩一場單字小遊戲都算！',btn:'打開單字本',done:()=>didToday('words'),go:()=>renderWordbook('city')},
+ meal:{say:'肚子餓了吧？先吃飯才有力氣讀書，不然會餓倒喔！',btn:'去吃飯',done:()=>!!S.meals[today()],go:()=>renderFood()},
+ garden:{say:'你的魔法花園該照顧囉！澆水、收成，作物可以拿去市場賣錢。',btn:'去花園',done:()=>didToday('garden'),go:()=>openMyGarden()},
+ sell:{say:'作物收成了就拿來市場賣，今天的價格說不定很好！',btn:'去市場',done:()=>didToday('sell'),go:()=>openMarket()},
+ fish:{say:'湖裡有 14 種魚，答對單字才釣得上來，今天來釣一隻吧！',btn:'去釣魚',done:()=>didToday('fish'),go:()=>openFishing()},
+ fight:{say:'冒險之門後面有怪物！親自去打一場，用英文打倒牠們！',btn:'去打怪',done:()=>didToday('adv'),go:()=>renderAdventure('fight')},
+ exp:{say:'派一支探險隊出去吧！出發前答對補給問答，成功率會變高。',btn:'派遣探險隊',done:()=>didToday('exp'),go:()=>renderAdventure('exp')},
+ hs:{say:'要不要玩躲貓貓？按地圖左上角的「躲貓貓」就能開始！',btn:'玩躲貓貓',done:()=>didToday('hs'),go:()=>{go('city');setTimeout(hsStart,300)}},
+ wave:{say:'在城裡看到同學就跟他揮揮手吧！點同學的頭像就可以揮手。',btn:'回城市找同學',done:()=>didToday('social'),go:()=>go('city')},
+ bank:{say:'金幣存進銀行每天都有利息，存一點試試看！',btn:'去銀行',done:()=>didToday('bank'),go:()=>gBank()},
+ game:{say:'遊樂場的小遊戲玩一場吧，答對也能賺金幣！',btn:'去遊樂場',done:()=>didToday('game'),go:()=>go('games')},
+ buy:{say:'百貨公司進了新貨，去逛逛買一件喜歡的吧！',btn:'去百貨公司',done:()=>didToday('buy'),go:()=>renderShop('room','city')},
+ dress:{say:'換個新造型吧！帽子、衣服、坐騎都可以換。',btn:'去換裝',done:()=>didToday('dress'),go:()=>renderShop('wear','city')},
+ quest:{say:'任務板上有今天的任務，去看看有什麼獎勵！',btn:'看任務板',done:()=>didToday('quest'),go:()=>renderQuests()}
+};
 const GUIDES=[
- {id:'owl',name:'貓頭鷹教授',at:[11,4],tier:'sage',outfit:{hat:'hat_grad',top:'top_purple',acc:'acc_glasses'},say:'今天的每日一題答了嗎？答對還能拿單字卡！',btn:'去答題',done:()=>!!S.answers[dkey()],go:()=>go('daily')},
- {id:'keeper',name:'讀書房管理員',at:[4,4],tier:'teen',outfit:{hat:'hat_cap',top:'top_green'},say:'來讀書房專注一次吧！大家都在一起努力，讀越久金幣越多。',btn:'去讀書房',done:()=>(S.minutes[today()]||0)>0,go:()=>go('room')},
- {id:'libr',name:'圖書館員',at:[19,4],tier:'sage',outfit:{hat:'hair_bun',top:'top_red',acc:'acc_glasses'},say:'單字本今天背了嗎？背一課字卡、玩一場單字小遊戲都算！',btn:'打開單字本',done:()=>didToday('words'),go:()=>renderWordbook('city')},
- {id:'chef',name:'餐廳主廚',at:[4,12],tier:'teen',outfit:{hat:'hat_chef',top:'top_white'},say:'肚子餓了吧？先吃飯才有力氣讀書，不然會餓倒喔！',btn:'去吃飯',done:()=>!!S.meals[today()],go:()=>renderFood()},
- {id:'gardener',name:'園丁爺爺',at:[11,18],tier:'sage',outfit:{hat:'hat_straw',top:'top_green',acc:'acc_beard'},say:'你的魔法花園該照顧囉！澆水、收成，作物可以拿去市場賣錢。',btn:'去花園',done:()=>didToday('garden'),go:()=>openMyGarden()},
- {id:'fisher',name:'老漁夫',at:[22,15],tier:'sage',outfit:{hat:'hat_fisher',top:'top_blue',acc:'acc_beard'},say:'湖裡有 14 種魚，答對單字才釣得上來，今天來釣一隻吧！',btn:'去釣魚',done:()=>didToday('fish'),go:()=>openFishing()},
- {id:'knight',name:'冒險公會騎士',at:[6,23],tier:'teen',outfit:{hat:'hat_helmet',top:'top_red'},say:'城外出現怪物了！穿過冒險之門，用英文打倒牠們！',btn:'出發冒險',done:()=>didToday('adv'),go:()=>renderAdventure()},
- {id:'snow',name:'愛玩的小雪',at:[19,9],tier:'kid',outfit:{hat:'hair_ponytail',top:'top_pink'},face:-1,say:'要不要玩躲貓貓？按地圖左上角的「躲貓貓」，城裡的同學都可以加入！',btn:'玩躲貓貓',done:()=>didToday('hs'),go:()=>{go('city');setTimeout(hsStart,300)}}
+ {id:'owl',name:'貓頭鷹教授',job:'法師',at:[11,4],tier:'sage',outfit:{hat:'hat_grad',top:'top_purple',acc:'acc_glasses'},tasks:['daily','practice','review']},
+ {id:'keeper',name:'讀書房管理員',job:'戰士',at:[4,4],tier:'teen',outfit:{hat:'hat_cap',top:'top_green'},tasks:['focus']},
+ {id:'libr',name:'圖書館員',job:'法師',at:[19,4],tier:'sage',outfit:{hat:'hair_bun',top:'top_red',acc:'acc_glasses'},tasks:['words','review']},
+ {id:'banker',name:'銀行行員',job:'商人',at:[25,4],tier:'sage',outfit:{hat:'hat_detective',top:'top_coat',acc:'acc_mustache'},tasks:['bank']},
+ {id:'postman',name:'郵差小哥',job:'盜賊',at:[25,9],tier:'teen',outfit:{hat:'hat_cap',top:'top_blue'},tasks:['wave','quest']},
+ {id:'chef',name:'餐廳主廚',job:'補師',at:[4,12],tier:'teen',outfit:{hat:'hat_chef',top:'top_white'},tasks:['meal']},
+ {id:'snow',name:'愛玩的小雪',job:'盜賊',at:[19,9],tier:'kid',outfit:{hat:'hair_ponytail',top:'top_pink'},face:-1,tasks:['hs','wave']},
+ {id:'clown',name:'遊樂場小丑',job:'弓箭手',at:[4,18],tier:'kid',outfit:{hat:'hat_jester',top:'top_rainbow'},tasks:['game','hs']},
+ {id:'gardener',name:'園丁爺爺',job:'補師',at:[11,18],tier:'sage',outfit:{hat:'hat_straw',top:'top_green',acc:'acc_beard'},tasks:['garden','sell']},
+ {id:'clerk',name:'百貨店員',job:'商人',at:[19,18],tier:'teen',outfit:{hat:'hair_bob',top:'top_mint'},tasks:['buy','dress']},
+ {id:'guildmaster',name:'公會會長',job:'戰士',at:[11,20],tier:'sage',outfit:{hat:'hat_crown',top:'top_purple',acc:'acc_cape'},tasks:['exp','quest']},
+ {id:'fisher',name:'老漁夫',job:'弓箭手',at:[22,15],tier:'sage',outfit:{hat:'hat_fisher',top:'top_blue',acc:'acc_beard'},tasks:['fish']},
+ {id:'merchant',name:'市場老闆娘',job:'商人',at:[24,20],tier:'sage',outfit:{hat:'hat_straw',top:'top_orange'},face:-1,tasks:['sell','buy']},
+ {id:'knight',name:'冒險公會騎士',job:'戰士',at:[6,23],tier:'teen',outfit:{hat:'hat_helmet',top:'top_red'},tasks:['fight','exp']}
 ];
+/* 今天這位 NPC 要拜託的事：每天輪流換 */
+GUIDES.forEach((g,i)=>{g.task=()=>GTASK[g.tasks[(dayNum()+i)%g.tasks.length]];g.done=()=>g.task().done()});
+const guideLook=id=>{const g=GUIDES.find(x=>x.id===id);return g?lookOf({outfit:g.outfit},g.tier).outfit:myLook().outfit};
+const thanked=id=>!!(S.thanks&&S.thanks.d===today()&&S.thanks.ids[id]);
+function recruits(){S.recruits=S.recruits||{knight:1};return S.recruits}
 function guideTalk(id){
-  const gd=GUIDES.find(g=>g.id===id);if(!gd)return;const ok=gd.done(),n=GUIDES.filter(g=>g.done()).length;
-  const m=modal(`<div style="display:flex;gap:12px;align-items:center">${avatarSVG(lookOf({outfit:gd.outfit},gd.tier).outfit,9)}
-      <div class="box paper" style="flex:1;padding:10px 12px;line-height:1.7"><b style="color:var(--plum)">${esc(gd.name)}</b><br>${ok?'做得好！今天這件事完成了，明天再來找我喔。':esc(gd.say)}</div></div>
-    <p class="small" style="margin:0;text-align:center">今天幫了 ${n}／${GUIDES.length} 位城裡的人・頭上有 <b style="color:var(--gold)">!</b> 的人有事找你</p>
-    ${ok?'':`<button class="btn gold" id="ggo">${esc(gd.btn)}</button>`}<button class="btn ghost" data-close>${ok?'好':'等一下'}</button>`);
-  if(m.querySelector('#ggo'))m.querySelector('#ggo').onclick=()=>{m.remove();gd.go()};
+  const gd=GUIDES.find(g=>g.id===id);if(!gd)return;const t=gd.task(),ok=t.done(),n=GUIDES.filter(g=>g.done()).length,rec=recruits()[id],th=thanked(id);
+  const m=modal(`<div style="display:flex;gap:12px;align-items:center">${avatarSVG(guideLook(id),9)}
+      <div class="box paper" style="flex:1;padding:10px 12px;line-height:1.7"><b style="color:var(--plum)">${esc(gd.name)}</b> <span class="small">・${gd.job}</span><br>${ok?(th?'今天謝謝你啦！明天再來找我，我會有別的事拜託你。':'太好了，你真的做到了！這是我的一點謝禮。'):esc(t.say)}</div></div>
+    <p class="small" style="margin:0;text-align:center">今天幫了 ${n}／${GUIDES.length} 位城裡的人・頭上有 <b style="color:var(--gold)">!</b> 是有事拜託你、<b style="color:var(--mint)">★</b> 是有謝禮</p>
+    ${ok?'':`<button class="btn gold" id="ggo">${esc(t.btn)}</button>`}
+    ${ok&&!th?'<button class="btn mint" id="gthx">收下謝禮（+5 金幣）</button>':''}
+    ${!rec&&ok?`<button class="btn" id="grec" style="background:var(--plum);color:var(--paper)">邀請 ${esc(gd.name)} 加入探險隊</button>`:''}
+    ${!rec&&!ok?`<p class="small" style="margin:0;text-align:center">幫他完成這件事，就能邀請他加入你的探險隊</p>`:''}
+    <button class="btn ghost" data-close>${ok?'好':'等一下'}</button>`);
+  if(m.querySelector('#ggo'))m.querySelector('#ggo').onclick=()=>{m.remove();t.go()};
+  if(m.querySelector('#gthx'))m.querySelector('#gthx').onclick=async e=>{e.target.disabled=true;if(!S.thanks||S.thanks.d!==today())S.thanks={d:today(),ids:{}};S.thanks.ids[id]=1;save();
+    const r=await claimGame('npc',5,1);toast(r?`${gd.name} 送你 ${r} 金幣`:'今天的謝禮領滿了');m.remove();guideTalk(id)};
+  if(m.querySelector('#grec'))m.querySelector('#grec').onclick=()=>{recruits()[id]=1;save();toast(`${gd.name} 加入你的探險隊了！`);m.remove();guideTalk(id)};
 }
 /* ---------- 冒險：用英文打怪（15 層，每 5 層一隻頭目） ----------
    答對攻擊怪物（連對 3 題以上會心一擊 2 倍），答錯被怪物打掉 1 顆心，答錯的題目進錯題本。
@@ -2106,16 +2165,21 @@ function advCSS(){if($('#advcss'))return;document.head.insertAdjacentHTML('befor
 .mhit{animation:mhit .35s}@keyframes mhit{0%,100%{transform:none;filter:none}30%{transform:translateX(8px);filter:brightness(3)}60%{transform:translateX(-6px)}}
 .shake{animation:shake .35s}@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .dmg{position:absolute;left:50%;top:40%;font:bold 28px 'DotGothic16';color:#ffd166;text-shadow:3px 3px 0 #1a1026;animation:dmg .8s forwards;pointer-events:none}@keyframes dmg{to{transform:translate(-50%,-50px);opacity:0}}
-.mdie{animation:mdie .6s forwards}@keyframes mdie{to{transform:scale(.2) rotate(40deg);opacity:0}}</style>`)}
-function renderAdventure(){
-  advCSS();const st=advState();curTab='games';
-  gameShell('冒險',`<div class="box" style="background:var(--deep);display:flex;gap:10px;align-items:center">${avatarSVG(myLook().outfit,6)}
+.mdie{animation:mdie .6s forwards}@keyframes mdie{to{transform:scale(.2) rotate(40deg);opacity:0}}
+.exwalk svg{animation:exw .5s steps(2) infinite}.exwalk svg:nth-child(2){animation-delay:.15s}.exwalk svg:nth-child(3){animation-delay:.3s}@keyframes exw{50%{transform:translateY(-3px)}}</style>`)}
+let advTab='exp';
+function advTabs(){return `<div class="chips">${[['exp','派遣探險隊'],['fight','親自打怪']].map(([k,n])=>`<button class="chip" data-at="${k}" aria-pressed="${advTab===k}" style="flex:1;justify-content:center">${n}</button>`).join('')}</div>`}
+function bindAdvTabs(){$('#view').querySelectorAll('[data-at]').forEach(b=>b.onclick=()=>renderAdventure(b.dataset.at))}
+function renderAdventure(tab){if(tab)advTab=tab;advCSS();if(advTab==='exp')renderExpedition();else renderFight()}
+function renderFight(){
+  const st=advState();curTab='games';
+  gameShell('冒險公會',`${advTabs()}<div class="box" style="background:var(--deep);display:flex;gap:10px;align-items:center">${avatarSVG(myLook().outfit,6)}
       <div style="line-height:1.6"><b>穿過冒險之門，用英文打倒怪物！</b><br><span class="small">答對就攻擊，連對 3 題會心一擊；答錯被打掉 1 顆心。打倒怪物拿金幣，過關開下一層。</span></div></div>
     ${AREAS.map((a,k)=>`<div class="box" style="background:linear-gradient(135deg,${a.bg[0]},${a.bg[1]});display:flex;flex-direction:column;gap:8px">
       <div class="bar"><b style="color:var(--paper)">${a.name}</b><span style="display:flex;gap:4px">${a.mons.map(id=>monSVG(id,3)).join('')}${monSVG(a.boss,4)}</span></div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${[1,2,3,4,5].map(i=>{const f=k*5+i,lock=f>st.max,boss=i===5;
         return `<button class="btn" data-af="${f}" style="padding:8px 2px;${lock?'opacity:.45;':''}${boss?'background:var(--coral);color:var(--night);':''}">${lock?'🔒':boss?'頭目':f}${!lock&&!boss&&f<st.max?'<br><span class="small">✓</span>':''}</button>`}).join('')}</div></div>`).join('')}
-    <p class="small" style="margin:0">今天冒險領了 ${gday().adventure||0}／${GAME_CAP} 金幣・題目用你的題目範圍（${esc(scopeName())}）</p>`,'city');
+    <p class="small" style="margin:0">今天打怪領了 ${gday().adventure||0}／${GAME_CAP} 金幣・題目用你的題目範圍（${esc(scopeName())}）</p>`,'city');bindAdvTabs();
   $('#view').querySelectorAll('[data-af]').forEach(b=>b.onclick=()=>{const f=+b.dataset.af;if(f>st.max){toast(`先打過第 ${f-1} 層`);return}advBattle(f)});
 }
 function advBattle(f){
@@ -2129,7 +2193,7 @@ function advBattle(f){
       <div class="lock" style="width:70%;height:10px"><i id="ahp" style="background:var(--coral)"></i></div><div id="amon" style="margin-top:6px"></div></div>
     <div class="bar"><span style="display:flex;align-items:center;gap:6px">${avatarSVG(myLook().outfit,4)}<span id="ahearts" style="color:var(--coral);font-size:18px"></span></span><span id="acombo" class="small"></span><span class="small" id="acoins"></span></div>
     <div id="aq"></div>`,'games');
-  $('#gback').textContent='← 冒險';$('#gback').onclick=()=>renderAdventure();
+  $('#gback').textContent='← 冒險';$('#gback').onclick=()=>renderAdventure('fight');
   const hud=()=>{$('#ahearts').textContent='♥'.repeat(hearts)+'♡'.repeat(5-hearts);$('#acombo').textContent=combo>=2?`連對 ${combo}！`:'';$('#acoins').textContent=`金幣 +${coins}`;
     const id=foes[i];$('#ahp').style.width=`${Math.max(0,hp/maxHp(id)*100)}%`};
   const spawn=()=>{const id=foes[i];hp=maxHp(id);$('#afoe').textContent=`${area.name}・第 ${i+1}／${foes.length} 隻`;$('#aname').textContent=`${MONS[id].boss?'👑 ':''}${MONS[id].name}・HP ${hp}`;
@@ -2154,10 +2218,99 @@ function advBattle(f){
       <p style="text-align:center;margin:0;color:var(--gold)">${score?(r?`+${r} 金幣`:'今天冒險的金幣領滿了'):'沒有拿到金幣，再挑戰一次！'}</p>
       ${win?'':'<p class="small" style="text-align:center;margin:0">答錯的題目已經放進錯題本，複習完再來！</p>'}
       <div class="row"><button class="btn" id="aback">回冒險地圖</button><button class="btn gold" id="anext">${win&&f<ADV_FLOORS?'下一層':'再挑戰'}</button></div>`);
-    m.querySelector('#aback').onclick=()=>{m.remove();renderAdventure()};
+    m.querySelector('#aback').onclick=()=>{m.remove();renderAdventure('fight')};
     m.querySelector('#anext').onclick=()=>{m.remove();advBattle(win&&f<ADV_FLOORS?f+1:f)}};
   spawn();
 }
+/* ---------- 派遣探險隊：選城裡的 NPC 當隊員，答 3 題補給問答，時間到回來領獎 ----------
+   線上版由資料庫 start_expedition／claim_expedition／my_expeditions 處理（supabase/update-2026-11-17-探險隊與NPC任務.sql），
+   單機版用一樣的規則存在瀏覽器。 */
+const EXP_AREAS=[{id:'forest',a:0,hrs:1,need:1,lo:15,hi:25},{id:'cave',a:1,hrs:3,need:2,lo:40,hi:60},{id:'castle',a:2,hrs:8,need:3,lo:90,hi:130}],EXP_DAY=200;
+const expDur=e=>EXP_AREAS.find(a=>a.id===e.area).hrs*3600e3*(e.heroes.includes('snow')?.8:1);
+async function expState(){
+  if(ONLINE){const r=await cloud.rpc('my_expeditions');if(!r)return null;return {active:(r.active||[]).map(e=>({...e,ends:new Date(e.ends_at).getTime()})),levels:r.levels||{},today:r.today||0}}
+  S.exps=S.exps||[];S.heroTrips=S.heroTrips||{};
+  return {active:S.exps.filter(e=>!e.claimed),levels:Object.fromEntries(GUIDES.map(g=>[g.id,Math.min(10,1+Math.floor((S.heroTrips[g.id]||0)/3))])),today:S.expDay&&S.expDay.d===today()?S.expDay.n:0};
+}
+async function expStart(A,heroes,answers){
+  if(ONLINE)return cloud.rpc('start_expedition',{p_area:A.id,p_heroes:heroes,p_answers:answers});
+  S.exps=S.exps||[];const correct=answers.filter(x=>QID[x.qid]&&QID[x.qid].a===x.choice).length,e={id:Date.now(),area:A.id,heroes,correct};e.ends=Date.now()+expDur(e);S.exps.push(e);save();return e;
+}
+async function expClaim(e){
+  if(ONLINE){const r=await cloud.rpc('claim_expedition',{p_id:e.id});if(r){if(r.wallet!=null)syncWallet(r.wallet);if(r.drop){S.owned[r.drop]=0;save()}}return r}
+  const A=EXP_AREAS.find(a=>a.id===e.area),st=await expState(),lv=e.heroes.reduce((x,h)=>x+(st.levels[h]||1),0),chance=Math.min(.95,.5+.1*e.correct+.02*lv),ok=Math.random()<chance;
+  let amt=A.lo+Math.floor(Math.random()*(A.hi-A.lo+1));if(!ok)amt=Math.ceil(amt*.3);
+  if(!S.expDay||S.expDay.d!==today())S.expDay={d:today(),n:0};const r=Math.max(0,Math.min(amt,EXP_DAY-S.expDay.n));S.expDay.n+=r;S.tx=(S.tx||0)+r;
+  let drop=null;if(ok&&e.area!=='forest'&&Math.random()<.06&&!owns('hat_explorer'))drop='hat_explorer';else if(ok&&e.area==='castle'&&Math.random()<.05&&!owns('pet_babydragon'))drop='pet_babydragon';
+  if(drop)S.owned[drop]=0;const x=S.exps.find(y=>y.id===e.id);x.claimed=true;e.heroes.forEach(h=>S.heroTrips[h]=(S.heroTrips[h]||0)+1);save();
+  return {ok,coins:r,raw:amt,drop,chance:Math.round(chance*100)};
+}
+const fmtLeft=ms=>{const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=s%60;return h?`${h} 小時 ${m} 分`:`${m}:${String(ss).padStart(2,'0')}`};
+let expTimer=0;
+async function renderExpedition(){
+  curTab='games';gameShell('冒險公會',`${advTabs()}<p class="small" style="text-align:center">探險隊回報中…</p>`,'city');bindAdvTabs();
+  const st=await expState();if(!st||!$('#view')||!$('[data-at]'))return;
+  const R=recruits(),busy=new Set(st.active.flatMap(e=>e.heroes)),gname=id=>(GUIDES.find(g=>g.id===id)||{}).name||id;
+  const idle=GUIDES.filter(g=>R[g.id]&&!busy.has(g.id));
+  const card=e=>{const A=EXP_AREAS.find(a=>a.id===e.area),ar=AREAS[A.a],left=e.ends-Date.now(),pct=Math.min(100,Math.max(0,100-left/expDur(e)*100));
+    return `<div class="box" style="background:linear-gradient(135deg,${ar.bg[0]},${ar.bg[1]});display:flex;flex-direction:column;gap:6px">
+      <div class="bar"><b style="color:var(--paper)">${ar.name}・探險中</b><span class="small" data-ends="${e.ends}" style="color:var(--gold)">${left>0?'還要 '+fmtLeft(left):'回來了！'}</span></div>
+      <div style="position:relative;height:60px;background:rgba(0,0,0,.28);border:3px solid var(--ink);overflow:hidden">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:8px;background:rgba(255,255,255,.12)"></div>
+        <div class="exwalk" style="position:absolute;bottom:4px;left:calc(${pct}% * .7);display:flex;gap:2px">${e.heroes.map(h=>avatarSVG(guideLook(h),5)).join('')}</div>
+        <div style="position:absolute;right:6px;bottom:4px" class="mbob">${monSVG(ar.boss,5)}</div></div>
+      <div class="bar" style="gap:8px"><span class="small" style="color:var(--paper)">${e.heroes.map(gname).join('、')}・補給答對 ${e.correct}/3</span>
+        ${left<=0?`<button class="btn gold mini" data-claim="${e.id}">領取戰利品</button>`:''}</div></div>`};
+  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="gback" style="padding:5px 10px;font-size:13px">← 城市</button><span>冒險公會</span>${coinChip()}</div>${advTabs()}
+    <div class="box" style="background:var(--deep);line-height:1.6"><b>派探險隊出去打怪尋寶！</b><br><span class="small">選城裡的朋友當隊員，出發前答 3 題補給問答（答對越多成功率越高），時間到回來領金幣和稀有寶物。最多同時 2 隊・今天探險金幣 ${st.today}／${EXP_DAY}</span></div>
+    ${st.active.map(card).join('')}
+    <p class="lbl" style="margin:4px 0 0;color:var(--lilac)">探險地點</p>
+    ${EXP_AREAS.map(A=>{const ar=AREAS[A.a],can=st.active.length<2&&idle.length>=A.need;
+      return `<div class="box" style="background:linear-gradient(135deg,${ar.bg[0]},${ar.bg[1]});display:flex;gap:10px;align-items:center">
+        <div class="mbob">${monSVG(ar.boss,5)}</div><div style="flex:1;line-height:1.6;color:var(--paper)"><b>${ar.name}</b><br><span class="small" style="color:var(--paper)">${A.hrs} 小時・要 ${A.need} 位隊員・${A.lo}～${A.hi} 金幣${A.id!=='forest'?'・可能掉稀有寶物':''}</span></div>
+        <button class="btn gold mini" data-go="${A.id}" ${can?'':'aria-disabled="true" style="opacity:.5"'}>派遣</button></div>`}).join('')}
+    <p class="lbl" style="margin:4px 0 0;color:var(--lilac)">我的隊員（${GUIDES.filter(g=>R[g.id]).length}／${GUIDES.length}）</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">${GUIDES.map(g=>R[g.id]?`<div class="sitem" style="padding:6px 2px;${busy.has(g.id)?'opacity:.55':''}">${avatarSVG(guideLook(g.id),5)}<span class="small" style="color:var(--paper)">${g.name}</span><span class="small">${g.job}・Lv ${st.levels[g.id]||1}</span><span class="small" style="color:${busy.has(g.id)?'var(--coral)':'var(--mint)'}">${busy.has(g.id)?'探險中':'待命'}</span></div>`
+      :`<div class="sitem" style="padding:6px 2px;opacity:.45"><div style="filter:brightness(0)">${avatarSVG(guideLook(g.id),5)}</div><span class="small">？？？</span><span class="small">在城裡找他</span></div>`).join('')}</div>
+    <p class="small" style="margin:0;line-height:1.6">怎麼找隊員：城裡的人頭上有「!」就是有事拜託你，幫他做完就能邀請他加入。隊員出隊 3 次升 1 級，等級越高成功率越高。小雪在隊上，探險時間少 20%。</p>`;
+  paintSprites($('#view'));$('#gback').onclick=()=>go('city');bindAdvTabs();
+  $('#view').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const A=EXP_AREAS.find(a=>a.id===b.dataset.go);
+    if(st.active.length>=2){toast('最多同時派 2 支探險隊，等他們回來');return}if(idle.length<A.need){toast(`要 ${A.need} 位待命的隊員，去城裡多找幾位朋友吧`);return}expDispatch(A,idle,st)});
+  $('#view').querySelectorAll('[data-claim]').forEach(b=>b.onclick=async()=>{b.disabled=true;const e=st.active.find(x=>String(x.id)===b.dataset.claim);const r=await expClaim(e);if(!r){b.disabled=false;return}
+    const ar=AREAS[EXP_AREAS.find(a=>a.id===e.area).a],it=r.drop&&ITEM[r.drop];
+    const m=modal(`<div style="display:flex;justify-content:center;gap:4px">${e.heroes.map(h=>avatarSVG(guideLook(h),6)).join('')}</div>
+      <h2 style="text-align:center">${r.ok?`${ar.name}探險成功！`:'探險隊受傷撤退了…'}</h2>
+      <p style="text-align:center;margin:0">${r.ok?'打倒怪物、帶回了戰利品！':'只帶回一點點東西，下次答對補給問答會更順利。'}<br><span class="small">這次成功率 ${r.chance}%</span></p>
+      <p style="text-align:center;margin:0;color:var(--gold);font-size:20px">${r.coins?`+${r.coins} 金幣`:'今天探險的金幣領滿了'}</p>
+      ${it?`<div class="box paper" style="display:flex;flex-direction:column;align-items:center;gap:4px">${itemThumb(it)}<b style="color:var(--plum)">稀有寶物：${esc(it.name)}！</b><span class="small" style="color:var(--night)">已經放進百貨公司，可以穿上／帶出門</span></div>`:''}
+      <button class="btn gold" id="eok">太好了</button>`);
+    m.querySelector('#eok').onclick=()=>{m.remove();renderExpedition()}});
+  clearInterval(expTimer);expTimer=setInterval(()=>{const els=document.querySelectorAll('[data-ends]');if(!els.length){clearInterval(expTimer);return}
+    let back=false;els.forEach(el=>{const left=+el.dataset.ends-Date.now();if(left<=0&&el.textContent!=='回來了！'){el.textContent='回來了！';back=true}else if(left>0)el.textContent='還要 '+fmtLeft(left)});if(back)renderExpedition()},1000);
+}
+function expDispatch(A,idle,st){
+  const ar=AREAS[A.a],pick=new Set();
+  const m=modal(`<h2 style="text-align:center">派遣到${ar.name}</h2><p class="small" style="margin:0;text-align:center">選 ${A.need} 位隊員・${A.hrs} 小時</p>
+    <div id="epick" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div><div id="eq"></div>
+    <button class="btn gold" id="enext" aria-disabled="true" style="opacity:.5">下一步：補給問答</button><button class="btn ghost" data-close>取消</button>`);
+  const draw=()=>{m.querySelector('#epick').innerHTML=idle.map(g=>`<button class="sitem${pick.has(g.id)?' on':''}" data-h="${g.id}" style="padding:6px 2px">${avatarSVG(guideLook(g.id),5)}<span class="small" style="color:var(--paper)">${g.name}</span><span class="small">Lv ${st.levels[g.id]||1}</span></button>`).join('');
+    m.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{const id=b.dataset.h;pick.has(id)?pick.delete(id):pick.size<A.need&&pick.add(id);draw()});
+    const ok=pick.size===A.need,nb=m.querySelector('#enext');nb.style.opacity=ok?1:.5;nb.setAttribute('aria-disabled',!ok)};
+  draw();
+  m.querySelector('#enext').onclick=()=>{if(pick.size!==A.need){toast(`選 ${A.need} 位隊員`);return}
+    const heroes=[...pick],src=pool().filter(q=>q.q.length<=110&&q.o&&q.o.length===4),qs=[];while(qs.length<3&&qs.length<src.length){const q=pick2(src);if(!qs.includes(q))qs.push(q)}
+    const ans=[];let k=0;m.querySelector('#epick').remove();m.querySelector('#enext').remove();
+    const ask=()=>{const q=qs[k],box=m.querySelector('#eq');
+      if(!q){const n=ans.filter(x=>QID[x.qid]&&QID[x.qid].a===x.choice).length,lv=heroes.reduce((x,h)=>x+(st.levels[h]||1),0),ch=Math.min(95,50+10*n+2*lv);
+        box.innerHTML=`<div class="box paper" style="text-align:center;line-height:1.7;color:var(--night)">補給問答答對 <b>${n}／3</b><br>預估成功率 <b style="color:var(--plum);font-size:20px">${ch}%</b></div><button class="btn gold" id="ego" style="width:100%;margin-top:8px">出發！</button>`;
+        box.querySelector('#ego').onclick=async e=>{e.target.disabled=true;const r=await expStart(A,heroes,ans);if(!r){e.target.disabled=false;return}did('exp');m.remove();toast(`探險隊出發去${ar.name}了！`);renderExpedition()};return}
+      box.innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px"><p class="lbl" style="margin:0">補給問答 ${k+1}／3・答對越多成功率越高</p>${qPic(q,5)}<div class="qtext">${esc(q.q)}</div>
+        ${q.o.map((o,i)=>`<button class="btn opt" data-eo="${i}" style="padding:7px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;paintSprites(box);
+      box.querySelectorAll('[data-eo]').forEach(b=>b.onclick=()=>{const c=+b.dataset.eo;box.querySelectorAll('[data-eo]').forEach(x=>{x.disabled=true;if(+x.dataset.eo===q.a)x.classList.add('right')});
+        if(c!==q.a){b.classList.add('wrong');addWrong(q)}ans.push({qid:q.id,choice:c});k++;setTimeout(ask,c===q.a?500:1200)})};
+    ask()};
+}
+const pick2=p=>p[Math.floor(Math.random()*p.length)];
 /* ---------- 躲貓貓（在城市地圖上玩） ----------
    線上：按「躲貓貓」開房 15 秒，城裡的同學按「加入」；隨機一個人當鬼，其他人有 20 秒躲起來，鬼再找 75 秒。
    躲起來的人：鬼要走到附近才看得到（站在樹、灌木、房子旁邊更難被發現）；鬼走到 1 格內就抓到。
@@ -2261,7 +2414,7 @@ function hsDraw(c,t){if(!HS||HS.phase==='lobby')return;const myId=ME||'me',left=
    不會動的東西（地面、樹、建築、路燈、柵欄…）先畫在一張離屏畫布存起來，季節變了才重畫；
    會動的（湖面反光、噴水、路燈光暈、聖誕燈）每一格畫面再疊上去。1 單位 = 畫面上 2 個像素。 */
 const rnd3=(x,y,k=0)=>(((x*73856093)^(y*19349663)^(k*83492791))>>>0)%1000/1000;
-let cityBaseC=null,cityBaseKey='';
+let cityBaseC=null,cityBaseKey='',CITY_WIN=[];
 function cityBase(){
   const hw=halloween(),snow=!hw&&xmasStage()>=3,key=[hw,xmasHas('wreath'),xmasHas('pine'),snow].join();
   if(cityBaseC&&cityBaseKey===key)return cityBaseC;
@@ -2323,6 +2476,7 @@ function cityBase(){
   {const X=MARKET_AT[0]*TS,Y=MARKET_AT[1]*TS;R('rgba(0,0,0,.22)',X+1,Y+14,15,2);R('#7a5233',X+1,Y+3,2,12);R('#7a5233',X+13,Y+3,2,12);
     R('#9a6b44',X,Y+8,16,6);R('#b07d52',X,Y+8,16,1);R('#6e472b',X,Y+13,16,1);[[2,'#ff8a5c'],[6,'#e8c35a'],[10,'#d94f4f']].forEach(([a,col])=>{R(col,X+a,Y+6,3,3);R(shadeHex(col,.3),X+a,Y+6,1,1)});
     for(let i=0;i<8;i++)R(i%2?'#f4ecd8':'#c98a3a',X+i*2,Y,2,4);R('rgba(0,0,0,.2)',X,Y+4,16,1);R('#f4ecd8',X+4,Y+10,8,2);R('#d94f4f',X+5,Y+10,2,1);R('#3a7bd5',X+9,Y+11,2,1)}
+  CITY_WIN=[];
   BUILDINGS.forEach(b=>{
     const X=b.x*TS,Y=b.y*TS,W=b.w*TS,H=b.h*TS;
     R('rgba(0,0,0,.2)',X+W,Y+14,3,H-14);R('rgba(0,0,0,.2)',X+3,Y+H,W,3);
@@ -2334,7 +2488,7 @@ function cityBase(){
     if(snow){R('#f4ecd8',X-2,Y-1,W+4,4);R('#ffffff',X-2,Y-1,W+4,1);for(let xx=X;xx<X+W;xx+=5)R('#f4ecd8',xx+((xx*7)%3),Y+3,2,1+((xx*3)%3));for(let xx=X+3;xx<X+W;xx+=9)R('#e6f4ff',xx,Y+12,1,2)}
     const tall=b.h>=3,wy=Y+19;
     for(let i=X+6;i<X+W-8;i+=14){if(Math.abs(i+4-(b.door[0]*TS+8))<=10)continue;
-      R('#3a2f55',i-1,wy-1,10,10);R('#9fd0f5',i,wy,8,4);R('#79b6e8',i,wy+4,8,4);R('#e6f4ff',i+1,wy+1,2,1);R('#e6f4ff',i+1,wy+2,1,1);R('#f4ecd8',i+3,wy,1,8);R('#f4ecd8',i,wy+3,8,1);R('#f4ecd8',i-1,wy+9,10,1);
+      CITY_WIN.push([i,wy]);R('#3a2f55',i-1,wy-1,10,10);R('#9fd0f5',i,wy,8,4);R('#79b6e8',i,wy+4,8,4);R('#e6f4ff',i+1,wy+1,2,1);R('#e6f4ff',i+1,wy+2,1,1);R('#f4ecd8',i+3,wy,1,8);R('#f4ecd8',i,wy+3,8,1);R('#f4ecd8',i-1,wy+9,10,1);
       if(tall&&rnd3(i,Y)<.5){R('#8b5e3c',i,wy+10,8,2);R('#2f7045',i,wy+10,8,1);R('#f4a6c6',i+1,wy+9,1,1);R('#ffd166',i+4,wy+9,1,1);R('#f4a6c6',i+6,wy+9,1,1)}}
     const dx=b.door[0]*TS+4;
     if(b.door[1]>=b.y+b.h){const dy=Y+H-13;R('#3a2f55',dx-1,dy-1,10,14);R('#7a5233',dx,dy,8,13);R('#9a6b44',dx,dy,8,1);R('#6e472b',dx+1,dy+2,2,4);R('#6e472b',dx+5,dy+2,2,4);R('#6e472b',dx+1,dy+8,6,3);R('#ffd166',dx+6,dy+7,1,1);
@@ -2413,6 +2567,14 @@ function cityDraw(){
   /* 有新公告、可以領的任務：板子上方跳驚嘆號 */
   const bang=(x,y)=>{const by=y*TS-9+Math.round(Math.sin(t*5)*2);c.fillStyle='#ffd166';c.fillRect(x*TS+5,by,6,8);c.fillStyle='#1a1026';c.fillRect(x*TS+7,by+1,2,4);c.fillRect(x*TS+7,by+6,2,1)};
   if(annNew())bang(NOTICE[0],NOTICE[1]);if(questReady())bang(QUEST[0],QUEST[1]);
+  /* 白天晚上：清晨偏粉、傍晚偏橘、晚上變暗，路燈和窗戶亮起來 */
+  {const d=new Date(),hr=d.getHours()+d.getMinutes()/60,night=hr>=19||hr<5,dusk=!night&&hr>=17,dawn=hr>=5&&hr<7;
+    if(night||dusk||dawn){c.fillStyle=night?'rgba(18,16,58,.45)':dusk?'rgba(255,120,60,.13)':'rgba(255,170,200,.1)';c.fillRect(camX,camY,VW*TS,VH*TS)}
+    if(night||dusk){const k=night?1:.45;c.save();c.globalCompositeOperation='lighter';
+      for(let y=y0;y<Math.min(CH,y0+VH+1);y++)for(let x=x0;x<Math.min(CW,x0+VW+1);x++)if(CITY[y][x]==='L'){const X=x*TS+8,Y=y*TS+3,g=c.createRadialGradient(X,Y,1,X,Y+6,26);
+        g.addColorStop(0,`rgba(255,200,110,${.4*k})`);g.addColorStop(1,'rgba(255,200,110,0)');c.fillStyle=g;c.fillRect(X-28,Y-22,56,52)}
+      c.restore();
+      if(night)CITY_WIN.forEach(([x,y],i)=>{if((i*7)%5===0)return;c.fillStyle='rgba(255,214,120,.8)';c.fillRect(x,y,8,8);c.fillStyle='rgba(255,236,170,.9)';c.fillRect(x+1,y+1,2,2);c.fillStyle='rgba(255,200,110,.18)';c.fillRect(x-3,y-2,14,13)})}}
   /* 人物依 y 排序，比較前面的蓋在後面的上面 */
   const petOf=(o,id)=>id&&ITEM[id]&&ITEM[id].g&&o.petX!=null?[{pet:id,px:o.petX,py:o.petY,face:o.face,hop:o.petMove?Math.abs(Math.sin(t*10+(o.px||0)))*3:0}]:[];
   const people=[...GUIDES.filter(()=>!HS).map(gd=>({px:gd.at[0]*TS+8,py:gd.at[1]*TS+8,face:gd.face||1,outfit:lookOf({outfit:gd.outfit},gd.tier).outfit,name:gd.name,guide:gd})),
@@ -2432,7 +2594,9 @@ function cityDraw(){
     fineDraw(c,g,pal,X,Y+bob,2,p.face<0,!p.ghost);
     c.globalAlpha=1;
     if(!p.me){c.font='7px "DotGothic16", sans-serif';c.textAlign='center';c.fillStyle=p.guide?'rgba(122,63,158,.85)':'rgba(15,10,26,.7)';const w=c.measureText(p.name).width+4;c.fillRect(p.px-w/2,Y-9,w,8);c.fillStyle=p.guide?'#ffd166':'#f4ecd8';c.fillText(p.name,p.px,Y-3)}
-    if(p.guide&&!p.guide.done()){const by=Y-19+Math.round(Math.sin(t*5+p.px)*2);c.fillStyle='#ffd166';c.fillRect(p.px-3,by,6,8);c.fillStyle='#1a1026';c.fillRect(p.px-1,by+1,2,4);c.fillRect(p.px-1,by+6,2,1)}
+    if(p.guide){const dn=p.guide.done(),by=Y-19+Math.round(Math.sin(t*5+p.px)*2);
+      if(!dn){c.fillStyle='#ffd166';c.fillRect(p.px-3,by,6,8);c.fillStyle='#1a1026';c.fillRect(p.px-1,by+1,2,4);c.fillRect(p.px-1,by+6,2,1)}
+      else if(!thanked(p.guide.id)){c.fillStyle='#9fe1cb';c.fillRect(p.px-1,by,2,8);c.fillRect(p.px-4,by+3,8,2);c.fillRect(p.px-3,by+2,6,4);c.fillStyle='#fff';c.fillRect(p.px-1,by+3,1,1)}}
   });
   if(xs>=3){c.fillStyle='rgba(244,236,216,.85)';for(let i=0;i<46;i++){const sx=camX+((i*53+t*(8+i%4*3)+Math.sin(t+i)*6)%(VW*TS)+VW*TS)%(VW*TS),sy=camY+(i*97+t*(14+i%3*6))%(VH*TS);c.fillRect(Math.round(sx),Math.round(sy),i%5?1:2,i%5?1:2)}}
   c.font='7px "DotGothic16", sans-serif';
@@ -2871,6 +3035,10 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-17',title:'探險隊出發！城裡多了 6 位新朋友',items:[
+  ['castle','派遣探險隊','冒險公會可以派探險隊了！選城裡的朋友當隊員，答對補給問答提高成功率，1～8 小時後回來領金幣，還可能帶回探險家帽、小火龍寵物！',()=>renderAdventure('exp')],
+  ['chat','城裡的人有事拜託你','14 位城裡的人每天會拜託你不同的事，做完找他領謝禮（+5 金幣），還能邀請他加入你的探險隊。頭上有「!」就是有事、「★」就是有謝禮。',()=>go('city')],
+ ]},
  {v:'2026-11-16',title:'下雪了＋段考預備週加成',items:[
   ['star','城裡下雪了','魔法城市開始下雪，屋頂和樹都積雪了！廣場旁邊還多了一個舉著「段考加油」牌子的雪人。',()=>go('city')],
   ['fire','段考預備週加成','11/16～11/22 答今日一題、專注讀書、做任務的金幣 ×2，答題和專注還有機會掉盲盒券！',()=>go('daily')],
@@ -3296,7 +3464,7 @@ function chime(){try{const A=ac(),t=A.currentTime;
   [988,1319].forEach((f,i)=>{const o=A.createOscillator(),g=A.createGain(),s0=t+i*.14;o.type='sine';o.frequency.value=f;
     g.gain.setValueAtTime(.0001,s0);g.gain.exponentialRampToValueAtTime(.18,s0+.02);g.gain.exponentialRampToValueAtTime(.0001,s0+.45);o.connect(g).connect(A.destination);o.start(s0);o.stop(s0+.5)})}catch(e){}}
 function sendWave(uid,name){
-  const k=uid||name;if(Date.now()-(waveAt[k]||0)<30000){toast('剛剛揮過手了，等一下再揮');return}waveAt[k]=Date.now();
+  const k=uid||name;if(Date.now()-(waveAt[k]||0)<30000){toast('剛剛揮過手了，等一下再揮');return}waveAt[k]=Date.now();did('social');
   showReact(ME||'me','👋');toast(`你對 ${name} 揮手了 👋`);
   if(ONLINE&&uid){const p={from:ME,name:S.name,to:uid};[chan,cityChan].forEach(c=>c&&c.send({type:'broadcast',event:'wave',payload:p}));
     cloud.run(()=>sb.rpc('wave_friend',{p_to:uid}))}
@@ -3590,7 +3758,7 @@ function renderDaily(){
    <div class="row"><button class="btn gold" id="more">多練幾題</button><button class="btn" id="rev">複習錯題（${wrongs().length}）</button></div>
    <button class="btn mint" data-go="room">去讀書房專注</button>`;
   const startPr=review=>{if(review&&!wrongs().length){toast('目前沒有錯題');return}pr={n:0,ok:0,q:null,review};practice();$('#prac').scrollIntoView({block:'start',behavior:'smooth'})};
-  $('#more').onclick=()=>startPr(false);$('#rev').onclick=()=>renderMistakes();
+  $('#more').onclick=()=>{did('practice');startPr(false)};$('#rev').onclick=()=>renderMistakes();
   const post=$('#post');
   if(t.social==='sticker'){
     post.innerHTML=`<p class="small" style="margin:0 0 6px">送一個貼圖給大家</p><div class="chips">${STICKERS.map(s=>`<button class="chip" data-st="${s}">${s}</button>`).join('')}</div>`;
@@ -3605,7 +3773,7 @@ function renderDaily(){
 }
 /* ---------- 錯題本頁：隨時都能打開複習，題目會一直保留 ---------- */
 function renderMistakes(){
-  curTab='mistakes';$('#app').classList.remove('wide');$('#nav').hidden=false;
+  did('review');curTab='mistakes';$('#app').classList.remove('wide');$('#nav').hidden=false;
   $('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab==='me'?'page':'false'));
   const list=wrongs().sort((a,b)=>(S.wrong[b.id]||0)-(S.wrong[a.id]||0)),ok=S.wrongOk||{};
   $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="mwback" style="padding:5px 10px;font-size:13px">← 我的</button><span>錯題本</span>${coinChip()}</div>
@@ -4500,7 +4668,7 @@ async function openMarket(after){
     <button class="btn ghost" data-close>關閉</button>`);
   m.addEventListener('click',e=>{if(e.target.closest('[data-close]')&&after)after()});
   m.querySelectorAll('[data-ms]').forEach(b=>b.onclick=async()=>{const crop=b.dataset.ms,q=+b.dataset.q,pr=mk.prices.find(x=>x.crop===crop);b.disabled=true;let amt=pr.price*q;
-    if(ONLINE){const r=await cloud.rpc('market_sell',{p_crop:crop,p_qty:q});if(!r){b.disabled=false;return}syncWallet(r.wallet);amt=r.amount;await loadFarm()}
+    did('sell');if(ONLINE){const r=await cloud.rpc('market_sell',{p_crop:crop,p_qty:q});if(!r){b.disabled=false;return}syncWallet(r.wallet);amt=r.amount;await loadFarm()}
     else{S.farm.items[crop]-=q;S.tx=(S.tx||0)+amt;S.harvests=(S.harvests||0)+1;save()}
     toast(`賣掉${CROP[crop].name} ×${q}，+${amt} 金幣`);m.remove();openMarket(after)});
 }
