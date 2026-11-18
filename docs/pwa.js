@@ -1,12 +1,12 @@
-// 網站版專用（Artifact 不載入）：離線快取＋「加到主畫面」小提示。Learning Den 和 GRAM 共用這一支。
-// 用法：<script src="pwa.js" data-name="Learning Den" defer></script>（GRAM 用 ../pwa.js）
+// 網站版專用（Artifact 不載入）：離線快取＋「加到主畫面」小提示。
+// 用法：<script src="pwa.js" data-name="Learning Den" defer></script>
 (function () {
   var me = document.currentScript;
   if (!me || window.top !== window) return;
   // App（Capacitor）裡面不用：App 本身已經在主畫面上了
   if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) return;
 
-  // 一支 service worker 管整個 /learning-den/（含 /gram/）
+  // service worker 管整個 /learning-den/
   if ('serviceWorker' in navigator) navigator.serviceWorker.register(new URL('sw.js', me.src).href).catch(function () {});
 
   var NAME = me.getAttribute('data-name') || document.title;

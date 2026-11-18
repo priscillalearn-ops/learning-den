@@ -26,8 +26,6 @@ for (const f of ['privacy.html', 'about.html', 'manifest.webmanifest', 'sw.js', 
 fs.cpSync(path.join(__dirname, '../icons'), path.join(out, 'icons'), { recursive: true });
 fs.cpSync(path.join(__dirname, '../banks'), path.join(out, 'banks'), { recursive: true });
 fs.cpSync(path.join(__dirname, '../screenshots'), path.join(out, 'screenshots'), { recursive: true });
-// GRAM 英語遊戲樂園的 manifest 和圖示（頁面本身由 tools/build-gram.py 產生）
-fs.cpSync(path.join(__dirname, '../gram-site'), path.join(out, 'gram'), { recursive: true });
 // 每日打卡提醒：給 iPhone／其他行事曆用的 .ics（每天重複，時間到跳通知）
 const SITE = 'https://priscillalearn-ops.github.io/learning-den/';
 fs.mkdirSync(path.join(out, 'reminders'), { recursive: true });
@@ -41,4 +39,4 @@ for (const t of ['0700', '1230', '1700', '1800', '1900', '2000', '2100', '2200']
     'END:VEVENT', 'END:VCALENDAR'].join('\r\n') + '\r\n';
   fs.writeFileSync(path.join(out, 'reminders', t + '.ics'), ics);
 }
-console.log('已產生 docs/：index.html、privacy.html、manifest、pwa.js、icons、screenshots、gram 圖示、reminders');
+console.log('已產生 docs/：index.html、privacy.html、manifest、pwa.js、icons、screenshots、reminders');
