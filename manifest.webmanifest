@@ -11,10 +11,17 @@
   "theme_color": "#2b2140",
   "lang": "zh-Hant",
   "dir": "ltr",
-  "categories": ["education", "kids", "productivity"],
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "screenshots/01-city.webp", "sizes": "1080x1920", "type": "image/webp", "form_factor": "narrow", "label": "走進魔法城市" },
+    { "src": "screenshots/02-daily.webp", "sizes": "1080x1920", "type": "image/webp", "form_factor": "narrow", "label": "每天一題英文" },
+    { "src": "screenshots/03-room.webp", "sizes": "1080x1920", "type": "image/webp", "form_factor": "narrow", "label": "一起專注讀書" },
+    { "src": "screenshots/06-levels.webp", "sizes": "1080x1920", "type": "image/webp", "form_factor": "narrow", "label": "小遊戲闖關" }
   ]
 }
