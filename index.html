@@ -2124,7 +2124,7 @@ function guideTalk(id){
   if(m.querySelector('#ggo'))m.querySelector('#ggo').onclick=()=>{m.remove();t.go()};
   if(m.querySelector('#gthx'))m.querySelector('#gthx').onclick=async e=>{e.target.disabled=true;if(!S.thanks||S.thanks.d!==today())S.thanks={d:today(),ids:{}};S.thanks.ids[id]=1;save();
     const r=await claimGame('npc',5,1);toast(r?`${gd.name} 送你 ${r} 金幣`:'今天的謝禮領滿了');m.remove();guideTalk(id)};
-  if(m.querySelector('#grec'))m.querySelector('#grec').onclick=()=>{recruits()[id]=1;save();toast(`${gd.name} 加入你的探險隊了！`);m.remove();guideTalk(id)};
+  if(m.querySelector('#grec'))m.querySelector('#grec').onclick=async e=>{e.target.disabled=true;if(ONLINE&&await cloud.rpc('recruit_heroes',{p_heroes:[id]})===undefined){e.target.disabled=false;return}recruits()[id]=1;save();toast(`${gd.name} 加入你的探險隊了！`);m.remove();guideTalk(id)};
 }
 /* ---------- 冒險：用英文打怪（15 層，每 5 層一隻頭目） ----------
    答對攻擊怪物（連對 3 題以上會心一擊 2 倍），答錯被怪物打掉 1 顆心，答錯的題目進錯題本。
@@ -2215,7 +2215,12 @@ function advBattle(f){
 const EXP_AREAS=[{id:'forest',a:0,hrs:1,need:1,lo:15,hi:25},{id:'cave',a:1,hrs:3,need:2,lo:40,hi:60},{id:'castle',a:2,hrs:8,need:3,lo:90,hi:130}],EXP_DAY=200;
 const expDur=e=>EXP_AREAS.find(a=>a.id===e.area).hrs*3600e3*(e.heroes.includes('snow')?.8:1);
 async function expState(){
-  if(ONLINE){const r=await cloud.rpc('my_expeditions');if(!r)return null;return {active:(r.active||[]).map(e=>({...e,ends:new Date(e.ends_at).getTime()})),levels:r.levels||{},today:r.today||0}}
+  if(ONLINE){const r=await cloud.rpc('my_expeditions');if(!r)return null;
+    /* 隊員存在資料庫：以前只記在這台裝置的，第一次連上時補進去 */
+    const R=recruits(),srv=new Set(r.recruits||['knight']),miss=Object.keys(R).filter(h=>!srv.has(h));
+    if(miss.length){const up=await cloud.run(()=>sb.rpc('recruit_heroes',{p_heroes:miss}));if(up)up.forEach(h=>srv.add(h))}
+    S.recruits=Object.fromEntries([...srv,'knight'].map(h=>[h,1]));save();
+    return {active:(r.active||[]).map(e=>({...e,ends:new Date(e.ends_at).getTime()})),levels:r.levels||{},today:r.today||0}}
   S.exps=S.exps||[];S.heroTrips=S.heroTrips||{};
   return {active:S.exps.filter(e=>!e.claimed),levels:Object.fromEntries(GUIDES.map(g=>[g.id,Math.min(10,1+Math.floor((S.heroTrips[g.id]||0)/3))])),today:S.expDay&&S.expDay.d===today()?S.expDay.n:0};
 }
