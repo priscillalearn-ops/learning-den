@@ -1809,7 +1809,7 @@ alter table public.profiles add constraint profiles_grade_ok check (
   grade is null
   or (tier = 'kid' and grade = '國小')
   or (tier = 'teen' and grade in ('國一', '國二', '國三'))
-  or (tier = 'sage' and grade in ('高一', '高二', '高三')));
+  or (tier = 'sage' and grade in ('高一', '高二', '高三', '大學')));
 
 -- =====================================================================
 -- 邀請好友獎勵（2026-10-01 更新；整份重跑即可）

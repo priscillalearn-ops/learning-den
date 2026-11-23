@@ -202,7 +202,7 @@ const TIERS={
   bots:[['打瞌睡的企鵝','kid'],['愛吃布丁的恐龍','kid'],['會唱歌的香菇','kid'],['找不到襪子的章魚','kid'],['翻跟斗的小雞','kid']]},
  teen:{name:'冒險騎士',stage:'國中',color:'var(--teen)',hint:'國一～國三・會考練習',focus:25,social:'short',max:30,
   bots:[['熬夜的香蕉','teen'],['會飛的拖鞋','teen'],['被作業追的馬鈴薯','teen'],['忘記帶筆的河馬','teen'],['超想睡的無尾熊','teen']]},
- sage:{name:'大魔導師',stage:'高中',color:'var(--sage)',hint:'課本、段考、學測、多益',focus:25,social:'full',max:60,
+ sage:{name:'大魔導師',stage:'高中・大學',color:'var(--sage)',hint:'段考、學測、多益・高中生和大學生',focus:25,social:'full',max:60,
   bots:[['喝第三杯咖啡的貓頭鷹','sage'],['學測倒數的鬆餅','sage'],['背單字的仙人掌','sage'],['迷路的逗號','sage'],['考古題吸塵器','sage']]}
 };
 const BANK={
@@ -246,7 +246,7 @@ function bankError(){
 }
 const TAG={v:'單字',g:'文法',c:'克漏字'};
 /* 年級大群：讀書房和城市照年級分（班級代碼還是可以自己打，給老師後台、同班排行和公告用） */
-const GRADES={kid:['國小'],teen:['國一','國二','國三'],sage:['高一','高二','高三']};
+const GRADES={kid:['國小'],teen:['國一','國二','國三'],sage:['高一','高二','高三','大學']};
 const gradeOK=(tier,g)=>!!(GRADES[tier]&&GRADES[tier].includes(g));
 const roomKey=()=>gradeOK(S.tier,S.grade)?'g-'+S.grade:'t-'+S.tier;
 /* 自由房：不分年級、不分等級，誰都可以進來一起讀 */
@@ -2881,7 +2881,7 @@ const TOUR_FULL=[
 /* 依年級推薦一個範圍（找名字有對到的組合包），回傳 scope 下拉選單的值 */
 function recommendScope(){
   const src=SRCS[S.tier];if(!src)return '';
-  const key={國一:['國一'],國二:['國二'],國三:['國三','會考'],高一:['高一第二次段考','高一'],高二:['高二第二次段考','高二'],高三:['高三','學測總複習']}[S.grade]||[];
+  const key={國一:['國一'],國二:['國二'],國三:['國三','會考'],高一:['高一第二次段考','高一'],高二:['高二第二次段考','高二'],高三:['高三','學測總複習'],大學:['多益']}[S.grade]||[];
   for(const k of key){const i=src.P.findIndex(p=>p.name.includes(k));if(i>=0)return 'p'+i}
   return '';
 }
@@ -3357,7 +3357,7 @@ function renderLogin(){
   $('#nav').hidden=true;
   $('#view').innerHTML=`
    <h1>LEARNING DEN</h1>
-   <p class="small" style="text-align:center;margin:0">陪你一起讀書啦｜每天一題，一起專注</p>
+   <p class="small" style="text-align:center;margin:0">陪你一起讀書啦｜學測、段考、多益，每天一題一起專注</p>
    <div style="display:flex;justify-content:center;gap:18px;margin:18px 0"><span data-s="kid" data-z="6"></span><span data-s="teen" data-z="6"></span><span data-s="sage" data-z="6"></span></div>
    <button class="btn gold" id="gl">用 Google 帳號登入</button>
    ${IOS?'<button class="btn" id="al" style="background:#000;color:#fff">用 Apple 登入</button>':''}
@@ -3636,10 +3636,10 @@ function renderOnboard(){
   let pick=S.tier||'';
   $('#view').innerHTML=`
    <h1>LEARNING DEN</h1>
-   <p class="small" style="text-align:center;margin:0">陪你一起讀書啦｜每天一題，一起專注</p>
+   <p class="small" style="text-align:center;margin:0">陪你一起讀書啦｜學測、段考、多益，每天一題一起專注</p>
    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px">
      <label for="nm" class="small">你的冒險者名字</label>
-     <input type="text" id="nm" maxlength="10" placeholder="小明" value="${esc(S.name)}">
+     <input type="text" id="nm" maxlength="10" placeholder="取一個暱稱" value="${esc(S.name)}">
      <div id="gradeBox"></div>
      <details ${pendingInvite()||pendingClass()||S.cls?'open':''} style="display:flex;flex-direction:column;gap:6px"><summary class="small" style="cursor:pointer;color:var(--lilac)">有邀請碼或班級代碼嗎？（選填，之後也可以再填）</summary>
      ${S.name?'':`<label for="ivc" class="small">好友的邀請碼（填了你和好友都有獎勵）</label>
@@ -3648,7 +3648,7 @@ function renderOnboard(){
      <input type="text" id="cc" maxlength="8" placeholder="702" value="${esc(S.cls||pendingClass())}"></details>
    </div>
    <p class="small" style="margin:0">選擇你的冒險等級</p>
-   ${Object.entries(TIERS).map(([k,t])=>`
+   ${['sage','teen','kid'].map(k=>[k,TIERS[k]]).map(([k,t])=>`
      <button class="tier" data-t="${k}" aria-pressed="${pick===k}" style="background:${t.color}">
        <span data-s="${k}" data-z="5"></span>
        <span><h2>${t.name}</h2><span style="font-size:12px">${t.stage}｜${t.hint}</span></span>
@@ -3681,7 +3681,7 @@ function renderOnboard(){
   const drawGrade=()=>{const g=GRADES[pick];
     if(!g){$('#gradeBox').innerHTML='<span class="small">先在下面選冒險等級，再選年級</span>';return}
     if(g.length===1)gr=g[0];
-    $('#gradeBox').innerHTML=`<span class="small">你的年級（同年級的同學會在同一間讀書房）</span>
+    $('#gradeBox').innerHTML=`<span class="small">你的年級（同年級的同學會在同一間讀書房；大學生、上班族選「大學」）</span>
       <div class="chips" style="margin-top:4px">${g.map(x=>`<button class="chip" type="button" data-gr="${x}" aria-pressed="${gr===x}" style="${gr===x?'background:var(--gold);color:var(--night)':''}">${x}</button>`).join('')}</div>`;
     $('#gradeBox').querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{gr=b.dataset.gr;$('#oerr').textContent='';drawGrade()})};
   drawGrade();
