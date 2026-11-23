@@ -1,0 +1,79 @@
+# 單元 TP5D：Part 5 高分挑戰（綜合）
+[v] 進階詞性・易混淆字
+The new regulations will have a significant ____ on small businesses. || impact | impacted | impactful | impacting || impact (n.) 影響　have an impact on
+Mr. Gupta was chosen for his ____ in project management. || expertise | expert | expertly | expertness || expertise (n.) 專業知識　所有格 his 後要名詞
+Interest rates are expected to remain ____ stable this year. || relatively | relative | relation | relativity || relatively (adv.) 相對地　修飾形容詞 stable
+The company is seeking a ____ candidate for the role of lead engineer. || qualified | qualifying | qualify | qualification || qualified (adj.) 合格的；有資格的
+The CEO's speech was ____ received by the audience. || enthusiastically | enthusiastic | enthusiasm | enthusiast || enthusiastically (adv.) 熱烈地　修飾過去分詞 received
+All requests for time off must be submitted in ____. || advance | advanced | advancing | advancement || in advance (phr.) 事先
+Ms. Holt is ____ the most experienced member of our team. || arguably | arguable | argument | argue || arguably (adv.) 可以說是　修飾最高級片語
+The merger will ____ the company's position in the market. || strengthen | strength | strong | strongly || strengthen (v.) 加強　助動詞 will 後接原形動詞
+The new design is ____ better than the previous version. || considerably | considerable | consideration | considerate || considerably (adv.) 相當地　修飾比較級 better
+Please handle the glass products with extreme ____. || caution | cautious | cautiously | cautioned || caution (n.) 小心　形容詞 extreme 後面要名詞
+The ____ of the new policy has been delayed until March. || implementation | implement | implemented | implementing || implementation (n.) 實施　the ___ of 中間要名詞
+Prices are ____ subject to change. || occasionally | occasional | occasion | occasioned || occasionally (adv.) 偶爾　be 和 subject 之間用副詞
+The team's ____ to detail impressed the client. || attention | attentive | attend | attentively || attention to detail (phr.) 注重細節
+The museum's collection is ____ to the public free of charge. || accessible | access | accessibly | accessibility || accessible (adj.) 可進入的；可取得的　be 動詞後要形容詞
+The figures in the report must be ____ checked before publication. || rigorously | rigorous | rigor | more rigorous || rigorously (adv.) 嚴格地　修飾 checked
+The company's ____ growth has attracted many investors. || rapid | rapidly | rapidity | rapids || rapid (adj.) 快速的　修飾名詞 growth
+Most staff members found the new software ____ to use. || easy | easily | ease | easiness || easy　find + O + adj. + to V
+Dr. Ahmed is a ____ respected researcher in the field. || highly | high | height | higher || highly respected (phr.) 備受尊敬的　highly 表程度
+The project was completed ____ ahead of schedule. || well | good | better | best || well ahead of schedule (phr.) 遠遠提前
+The board will make a ____ decision next week. || final | finally | finalize | finality || final (adj.) 最終的　修飾名詞 decision
+Customer ____ is our top priority. || satisfaction | satisfy | satisfied | satisfying || customer satisfaction (n.) 顧客滿意度
+The candidate answered every question ____. || thoughtfully | thoughtful | thought | thinking || thoughtfully (adv.) 深思熟慮地　修飾動詞 answered
+The two plans differ ____ in cost. || substantially | substantial | substance | substantiate || substantially (adv.) 大幅地　修飾動詞 differ
+Ms. Yoon has been ____ for the position of branch manager. || nominated | nomination | nominee | nominating || nominated (v.) 被提名　has been + p.p.
+Our new office is ____ large as our old one. || twice as | twice | two times | double || twice as + adj. + as　是…的兩倍
+[g] 進階文法（倒裝・假設・分詞構句）
+Not until the contract was signed ____ the project officially begin. || did | was | has | does || 倒裝：Not until … + did + 主詞 + 原形動詞
+Had we known about the delay, we ____ a different supplier. || would have chosen | will choose | chose | would choose || 與過去事實相反：Had + S + p.p.（＝If we had known），主句 would have p.p.
+Rarely ____ the company receive complaints about its products. || does | do | is | has || 倒裝：Rarely + does + 主詞 + 原形動詞
+The manager insisted that every employee ____ the safety training. || attend | attends | attended | attending || insist that + S + (should) 原形動詞
+____ in 1950, the company is one of the oldest in the industry. || Founded | Founding | Having founded | To found || Founded　分詞構句，公司是「被創立」，用 p.p.
+It is essential that the report ____ before Friday. || be submitted | is submitted | was submitted | submits || essential that + S + (should) be + p.p.
+____ the report, Mr. Kato sent it to the director. || Having finished | Finished | Being finished | To have finished || Having finished　完成後才寄出，用完成式分詞構句
+Only after the inspection ____ the factory resume production. || could | it could | can it | it can || 倒裝：Only after … + could + 主詞
+Should you have any questions, please ____ hesitate to contact us. || do not | not | no | does not || Should you have… ＝If you have…；祈使句否定用 do not
+The new employees, most of ____ are recent graduates, will start Monday. || whom | who | them | which || most of whom　介系詞後面用 whom
+The more customers we have, ____ our profits will be. || the higher | higher | the highest | high || The 比較級…, the 比較級…
+So popular ____ the product that it sold out in a day. || was | did | had | were || 倒裝：So + adj. + be + S + that…
+Under no circumstances ____ employees share their passwords. || should | they should | is | must they || 倒裝：Under no circumstances + 助動詞 + 主詞
+Hardly had the meeting started ____ the fire alarm rang. || when | than | then | until || Hardly … when … 一…就…
+It is time we ____ a decision on the budget. || made | make | will make | have made || It is time + S + 過去式　該做某事了
+The proposal, ____ by the finance team, will be presented tomorrow. || prepared | preparing | prepares | to prepare || prepared　＝which was prepared，被動用 p.p.
+No sooner had the CEO arrived ____ the press conference began. || than | when | then | that || No sooner … than … 一…就…
+The CFO requested that the figures ____ again. || be checked | are checked | were checked | checking || request that + S + (should) be + p.p.
+If the shipment had arrived on time, we ____ the deadline. || would have met | would meet | will meet | met || 與過去事實相反，主句用 would have p.p.
+Whoever ____ the highest sales this month will receive a bonus. || achieves | achieve | achieving | to achieve || Whoever 當主詞，動詞用第三人稱單數
+____ the weather been better, the event would have been held outside. || Had | Has | If | Should || Had + S + p.p.　省略 If 的倒裝假設
+Ms. Diaz, ____ team won the award, gave a short speech. || whose | who | whom | that || whose team 她的團隊
+Little ____ the staff know that the CEO would visit that day. || did | do | had | was || 倒裝：Little + did + 主詞 + 原形動詞
+The equipment, ____ properly maintained, can last for twenty years. || if | unless | despite | whether || if properly maintained　＝if it is properly maintained
+This is the first time the company ____ a loss. || has reported | reports | reported | is reporting || This is the first time + 現在完成式
+[c] 高階商務字彙
+The two companies are in the final stages of ____ a merger. || negotiating | navigating | nominating | neutralizing || negotiate (v.) 協商　協商合併
+The firm has been ____ for its innovative designs. || recognized | recognizing | reconciled | recited || recognize (v.) 表彰；肯定　因創新設計受肯定
+The company will ____ all travel expenses for the conference. || reimburse | reinforce | reinstate | reiterate || reimburse (v.) 補償；報銷
+Employees must ____ with all safety regulations. || comply | supply | imply | reply || comply with (phr.) 遵守
+The proposal was rejected due to its high ____. || cost | coast | cast | cause || cost (n.) 成本　因成本高被否決
+Please ____ the client's request as soon as possible. || accommodate | accumulate | accelerate | accompany || accommodate (v.) 配合；滿足（要求）
+The company's profits ____ sharply after the new product was released. || soared | sobbed | sourced | sorted || soar (v.) 暴增
+The audit revealed several ____ in the financial records. || discrepancies | disciplines | discounts | discoveries || discrepancy (n.) 不一致；差異
+Ms. Brooks has the ____ to approve purchases under $5,000. || authority | author | authorship | audience || authority (n.) 權限　有權核准 5,000 元以下採購
+The contract will be ____ for another two years. || renewed | renamed | removed | rendered || renew (v.) 續約　再續約兩年
+The new branch is expected to be ____ by the end of the year. || operational | operative | operation | operator || operational (adj.) 可運作的　年底前開始營運
+The company is ____ to offer flexible working hours. || willing | willful | will | willingness || be willing to V　願意
+We are pleased to ____ that Ms. Ali has joined our board. || announce | pronounce | denounce | renounce || announce (v.) 宣布
+The marketing budget has been ____ to the online campaign. || allocated | allergic | alleviated | alleged || allocate (v.) 分配　預算分配給線上活動
+The CEO gave a ____ speech about the company's future. || compelling | compiling | complying | competing || compelling (adj.) 引人入勝的；有說服力的
+The products are made from ____ materials. || durable | durability | durably | duration || durable (adj.) 耐用的
+The factory's output has ____ in recent months. || fluctuated | fluctuation | fluency | fluent || fluctuate (v.) 波動　產量近幾個月起伏不定
+The company offers ____ training for new staff. || comprehensive | comprehensible | compressive | compulsive || comprehensive (adj.) 全面的；完整的
+Ms. Ward was ____ to handle the negotiations. || appointed | disappointed | appealed | applauded || appoint (v.) 指派
+The hotel ____ a free shuttle service to the airport. || provides | proceeds | protests | prolongs || provide (v.) 提供
+The board voted ____ to approve the plan. || unanimously | unanimous | unanimity | unanimousness || unanimously (adv.) 全體一致地
+Sales of the new product have ____ expectations. || exceeded | excluded | excused | exhausted || exceed expectations (phr.) 超出預期
+The company plans to ____ its outdated equipment. || replace | reply | repeat | repel || replace (v.) 更換　更換老舊設備
+The manager praised the team for its ____ effort. || collaborative | collapsible | collateral | collection || collaborative (adj.) 合作的
+There has been a ____ decline in sales this year. || noticeable | notation | notorious | notified || noticeable (adj.) 明顯的

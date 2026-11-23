@@ -1,0 +1,80 @@
+# 單元 TP5A：Part 5 詞性與代名詞
+# 格式：題目 || 正解 | 錯1 | 錯2 | 錯3 || 解析（第一個選項是正解，程式會自動打亂）
+[v] 詞性變化
+The new software allows employees to complete their reports more ____. || efficiently | efficient | efficiency | efficiencies || efficiently (adv.) 有效率地　修飾動詞 complete，要用副詞
+Ms. Tanaka gave a very ____ presentation at the annual sales meeting. || impressive | impress | impression | impressively || impressive (adj.) 令人印象深刻的　冠詞 a very ___ 名詞之間要形容詞
+All visitors must show valid ____ at the front desk. || identification | identify | identified | identifiable || identification (n.) 身分證明　形容詞 valid 後面要名詞
+The marketing team worked ____ to meet the project deadline. || diligently | diligent | diligence | more diligent || diligently (adv.) 勤奮地　修飾動詞 worked 用副詞
+Our company is ____ to providing excellent customer service. || committed | commit | commitment | committing || committed (adj.) 致力於的　be committed to + N/V-ing
+The ____ of the new branch office will take place next Monday. || opening | open | opened | opens || opening (n.) 開幕　冠詞 The 後、介系詞 of 前要名詞
+Please read the instructions ____ before using the machine. || carefully | careful | care | caring || carefully (adv.) 仔細地　修飾動詞 read 用副詞
+The hotel offers ____ rates for groups of ten or more. || competitive | compete | competition | competitively || competitive (adj.) 有競爭力的　修飾名詞 rates 用形容詞
+Mr. Lee is responsible for the ____ of all company vehicles. || maintenance | maintain | maintained | maintains || maintenance (n.) 維修保養　the ___ of 中間要名詞
+Sales have increased ____ since the launch of the advertising campaign. || significantly | significant | significance | signify || significantly (adv.) 顯著地　修飾動詞 increased 用副詞
+Applicants should have a ____ understanding of accounting software. || thorough | thoroughly | thoroughness | more thoroughly || thorough (adj.) 徹底的　冠詞 a 和名詞 understanding 之間要形容詞
+The manager praised the staff for their ____ during the busy season. || dedication | dedicate | dedicated | dedicating || dedication (n.) 奉獻　所有格 their 後面要名詞
+The conference room is ____ available on Friday afternoons. || usually | usual | usualness | more usual || usually (adv.) 通常　be 動詞和形容詞 available 之間用副詞
+We are looking for a ____ assistant to join our legal department. || reliable | rely | reliably | reliance || reliable (adj.) 可靠的　修飾名詞 assistant 用形容詞
+The company announced the ____ of its chief financial officer. || resignation | resign | resigned | resigning || resignation (n.) 辭職　the ___ of 中間要名詞
+Customers can ____ their orders online at any time. || track | tracking | tracked | tracker || track (v.) 追蹤　助動詞 can 後面接原形動詞
+The report was ____ written, so it was easy to understand. || clearly | clear | clarity | clearness || clearly (adv.) 清楚地　修飾過去分詞 written 用副詞
+Our ____ with local suppliers has helped reduce costs. || partnership | partner | partnered | partnering || partnership (n.) 合作關係　所有格 Our 後、動詞 has 前要名詞（主詞）
+The factory has become much more ____ since the new machines were installed. || productive | product | production | productively || productive (adj.) 有生產力的　become + 形容詞
+Due to ____ demand, the concert has added a second performance. || overwhelming | overwhelm | overwhelmingly | overwhelmed || overwhelming (adj.) 壓倒性的　修飾名詞 demand 用形容詞
+The director spoke ____ about the company's future plans. || confidently | confident | confidence | confide || confidently (adv.) 有自信地　修飾動詞 spoke 用副詞
+Every new employee receives a copy of the safety ____. || regulations | regulate | regulatory | regulated || regulations (n.) 規定　the safety ___ 是複合名詞，要名詞
+The two companies reached an ____ after months of negotiation. || agreement | agree | agreeable | agreeably || agreement (n.) 協議　冠詞 an 後面要名詞
+Store hours may vary ____ during the holiday season. || slightly | slight | slightest | slighting || slightly (adv.) 稍微　修飾動詞 vary 用副詞
+The museum is ____ located near the central train station. || conveniently | convenient | convenience | conveniences || conveniently (adv.) 便利地　修飾過去分詞 located 用副詞
+[g] 代名詞與數量詞
+Ms. Rivera asked her assistant to send the files to ____ by noon. || her | she | hers | herself || her (pron.) 她（受格）　介系詞 to 後面用受格；herself 只用在主詞也是她的時候
+The interns completed the project by ____ without any help. || themselves | them | their | they || themselves (pron.) 他們自己　by oneself 獨自
+Mr. Kim and ____ will attend the trade show in Singapore. || I | me | my | mine || I (pron.) 我　當主詞要用主格
+The laptop on the desk is not mine; it is ____. || hers | her | she | herself || hers (pron.) 她的（東西）　所有格代名詞＝her laptop
+Each of the candidates ____ interviewed by two managers. || was | were | have been | are || was　Each of + 複數名詞，動詞用單數
+Please keep ____ informed of any changes to the schedule. || us | we | our | ours || us (pron.) 我們（受格）　keep + 受詞 + 形容詞
+The company rewards ____ who exceed their sales targets. || those | them | that | it || those who 那些…的人　those 可接關係代名詞 who
+We received ____ applications for the position than we expected. || more | many | much | most || more　後面有 than，用比較級
+There is ____ information about the merger in today's newspaper. || little | few | many | a few || little 很少（不可數）　information 不可數，不能用 few / many
+Only a ____ seats are left for tomorrow's seminar. || few | little | much | less || a few 一些（可數）　seats 是可數複數
+The manager reviewed ____ report carefully before the meeting. || every | all | many | both || every + 單數名詞　report 是單數，不能用 all / many / both
+____ of the two proposals was accepted by the board. || Neither | None | No | Nothing || Neither of the two 兩個都不　兩者用 neither；三者以上才用 none
+The new printer is faster than the old ____. || one | it | that | this || one 代替前面提過的同類單數名詞（printer）
+Employees should log out of ____ computers before leaving the office. || their | them | they | theirs || their (pron.) 他們的　所有格 + 名詞 computers
+Mr. Patel designed the logo ____, so he knows every detail of it. || himself | him | his | he || himself (pron.) 他自己　強調「親自」
+Customers ____ purchase more than $100 will receive free shipping. || who | whom | whose | which || who 主格關係代名詞　先行詞 Customers 是人，後面缺主詞
+Most of the employees ____ already left for the holiday. || have | has | is | was || have　Most of + 複數名詞 employees，動詞用複數 have left
+____ of the staff members has received the updated manual. || Each | Every | All | Both || Each of + 複數名詞 + 單數動詞　Every 後面不能接 of；All / Both 要配複數動詞 have
+Ms. Chen will lead the meeting, and Mr. Park will take notes for ____. || her | she | hers | herself || her (pron.) 她（受格）　介系詞 for 後面用受格
+The sales figures for this quarter are higher than ____ for last quarter. || those | that | these | them || those　代替複數名詞 sales figures
+Neither the manager nor the employees ____ aware of the problem. || were | was | is | has been || were　neither A nor B，動詞跟 B（employees）一致
+We have ____ time to prepare, so let's start right away. || little | few | a few | many || little 很少（不可數）　time 不可數
+Both of the candidates ____ excellent qualifications. || have | has | having | to have || have　Both of + 複數，動詞用複數
+The company has two offices; ____ is in Tokyo and the other is in Seoul. || one | it | another | other || one…the other… 兩者中的一個…另一個…
+Please let ____ know if you need further assistance. || me | I | my | mine || me (pron.) 我（受格）　let + 受格 + 原形動詞
+[c] 商務字彙（基礎）
+Please ____ the attached document and return it by Friday. || review | revise | reveal | remind || review (v.) 審閱　審閱附件後寄回
+The flight was ____ because of the heavy snowstorm. || canceled | celebrated | contained | considered || canceled (v.) 取消　因暴風雪取消
+The company plans to ____ ten new staff members next month. || hire | hide | hurry | hold || hire (v.) 僱用　僱用十名新員工
+All employees must ____ the training session on Monday. || attend | assist | attain | attach || attend (v.) 參加　參加訓練
+Please submit your expense ____ by the end of the month. || reports | records | replies | remarks || reports (n.) 報告　expense report 費用報告
+The store will offer a 20 percent ____ on all winter clothing. || discount | deposit | display | delivery || discount (n.) 折扣　打八折
+Our customer service ____ are available 24 hours a day. || representatives | reservations | references | resources || representatives (n.) 代表；專員　客服專員全天候服務
+The package should ____ within three business days. || arrive | arise | approve | apply || arrive (v.) 抵達　包裹三個工作天內送達
+Mr. Wong was ____ to regional manager last year. || promoted | proposed | provided | produced || promoted (v.) 升遷　be promoted to 升為
+Please make a ____ if you plan to eat at the restaurant on Saturday. || reservation | resolution | revision | registration || reservation (n.) 訂位　make a reservation 訂位
+The company's annual ____ increased by 15 percent. || revenue | review | revenge | reverse || revenue (n.) 營收　年營收成長 15%
+The job ____ requires at least three years of experience. || position | posture | portion | possession || position (n.) 職位　這個職位需要三年經驗
+Please ____ your seat belt during takeoff and landing. || fasten | fashion | finish | fetch || fasten (v.) 繫緊　起降時繫好安全帶
+We need to ____ the budget for next year's marketing campaign. || estimate | escape | erase | expire || estimate (v.) 估算　估算預算
+The meeting has been ____ until next Tuesday. || postponed | posted | positioned | possessed || postponed (v.) 延期　會議延到下週二
+Visitors must ____ in at the reception desk. || sign | sing | sight | sink || sign in (phr.) 簽到　在櫃檯簽到
+The new policy will take ____ on January 1. || effect | affect | effort | event || take effect (phr.) 生效　新政策 1 月 1 日生效
+Please contact the IT department if you have any technical ____. || issues | issuers | items | ideas || issues (n.) 問題　technical issues 技術問題
+Our ____ hours are from 9 a.m. to 6 p.m., Monday through Friday. || business | busy | busily | busyness || business hours (n.) 營業時間
+The company is looking for ways to ____ costs. || reduce | refuse | remove | relate || reduce (v.) 降低　降低成本
+The shipment was ____ because of a problem at the port. || delayed | delivered | declined | departed || delayed (v.) 延誤　因港口問題延誤
+Ms. Garcia will ____ the new employees around the office. || show | tell | speak | say || show around (phr.) 帶…參觀
+A ____ of the meeting will be sent to all participants. || summary | summit | supply | survey || summary (n.) 摘要　會議摘要會寄給所有與會者
+The warranty ____ all repairs for two years. || covers | recovers | discovers | uncovers || covers (v.) 涵蓋　保固涵蓋兩年內維修
+The hotel is ____ booked for the conference weekend. || fully | full | fill | filling || fully booked (phr.) 客滿　副詞 fully 修飾 booked
