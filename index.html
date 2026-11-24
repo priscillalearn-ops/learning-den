@@ -175,6 +175,7 @@ const SPR={
  capsule:['..pppp..','.pwwwwp.','.pwrywp.','.pwbtwp.','.pppppp.','.pkpppp.','.pppppp.','.pp..pp.'],
  castle:['p.p..p.p','ppp..ppp','pwp..pwp','pppppppp','ppwppwpp','pppppppp','ppp..ppp','ppp..ppp'],
  joy:['........','..pppp..','.pppppp.','pwpppypp','wwwpypyp','pwpppypp','.pppppp.','........'],
+ sword:['......ww','.....wkw','....wkw.','o..wkw..','.owkw...','..oo....','.o.oo...','o...o...'],
  coin:['..yyyy..','.yyyyyy.','yyoyyyyy','yyoyyyyy','yyoyyyyy','yyyyyyyy','.yyyyyy.','..yyyy..'],
  heart:['........','.cc..cc.','cccccccc','cccccccc','.cccccc.','..cccc..','...cc...','........'],
  fire:['...c....','..cc.c..','..ccccc.','.ccyycc.','.cyyyyc.','.cyyyyc.','..cyyc..','........'],
@@ -1098,6 +1099,7 @@ function renderGames(){
   $('#view').innerHTML=`${header()}<div class="bar"><h2>遊樂場</h2><button class="btn ghost" id="gcity" style="padding:5px 10px;font-size:13px">← 城市</button></div>
    <div class="flist">
      ${halloween()?card('trick','candy','🎃 不給糖就搗蛋','敲門答萬聖節單字換糖果・只到 11/7',`今天 ${g.trick}/${GAME_CAP}`):''}
+     ${card('arena','sword','知識競技場','1 對 1 搶答，像知識王一樣比快比準','對戰排行')}
      ${card('adv','castle','冒險打怪','用英文打倒怪物，闖過 15 層',`今天 ${g.adventure||0}/${GAME_CAP}`)}
      ${card('wb','book','單字本','依課本版本背單字、玩單字小遊戲',`今天 ${g.words}/${GAME_CAP}`)}
      ${card('match','card','單字翻牌',`翻牌配對英文和中文・第 ${lvOpen('match')}／4 關`,`今天 ${g.match}/${GAME_CAP}`)}
@@ -1111,7 +1113,7 @@ function renderGames(){
    <p class="demo" style="text-align:left;line-height:1.6">小遊戲每場最多 ${GAME_MAX}～${lvMax(4)} 金幣（關卡越後面越多），每種每天最多 ${GAME_CAP}。雙倍挑戰要靠實力，不是靠運氣。</p>`;
   paintSprites($('#view'));
   $('#gcity').onclick=()=>go('city');
-  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{chal:gChal,gacha:gGacha,bank:gBank,trick:gTrick,wb:()=>renderWordbook('games'),adv:renderAdventure}[b.dataset.g])());
+  $('#view').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>(GLV[b.dataset.g]?()=>pickLevel(b.dataset.g):{arena:gArena,chal:gChal,gacha:gGacha,bank:gBank,trick:gTrick,wb:()=>renderWordbook('games'),adv:renderAdventure}[b.dataset.g])());
 }
 /* ---------- 單字本：依版本 → 冊 → 課 背單字，玩單字小遊戲 ----------
    單字表在 banks/words-{kid,teen,sage}.json，由 tools/wordbook.py 從題庫產生（每個字：英文、中文、詞性、例句）。
@@ -1405,6 +1407,181 @@ function playChal(id,st,qs){
   };
   tick=setInterval(()=>{const c=$('#cclock');if(!c){return}const left=Math.max(0,end-Date.now());c.textContent=fmt(left/1000);if(left<=0){clearInterval(tick);while(ans.length<5)ans.push(-1);submit()}},250);
   show();
+}
+/* ---------- 知識競技場：1 對 1 搶答（像知識王） ----------
+   配對、出題、計時、對答案、算分、段位分、金幣全部在資料庫（arena_find／arena_state／arena_answer／arena_ghost／arena_board，
+   見 supabase/update-2026-11-24-arena.sql）。網頁大約每 0.7 秒問一次 arena_state，只負責顯示。
+   每場 5 題、每題 12 秒，答對 10～20 分（越快越多），最後一題 ×2。等 10 秒沒人，就跟影子對手（別人以前的真實作答）打。 */
+const AR_SEC=12,AR_WAIT=10,AR_DAY=5;
+const AR_RANKS=[[1700,'傳說','#ff8a5c'],[1550,'鑽石','#9fe1cb'],[1400,'白金','#c7b8e8'],[1250,'黃金','#ffd166'],[1100,'白銀','#e4e0f0'],[0,'青銅','#d59a64']];
+const arRank=r=>AR_RANKS.find(x=>r>=x[0]);
+const arBadge=r=>{const k=arRank(r||0);return `<span style="color:${k[2]}">${k[1]}</span> <span class="small">${r||0} 分</span>`};
+let AR=null;
+function arStop(){if(AR){clearTimeout(AR.poll);clearInterval(AR.tick);AR=null}}
+async function gArena(){
+  arStop();
+  if(!ONLINE){gameShell('知識競技場',`<div class="box" style="background:var(--deep);line-height:1.7"><h2>登入後才能對戰</h2><p class="small" style="margin:0">競技場是跟其他同學即時搶答，登入正式帳號就能玩。</p></div>`);return}
+  gameShell('知識競技場',`<p class="small" id="arload">載入中…</p>`);
+  const b=await cloud.rpc('arena_board');if(!$('#arload'))return;
+  if(!b){$('#arload').textContent='競技場載不到，檢查一下網路再試一次。';return}
+  const rows=b.board.map((r,i)=>`<div class="frow" style="padding:8px 10px;${r.me?'border-color:var(--gold)':''}"><span style="width:26px;color:var(--gold)">${i+1}</span>
+    <span class="grow">${esc(r.name)}${r.me?'（我）':''}<br><span class="small">${arBadge(r.rating)}</span></span><span class="small" style="text-align:right">${r.wins} 勝／${r.played} 場<br>${r.pts} 分</span></div>`).join('');
+  gameShell('知識競技場',`<div class="box" style="background:var(--deep);display:flex;gap:12px;align-items:center">${avatarSVG(myLook().outfit,7)}
+      <div style="flex:1;min-width:0;line-height:1.6"><div style="font-size:20px">${arBadge(b.rating)}</div>
+      <div class="small">${b.wins} 勝 ${b.losses} 敗 ${b.draws} 和・最高 ${b.best} 分</div>
+      <div class="small">今天有金幣的場次 ${Math.min(b.today,AR_DAY)}／${AR_DAY}</div></div></div>
+    <button class="btn gold" id="argo" style="font-size:18px;padding:12px">開始配對</button>
+    <div class="box paper" style="line-height:1.7;margin:0;font-size:13px;color:var(--night)">跟同程度（${esc(T().stage)}）的同學 1 對 1 搶答，題目從整個題庫隨機出。<br>
+      ・5 題、每題 ${AR_SEC} 秒，答對 10～20 分，越快越多；<b>最後一題分數 ×2</b>，可以逆轉。<br>
+      ・沒人在線時，會跟「影子對手」打：重播其他同學以前真實的作答。<br>
+      ・贏 +20、平手 +10、輸也有 +5 金幣（至少答 3 題），每天前 ${AR_DAY} 場有金幣；段位分每場都算。</div>
+    <h2 style="margin:6px 0 0">本週排行・${esc(T().stage)}</h2>
+    <div class="flist">${rows||'<p class="small">這週還沒有人對戰，搶第一！</p>'}</div>`);
+  $('#argo').onclick=arFind;
+}
+async function arFind(){
+  arStop();
+  if(!(await loadBank(S.tier))){toast('題庫載不到，檢查一下網路');return}
+  gameShell('知識競技場',`<div id="arv"><p class="small">連線中…</p></div>`);arBack();
+  const me=AR={id:0,t0:Date.now(),off:0,lat:1e9,ans:{},view:'',busy:true};
+  const t0=Date.now(),st=await cloud.rpc('arena_find');
+  if(AR!==me)return;
+  if(!st){arStop();gArena();return}
+  me.busy=false;arApply(st,t0);
+}
+/* 離開：對戰中離開，沒答的題目算錯 */
+function arBack(){
+  const b=$('#gback');if(!b)return;
+  b.onclick=()=>{
+    const st=AR&&AR.st;
+    if(!st||st.status!=='playing'){arStop();go('games');return}
+    const m=modal(`<h2>離開對戰？</h2><p class="small">這場還沒打完，沒答的題目都算錯。</p><div class="row"><button class="btn" data-close>繼續比</button><button class="btn coral" id="yes">離開</button></div>`);
+    m.querySelector('#yes').onclick=()=>{m.remove();arStop();go('games')};
+  };
+}
+/* 送出請求（作答、改打影子），等它回來再繼續輪詢，避免兩個請求打架 */
+async function arReq(fn,args){
+  const me=AR;if(!me)return;clearTimeout(me.poll);me.busy=true;
+  const t0=Date.now(),st=await cloud.rpc(fn,{p_id:me.id,...args});
+  if(AR!==me)return;me.busy=false;
+  if(st)arApply(st,t0);else me.poll=setTimeout(arPoll,700);
+}
+async function arPoll(){
+  const me=AR;if(!me||me.busy)return;
+  const t0=Date.now(),st=await cloud.run(()=>sb.rpc('arena_state',{p_id:me.id}));
+  if(AR!==me||me.busy)return;
+  if(st)arApply(st,t0);else me.poll=setTimeout(arPoll,1500);
+}
+/* 伺服器時間：取來回最快的那一次估時差，倒數才準 */
+const arNow=()=>Date.now()+(AR?AR.off:0);
+function arApply(st,t0){
+  const me=AR;if(!me)return;
+  if(!$('#arv')){arStop();return}
+  const t1=Date.now(),lat=t1-(t0||t1);
+  if(lat<=me.lat+200){me.off=st.now-(t1-lat/2);me.lat=Math.min(me.lat,lat)}
+  me.id=st.id;me.st=st;clearTimeout(me.poll);
+  if(st.status==='cancelled'){arStop();gArena();return}
+  if(st.status==='done'){arDone(st);return}
+  if(st.status==='waiting')arWaiting();
+  else{st.qs=st.qids.map(x=>QID[x]);if(st.qs.some(q=>!q)){arStop();toast('題目對不上，請重新整理網頁');go('games');return}arDraw()}
+  if(!me.tick)me.tick=setInterval(arFrame,100);
+  if(st.status==='waiting'&&!me.ghosting&&Date.now()-me.t0>AR_WAIT*1000){me.ghosting=true;arReq('arena_ghost',{});return}
+  me.poll=setTimeout(arPoll,700);
+}
+function arWaiting(){
+  const me=AR;
+  if(me.view!=='wait'){me.view='wait';
+    $('#arv').innerHTML=`<div class="box" style="background:var(--deep);text-align:center;line-height:1.8">${avatarSVG(myLook().outfit,8).replace('display:block','display:block;margin:0 auto')}
+      <h2 style="margin:8px 0 0">尋找對手中…</h2><p class="small" id="arwait" style="margin:0">&nbsp;</p></div>
+      <p class="small" style="text-align:center">等 ${AR_WAIT} 秒沒人，就跟影子對手打</p>`}
+}
+const arSum=l=>l.reduce((t,x)=>t+x.pts,0);
+const arOpp=st=>({name:st.opp.name||'對手',fit:lookOf({outfit:st.opp.outfit||{}},S.tier).outfit,rating:st.opp.rating||1000});
+/* 對戰畫面：上方比分、中間題目；每題只畫一次骨架，之後由 arPaint 更新顏色、比分、倒數 */
+function arDraw(){
+  const me=AR,st=me.st,sn=arNow(),rev=st.cur>0&&sn<st.cur_at,qi=Math.min(4,rev?st.cur-1:st.cur),o=arOpp(st);
+  const view=st.cur===0&&sn<st.cur_at?'vs':'q'+qi;
+  if(me.view!==view){me.view=view;
+    if(view==='vs'){
+      const tag=st.kind==='ghost'?`<p class="small" style="margin:6px 0 0">影子對手：重播 ${esc(o.name)} 以前的真實作答</p>`:st.kind==='bot'?'<p class="small" style="margin:6px 0 0">現在沒人在線，先跟練習機器人打</p>':'<p class="small" style="margin:6px 0 0;color:var(--mint)">真人對戰！</p>';
+      $('#arv').innerHTML=`<div class="box" style="background:var(--deep);text-align:center">
+        <div style="display:flex;justify-content:space-around;align-items:center">
+          <div style="width:40%">${avatarSVG(myLook().outfit,8).replace('display:block','display:block;margin:0 auto')}<div>${esc(S.name)}</div><div class="small">${arBadge(st.rating)}</div></div>
+          <div style="font-size:30px;color:var(--coral)">VS</div>
+          <div style="width:40%">${avatarSVG(o.fit,8).replace('display:block','display:block;margin:0 auto')}<div>${esc(o.name)}</div><div class="small">${arBadge(o.rating)}</div></div></div>
+        ${tag}<div class="timer" id="arcount" style="margin-top:10px">&nbsp;</div></div>`;
+    }else{
+      const q=st.qs[qi];
+      $('#arv').innerHTML=`<div class="box" style="background:var(--deep);display:flex;align-items:center;gap:8px;padding:8px">
+          ${avatarSVG(myLook().outfit,4)}<div style="flex:1;min-width:0"><div class="small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(S.name)}</div><div id="arsme" style="font-size:22px;color:var(--gold)">0</div></div>
+          <div style="text-align:center"><div class="small">第 ${qi+1}／5 題${qi===4?'<br><span style="color:var(--coral)">分數 ×2</span>':''}</div><div id="arsec" style="font-size:26px;color:var(--gold)">${AR_SEC}</div></div>
+          <div style="flex:1;min-width:0;text-align:right"><div class="small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.name)}</div><div id="arsop" style="font-size:22px;color:var(--gold)">0</div></div>${avatarSVG(o.fit,4)}</div>
+        <div style="height:8px;border:2px solid var(--ink);background:var(--deep)"><div id="arbar" style="height:100%;width:100%;background:var(--gold)"></div></div>
+        <div class="box paper" style="display:flex;flex-direction:column;gap:8px">${q.src?`<p class="lbl" style="margin:0">${esc(q.src)} ${q.tag||TAG[q.t]||''}</p>`:''}
+          ${qPic(q,5)}<div class="qtext" style="line-height:1.6">${esc(q.q)}</div>
+          ${q.o.map((x,k)=>`<button class="btn opt" data-ak="${k}" style="padding:7px 10px;display:flex;justify-content:space-between;gap:6px"><span>${'ABCD'[k]}. ${esc(x)}</span><span data-aw="${k}" style="font-size:12px;color:var(--night);white-space:nowrap"></span></button>`).join('')}</div>
+        <p class="small" id="armsg" style="margin:0;text-align:center;min-height:1.6em"></p>`;
+      paintSprites($('#arv'));
+      $('#arv').querySelectorAll('[data-ak]').forEach(b=>b.onclick=()=>{
+        const s=AR&&AR.st;if(!s||s.cur!==qi||arNow()<s.cur_at||AR.ans[qi]!=null||s.mine.some(x=>x.i===qi))return;
+        if(arNow()>s.cur_at+AR_SEC*1000){return}
+        AR.ans[qi]=+b.dataset.ak;arPaint();arReq('arena_answer',{p_idx:qi,p_choice:+b.dataset.ak});
+      });
+    }
+  }
+  arPaint();
+}
+function arPaint(){
+  const me=AR;if(!me||!me.st)return;const st=me.st,v=me.view;if(!v.startsWith('q'))return;
+  const qi=+v.slice(1),key=st.keys[qi],mine=st.mine.find(x=>x.i===qi),their=st.theirs.find(x=>x.i===qi),pick=mine?mine.c:me.ans[qi];
+  $('#arsme').textContent=arSum(st.mine);$('#arsop').textContent=arSum(st.theirs);
+  $('#arv').querySelectorAll('[data-ak]').forEach(b=>{const k=+b.dataset.ak;
+    b.classList.toggle('right',key!=null&&k===key);b.classList.toggle('wrong',key!=null&&k===pick&&k!==key);
+    b.style.outline=key==null&&k===pick?'3px solid var(--gold)':'';
+    const w=b.querySelector('[data-aw]');w.textContent=[k===pick?'我':'',their&&their.c===k?'對手':''].filter(Boolean).join('・')});
+  let msg='';
+  if(st.cur>qi){
+    msg=(mine?mine.ok?`答對 +${mine.pts}`:'答錯了':'時間到，沒作答')+'・'+(their?their.ok?`對手 +${their.pts}`:'對手答錯':'對手沒作答');
+  }else if(pick!=null){msg=mine?(mine.ok?`答對 +${mine.pts}！`:'答錯了…')+(st.opp_done||their?'':'・等對手作答'):'送出中…'}
+  else msg=st.opp_done?'對手已經答了，快！':qi===4?'最後一題分數 ×2，可以逆轉！':'';
+  $('#armsg').textContent=msg;
+}
+/* 每 0.1 秒：倒數、時間條，跨過回合時間就重畫 */
+function arFrame(){
+  const me=AR;if(!me){return}if(!$('#arv')){arStop();return}
+  const st=me.st;if(!st)return;const sn=arNow();
+  if(st.status==='waiting'){const w=$('#arwait');if(w)w.textContent=`已經等了 ${Math.floor((Date.now()-me.t0)/1000)} 秒`;return}
+  if(st.status!=='playing')return;
+  if(me.view==='vs'){const c=$('#arcount');if(c)c.textContent=Math.max(1,Math.ceil((st.cur_at-sn)/1000));if(sn>=st.cur_at)arDraw();return}
+  const qi=+me.view.slice(1);
+  if(st.cur===qi&&sn>=st.cur_at){
+    const left=Math.max(0,st.cur_at+AR_SEC*1000-sn);$('#arsec').textContent=Math.ceil(left/1000);$('#arbar').style.width=(left/AR_SEC/10)+'%';
+    if(left<=0&&me.ans[qi]==null)$('#armsg').textContent='時間到！';
+  }else if(st.cur>qi){
+    $('#arbar').style.width='0%';
+    $('#arsec').textContent=st.cur>=5?'…':'';
+    if(st.cur<5&&sn>=st.cur_at)arDraw();
+  }
+}
+function arDone(st){
+  arStop();
+  if(!st.result){toast('結算中，稍後到競技場看結果');gArena();return}
+  const r=st.result,o=arOpp(st),qs=st.qids.map(x=>QID[x]);syncWallet(r.wallet);
+  qs.forEach((q,k)=>{const m=st.mine.find(x=>x.i===k);if(q&&!(m&&m.ok))addWrong(q)});
+  const up=arRank(r.rating),was=arRank(r.rating-r.delta);
+  gameShell('對戰結果',`<div class="box" style="background:${r.result>0?'var(--kid)':r.result===0?'var(--deep)':'#5a2a3a'};text-align:center;line-height:1.7">
+      <h2 style="margin:0">${r.result>0?'你贏了！':r.result===0?'平手':'差一點！'}</h2>
+      <div style="font-size:26px;color:var(--gold)">${r.score} : ${r.opp}</div>
+      <div class="small">對手：${esc(o.name)}${st.kind==='ghost'?'（影子）':st.kind==='bot'?'（練習機器人）':''}</div>
+      <div>段位分 ${r.delta>=0?'+':''}${r.delta} → ${arBadge(r.rating)}${up!==was?`<br><span style="color:var(--gold)">${r.delta>0?'升上':'掉到'} ${up[1]}！</span>`:''}</div>
+      <div style="color:var(--gold)">${r.coins?`+${r.coins} 金幣`:'這場沒有金幣（今天的 5 場領完了，或答不到 3 題）'}</div></div>
+    ${qs.map((q,k)=>{if(!q)return'';const m=st.mine.find(x=>x.i===k),t=st.theirs.find(x=>x.i===k),key=st.keys[k];
+      return `<div class="titem"><div class="qtext" style="font-size:15px;line-height:1.5">${k+1}. ${esc(q.q)}</div>
+        <div class="small">正解：${esc(q.o[key])}・你：${m?m.ok?`答對 +${m.pts}`:`選 ${esc(q.o[m.c]||'')}`:'沒作答'}・對手：${t?t.ok?`答對 +${t.pts}`:'答錯':'沒作答'}</div></div>`}).join('')}
+    <p class="small" style="margin:0">答錯的題目已經放進錯題本。</p>
+    <div class="row"><button class="btn gold" id="aragain">再來一場</button><button class="btn" id="arhome">回競技場</button></div>`);
+  paintSprites($('#view'));
+  $('#aragain').onclick=arFind;$('#arhome').onclick=gArena;
 }
 /* ---------- 魔法盲盒 ----------
    機率公開、50 抽保底 SSR、十連保底 SR、每天最多 10 抽、重複的轉成金幣、答完今日一題每天免費抽一次。
@@ -3027,6 +3204,9 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-24',title:'知識競技場開幕！',items:[
+  ['sword','1 對 1 搶答對戰','遊樂場多了「知識競技場」：跟同程度的同學比快比準，5 題定勝負，最後一題分數 ×2。贏了拿金幣、升段位，還有每週排行榜！',()=>gArena()],
+ ]},
  {v:'2026-11-17',title:'探險隊出發！城裡多了 6 位新朋友',items:[
   ['castle','派遣探險隊','冒險公會可以派探險隊了！選城裡的朋友當隊員，答對補給問答提高成功率，1～8 小時後回來領金幣，還可能帶回探險家帽、小火龍寵物！',()=>renderAdventure('exp')],
   ['chat','城裡的人有事拜託你','14 位城裡的人每天會拜託你不同的事，做完找他領謝禮（+5 金幣），還能邀請他加入你的探險隊。頭上有「!」就是有事、「★」就是有謝禮。',()=>go('city')],
