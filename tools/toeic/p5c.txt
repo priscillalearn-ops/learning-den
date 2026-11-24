@@ -1,0 +1,79 @@
+# 單元 TP5C：Part 5 介系詞、連接詞、關係詞
+[v] 介系詞
+The seminar will begin ____ 9:30 a.m. || at | on | in | by || at + 時刻　at 9:30
+The office will be closed ____ Christmas Day. || on | in | at | during || on + 特定日子　on Christmas Day
+Our company was founded ____ 1998. || in | on | at | for || in + 年份
+Please submit your application ____ Friday, May 10. || by | until | since | within || by 在…之前（期限）
+The store will remain open ____ 10 p.m. tonight. || until | by | since | at || until 一直到（持續）
+Mr. Lopez has worked here ____ more than ten years. || for | since | during | from || for + 一段時間
+No one is allowed in the lab ____ safety glasses. || without | within | except | among || without 沒有…　沒戴護目鏡不能進
+The new café is located ____ the bank and the post office. || between | among | through | across || between A and B 在兩者之間
+Ms. Yang will be on a business trip ____ next week. || during | while | for | among || during + 名詞（期間）　while 後面要接子句
+The meeting was canceled ____ the bad weather. || because of | because | although | despite || because of + 名詞　because 後面要接子句
+____ the high price, the new phone sold very well. || Despite | Although | Even | However || Despite + 名詞　儘管；Although 要接子句
+Please send your comments ____ the proposal to Mr. Shin. || on | at | to | in || comments on 對…的意見
+The package was delivered ____ the wrong address. || to | at | in | into || deliver to 送到某處
+The company is ____ the process of hiring a new director. || in | on | at | under || in the process of 正在…過程中
+All prices are subject ____ change without notice. || to | for | with | on || be subject to 可能受…影響
+The hotel is within walking distance ____ the convention center. || of | from | to | at || within walking distance of 在…步行距離內
+Sales rose ____ 12 percent last quarter. || by | of | with | at || by + 幅度　成長了 12%
+Payment is due ____ receipt of the invoice. || upon | over | among | into || upon receipt 一收到就…
+We chose this supplier ____ its reliable service. || for | about | with | to || for 因為　choose A for B 因 B 而選 A
+The training will take place ____ the third floor. || on | in | at | over || on + 樓層
+____ the absence of the manager, Mr. Ito will lead the meeting. || In | On | At | By || in the absence of 在…不在時
+Our team has been working ____ the project since January. || on | at | in | of || work on 從事；處理
+The museum is open daily ____ Mondays. || except | besides | beside | without || except 除了…之外（排除）
+The CEO thanked the staff ____ their hard work. || for | of | with | to || thank A for B 為 B 感謝 A
+The road will be closed ____ repairs until Friday. || for | of | by | from || for repairs 為了維修
+[g] 連接詞・關係詞
+Please call me ____ you arrive at the airport. || as soon as | so that | even though | in order to || as soon as 一…就…
+We will start the meeting ____ everyone is here. || once | despite | during | unless that || once 一旦　接子句
+____ the project was difficult, the team finished it on time. || Although | Despite | Because of | However || Although + 子句　雖然
+You will not receive a refund ____ you have the original receipt. || unless | if | because | so || unless 除非　沒收據就不退款
+Ms. Kang worked overtime ____ she could finish the report. || so that | such that | in order | because of || so that 以便　接子句
+The product is not only affordable ____ also durable. || but | and | or | yet also || not only…but also…
+You can pay ____ by credit card or in cash. || either | neither | both | whether || either A or B
+____ Mr. Rossi nor his assistant was available. || Neither | Either | Both | Not || neither A nor B
+The candidate ____ we interviewed yesterday has accepted the offer. || whom | whose | which | what || whom 受格關代　先行詞是人，在子句中當 interviewed 的受詞
+The company ____ products are sold worldwide is based in Osaka. || whose | which | who | that || whose 所有格關代　whose products 那家公司的產品
+This is the hotel ____ we stayed last year. || where | which | what | who || where 關係副詞＝in which
+The report, ____ was published yesterday, shows strong growth. || which | that | what | who || which　非限定用法（逗號後）不能用 that
+I don't know ____ the shipment will arrive on time. || whether | that | what | which || whether 是否
+____ you need help, please contact the front desk. || If | Unless | Despite | Although || If 如果
+The sales were low ____ the product was well reviewed. || even though | because | so that | as soon as || even though 即使　前後語意轉折
+The manager explained ____ the policy had changed. || why | what | which | whom || why 為什麼　名詞子句 why…
+Mr. Abe will retire next year, ____ he will continue as an advisor. || but | so | because | or || but 但是　語意轉折
+The supplier delivered the parts late; ____, we missed the deadline. || as a result | in contrast | for instance | nevertheless || as a result 因此　前因後果
+The office is small; ____, it is very comfortable. || however | therefore | moreover | for example || however 然而　前後語意相反
+____ you have finished the test, hand in your answer sheet. || When | Unless | During | Despite || When 當…時　接子句
+The new model is ____ lighter than the old one. || much | very | more | most || much + 比較級　加強比較級用 much，不用 very
+This is ____ hotel in the city. || the most expensive | more expensive | most expensive | the more expensive || the most + 形容詞 最高級
+Our profits are ____ than they were last year. || higher | highest | high | the highest || higher than　比較級
+The more you practice, ____ you will become. || the better | better | the best | best || The 比較級…, the 比較級…　越…越…
+The applicant ____ résumé impressed us most was hired. || whose | who | whom | which || whose 所有格關代　whose résumé
+[c] 商務字彙（形容詞與名詞搭配）
+The position requires ____ communication skills. || excellent | excessive | exclusive | expensive || excellent (adj.) 優秀的　優秀的溝通能力
+The company offers a ____ benefits package. || generous | general | genuine | gentle || generous (adj.) 優厚的　優厚的福利
+Please keep your receipt as ____ of purchase. || proof | prove | proven | probe || proof (n.) 證明　proof of purchase 購買證明
+Admission to the exhibit is ____ for children under 12. || free | freed | freely | freedom || free (adj.) 免費的　12 歲以下免費
+The ____ for the job applications is March 31. || deadline | headline | guideline | timeline || deadline (n.) 截止日期
+The hotel received ____ reviews from its guests. || positive | possible | portable | potential || positive (adj.) 正面的　正面評價
+Ms. Ford has ____ experience in international sales. || extensive | expensive | expansive | extended || extensive (adj.) 豐富的；廣泛的
+The factory meets all ____ safety standards. || current | currency | curious | cursive || current (adj.) 現行的　現行安全標準
+We apologize for any ____ this may cause. || inconvenience | incompetence | inconsistency | independence || inconvenience (n.) 不便　造成不便敬請見諒
+Please keep this information ____. || confidential | confident | considerable | confusing || confidential (adj.) 機密的
+The company has a strong ____ for quality. || reputation | repetition | reception | resolution || reputation (n.) 名聲　以品質聞名
+Our ____ goal is to satisfy every customer. || primary | primitive | private | previous || primary (adj.) 主要的
+All employees must follow the ____ dress code. || company | companion | compass | compartment || company dress code 公司服裝規定
+The supplier sent a(n) ____ for the cost of the repairs. || estimate | estate | esteem | escort || estimate (n.) 估價單
+The workshop is ____ to all staff members. || open | opener | opening | openness || open to (phr.) 開放給…
+The manager was ____ about the sales results. || optimistic | optional | optical | ordinary || optimistic (adj.) 樂觀的
+The airline offers ____ upgrades to frequent flyers. || complimentary | complementary | comprehensive | compulsory || complimentary (adj.) 免費贈送的
+There will be a short ____ between the two sessions. || break | brake | breakdown | breakthrough || break (n.) 休息　兩場之間短暫休息
+The store has a wide ____ of kitchen products. || selection | election | selected | section || selection (n.) 選擇　a wide selection of 種類齊全
+Mr. Owen is the ____ contact for this project. || main | maintain | mainly | mainland || main (adj.) 主要的　主要聯絡人
+Our company has ____ offices in five countries. || regional | regionally | region | regions || regional (adj.) 區域的　修飾名詞 offices
+Please check the ____ date before using the product. || expiration | expectation | exploration | explanation || expiration date (n.) 有效期限
+The project was a great ____ thanks to everyone's effort. || success | succeed | successful | successfully || success (n.) 成功　a great + 名詞
+The two companies signed a ____ agreement. || mutual | multiple | musical | mutable || mutual (adj.) 雙方的；互相的
+The hotel provides ____ parking for its guests. || ample | apple | sample | amply || ample (adj.) 充足的　充足的停車位

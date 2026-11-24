@@ -1,0 +1,79 @@
+# 單元 TP5B：Part 5 動詞（時態、語態、不定詞與動名詞）
+[v] 不定詞・動名詞・分詞
+The manager suggested ____ the meeting to Thursday. || moving | to move | move | moved || suggest + V-ing　suggest 後面接動名詞
+We look forward to ____ with you on this project. || working | work | worked | be working || look forward to + V-ing　這裡的 to 是介系詞
+The company decided ____ a new factory in Vietnam. || to build | building | build | built || decide + to V　決定去做
+Ms. Ortiz is considering ____ a second store downtown. || opening | to open | open | opened || consider + V-ing　考慮做某事
+Please remember ____ the lights before you leave. || to turn off | turning off | turn off | turned off || remember to V 記得要去做（還沒做）
+The technician finished ____ the printer just before noon. || repairing | to repair | repair | repaired || finish + V-ing　完成做某事
+The box was too heavy for one person ____. || to lift | lifting | lifted | lifts || too + adj. + to V　太…而不能…
+The ____ documents must be signed by both parties. || attached | attaching | attach | attaches || attached (adj.) 附上的　文件是「被附上」，用過去分詞
+The results of the survey were very ____. || surprising | surprised | surprise | surprisingly || surprising (adj.) 令人驚訝的　事物令人驚訝用 -ing
+The staff were ____ with the new vacation policy. || pleased | pleasing | please | pleasure || pleased (adj.) 感到高興的　人的感受用 -ed
+Employees are encouraged ____ the online training course. || to complete | completing | complete | completed || be encouraged to V　被鼓勵去做
+The company avoided ____ prices despite rising costs. || raising | to raise | raise | raised || avoid + V-ing　避免做某事
+Customers ____ to return items must bring their receipts. || wishing | wished | wish | to wishing || wishing　＝who wish，主動用現在分詞修飾 Customers
+The hotel has a pool ____ on the top floor. || located | locating | locates | to locate || located (adj.) 位於　＝which is located，被動用過去分詞
+It is important ____ all safety procedures. || to follow | following | follow | followed || It is + adj. + to V　虛主詞 It 代替後面的不定詞
+Mr. Brown is used to ____ long hours during the tax season. || working | work | worked | be worked || be used to + V-ing　習慣於
+The board agreed ____ the budget proposal. || to approve | approving | approve | approved || agree + to V　同意去做
+____ the report, Ms. Hill found several errors. || While reviewing | Reviewed | To be reviewed | Review || While + V-ing　分詞構句，Ms. Hill 主動審閱
+The new system will enable us ____ orders more quickly. || to process | processing | process | processed || enable + O + to V　使…能夠
+I would appreciate ____ a copy of the contract. || receiving | to receive | receive | received || appreciate + V-ing　感謝能…
+The ____ number of applicants surprised the hiring committee. || growing | grown | grow | grows || growing (adj.) 不斷增加的　數字「主動在增加」用 -ing
+The company stopped ____ paper catalogs last year. || printing | to print | print | printed || stop + V-ing 停止做某事（stop to V 是停下來去做別的）
+Please have the documents ____ by tomorrow morning. || translated | translating | translate | to translate || have + O + p.p.　請人把文件翻譯好（文件是被翻譯）
+The sales team managed ____ its quarterly target. || to exceed | exceeding | exceed | exceeded || manage + to V　設法做到
+Visitors are not allowed ____ photographs inside the museum. || to take | taking | take | took || be allowed to V　被允許做
+[g] 時態・語態・主動詞一致
+The quarterly report ____ to all shareholders last week. || was sent | sent | is sending | has sent || was sent　last week 過去式，報告是「被寄出」用被動
+By the time the CEO arrives, we ____ the presentation. || will have finished | finished | have finished | had finished || will have finished　By the time + 現在式，主句用未來完成式
+Ms. Park ____ for this company since 2018. || has worked | works | worked | is working || has worked　since + 時間點，用現在完成式
+The new shopping mall ____ next spring. || will open | opened | has opened | was opened || will open　next spring 未來時間，用未來式
+If the weather ____ good tomorrow, the picnic will be held outdoors. || is | will be | was | were || is　If 條件句表未來，用現在式代替未來式
+The package ____ yesterday, but no one was at home. || arrived | arrives | has arrived | was arrived || arrived　yesterday 過去式；arrive 不及物，不能用被動
+All orders ____ within 24 hours of payment. || are processed | process | processing | have processing || are processed　訂單是「被處理」，用被動
+Mr. Davis ____ the client when the fire alarm went off. || was meeting | meets | has met | will meet || was meeting　過去某時正在進行，用過去進行式
+The budget proposal ____ by the board next Monday. || will be reviewed | will review | reviewed | reviews || will be reviewed　未來 + 被動
+The number of online shoppers ____ steadily. || has been increasing | have been increasing | increasing | were increase || has been increasing　The number of + 複數名詞，動詞用單數
+A number of employees ____ asked for flexible working hours. || have | has | is | was || have　A number of + 複數名詞（許多），動詞用複數
+The meeting ____ already started when Mr. Hall arrived. || had | has | have | was || had already started　比過去更早發生，用過去完成式
+The company ____ its headquarters to Taipei in 2015. || moved | has moved | moves | was moved || moved　in 2015 明確過去時間，用過去式
+Each employee ____ a security badge. || is required to wear | require to wear | are required to wear | requiring wearing || is required to wear　Each 單數 + 被動 be required to
+The products ____ in our factory are shipped worldwide. || manufactured | manufacturing | manufacture | manufactures || manufactured　＝which are manufactured，被動用 p.p.
+Neither of the printers ____ properly at the moment. || is working | are working | work | have worked || is working　Neither of + 複數，動詞用單數；at the moment 用進行式
+Ms. Lin usually ____ to work by train. || goes | go | going | is gone || goes　usually 表習慣，主詞第三人稱單數用 goes
+The renovations ____ by the end of next month. || will be completed | will complete | completed | completing || will be completed　工程是「被完成」，未來被動
+Over 500 people ____ the job fair so far. || have visited | visited | visit | are visited || have visited　so far 到目前為止，用現在完成式
+The contract must ____ before the end of the day. || be signed | sign | signed | signing || be signed　助動詞 must + be + p.p.（被動）
+We ____ you as soon as your order is ready. || will notify | notified | have notified | notify to || will notify　as soon as + 現在式，主句用未來式
+The CEO, along with two managers, ____ visiting the factory today. || is | are | were | be || is　along with 不影響主詞，主詞 The CEO 單數
+The training sessions ____ in Room 301 every Wednesday. || are held | hold | holding | is held || are held　課程「被舉辦」，主詞複數用 are
+If I ____ more time, I would join the volunteer program. || had | have | will have | would have || had　與現在事實相反的假設，If 子句用過去式
+Since the new manager arrived, sales ____ by 20 percent. || have risen | rose | rise | had risen || have risen　Since + 過去時間，主句用現在完成式
+[c] 商務字彙（動詞搭配）
+Please ____ the form and give it to the receptionist. || fill out | find out | figure out | fall out || fill out (phr.) 填寫　填好表格交給櫃台
+The company will ____ a new product line next quarter. || launch | lunch | lounge | leash || launch (v.) 推出　推出新產品線
+We need to ____ the problem before the client meeting. || address | adhere | admire | adjust to || address (v.) 處理（問題）　address the problem
+The manager ____ the request for additional funding. || approved | improved | proved | removed || approved (v.) 批准　批准追加經費
+Ms. Ng will ____ for the director while he is on vacation. || fill in | fill up | fill with | fill over || fill in for (phr.) 代理某人的工作
+Please ____ to the attached schedule for details. || refer | prefer | defer | confer || refer to (phr.) 參考　請參考附件時程
+The firm ____ its services to small businesses. || offers | affords | effects | infers || offers (v.) 提供　提供服務給小型企業
+Our sales representatives will ____ up with you next week. || follow | fall | fill | feel || follow up (phr.) 後續追蹤　下週會跟您聯絡
+The factory had to ____ production because of a power outage. || suspend | suspect | suspense | sustain || suspend (v.) 暫停　因停電暫停生產
+Please ____ receipt of this email by replying today. || acknowledge | acquire | accompany | accomplish || acknowledge receipt (phr.) 確認收到
+The new manager will ____ several changes to the department. || implement | imply | impress | import || implement (v.) 實施　實施多項改變
+The company has decided to ____ its operations to Asia. || expand | expend | expect | expose || expand (v.) 擴展　擴展到亞洲
+Customers can ____ for a full refund within 30 days. || apply | comply | supply | reply || apply for (phr.) 申請　申請全額退款
+Mr. Cho was asked to ____ the training program. || oversee | overlook | overhear | overcome || oversee (v.) 監督；負責　負責訓練計畫
+The delivery fee will be ____ for orders over $50. || waived | waved | wired | weighed || waived (v.) 免除　滿 50 元免運費
+Please ____ from using your phone during the performance. || refrain | restrain | retain | remain || refrain from (phr.) 避免；克制
+Our technicians will ____ the equipment every six months. || inspect | inspire | instruct | insist || inspect (v.) 檢查　每六個月檢查設備
+The company plans to ____ 50 new jobs in the region. || create | crease | credit | crate || create (v.) 創造　創造 50 個工作機會
+The hotel staff will ____ your luggage to your room. || carry | marry | hurry | worry || carry (v.) 搬運　把行李送到房間
+Please ____ your password regularly for security reasons. || update | upgrade | uphold | upset || update (v.) 更新　定期更新密碼
+Ms. Reyes was ____ the Employee of the Year award. || presented with | presented to | present at | presenting for || be presented with (phr.) 獲頒
+The workshop is designed to ____ communication skills. || enhance | enforce | enclose | endure || enhance (v.) 提升　提升溝通技巧
+Applicants must ____ a résumé and two letters of reference. || submit | submerge | subtract | subscribe || submit (v.) 提交　提交履歷
+The museum will ____ its doors to the public in May. || open | operate | oppose | order || open its doors (phr.) 開放　五月對外開放
+The company ____ a 10 percent increase in profits. || reported | repeated | replaced | requested || reported (v.) 公布　公布獲利成長 10%
