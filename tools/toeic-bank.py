@@ -1,6 +1,7 @@
 # 把 tools/toeic/*.txt 的原創多益題目放進 banks/sage.json（大魔導師）。
 # 題目檔格式：
 #   # 單元 TP5A：單元名稱          ← 第一行，冒號前是單元代號，後面是名稱
+#   @A 標題｜短文                  ← （Part 7）定義一篇短文，題目行寫「=A 問題 || …」就會把短文放在問題前面
 #   [v] 分類名稱                  ← v／g／c 三類，對應題庫的三個分類
 #   題目 || 正解 | 錯1 | 錯2 | 錯3 || 解析      ← 第一個選項是正解，這裡會固定亂數打亂
 # 重跑會先把舊的同代號單元刪掉再放新的，所以改完題目重跑就好。
@@ -16,9 +17,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PATH = os.path.join(HERE, '..', 'banks', 'sage.json')
 # 組合包：放在原本「多益衝刺（商務職場）」前面，大學生預設會推薦第一個名字有「多益」的組合包
 PRESETS = [
-    {'name': '多益全備（單字＋Part 5＋Part 6）', 'ids': ['TOEIC', 'TP5A', 'TP5B', 'TP5C', 'TP5D', 'TP6']},
+    {'name': '多益全備（單字＋Part 5～7）', 'ids': ['TOEIC', 'TP5A', 'TP5B', 'TP5C', 'TP5D', 'TP6', 'TP7']},
     {'name': '多益文法 Part 5（四個單元）', 'ids': ['TP5A', 'TP5B', 'TP5C', 'TP5D']},
     {'name': '多益段落填空 Part 6', 'ids': ['TP6']},
+    {'name': '多益閱讀 Part 6＋Part 7', 'ids': ['TP6', 'TP7']},
 ]
 
 def parse(path):
@@ -29,9 +31,18 @@ def parse(path):
             'src': {}, 'tags': {}, 'v': [], 'g': [], 'c': []}
     rnd = random.Random('toeic-' + uid)
     cat = None
+    texts = {}   # Part 7 短文：@代號 標題｜短文
     for ln in lines[1:]:
         ln = ln.strip()
         if not ln or ln.startswith('#'): continue
+        if ln.startswith('@'):
+            key, rest = ln[1:].split(' ', 1); title, body = rest.split('｜', 1)
+            # 簡訊對話用「 / 」分行；網頁的 .qtext 有 white-space:pre-line，換行會顯示出來
+            texts[key] = f'【{title.strip()}】' + ('\n' if ' / ' in body else '') + body.strip().replace(' / ', '\n')
+            continue
+        if ln.startswith('='):
+            key, rest = ln[1:].split(' ', 1)
+            ln = texts[key] + '\n▶ ' + rest
         h = re.match(r'\[([vgc])\]\s*(.+)', ln)
         if h:
             cat = h.group(1); unit['src'][cat] = name.split('：')[0] + '・' + h.group(2).strip(); unit['tags'][cat] = h.group(2).strip()
@@ -39,7 +50,7 @@ def parse(path):
         stem, opts, ex = [x.strip() for x in ln.split('||')]
         opts = [o.strip() for o in opts.split('|')]
         assert len(opts) == 4 and len(set(o.lower() for o in opts)) == 4, (path, ln)
-        assert '____' in stem, (path, ln)
+        assert '____' in stem or '▶' in stem, (path, ln)
         order = list(range(4)); rnd.shuffle(order)
         unit[cat].append([stem, [opts[i] for i in order], order.index(0), ex])
     return unit
@@ -53,7 +64,7 @@ def main():
     data['units'][at:at] = units
     names = {p['name'] for p in PRESETS}
     # 舊版組合包改過名字的也一起拿掉（名字開頭一樣就算）
-    data['presets'] = [p for p in data['presets'] if p['name'] not in names and not p['name'].startswith(('多益全備', '多益文法', '多益段落'))]
+    data['presets'] = [p for p in data['presets'] if p['name'] not in names and not p['name'].startswith(('多益全備', '多益文法', '多益段落', '多益閱讀'))]
     at = next((i for i, p in enumerate(data['presets']) if '多益' in p['name']), len(data['presets']))
     data['presets'][at:at] = PRESETS
     json.dump(data, open(PATH, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
