@@ -35,7 +35,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 .paper{background:var(--paper);color:var(--night)}
 .btn{border:3px solid var(--ink);border-radius:0;padding:10px 12px;background:var(--paper);color:var(--night);text-align:center;box-shadow:inset -3px -3px 0 rgba(0,0,0,.18)}
 .btn:active{transform:translate(1px,1px);box-shadow:none}
-.btn.gold{background:var(--gold)}.btn.coral{background:var(--coral)}.btn.mint{background:var(--mint)}
+.mkp .small{color:var(--night);opacity:.75}.btn.gold{background:var(--gold)}.btn.coral{background:var(--coral)}.btn.mint{background:var(--mint)}
 .btn.ghost{background:transparent;color:var(--paper);border-color:var(--dim)}
 .small{font-size:12px;color:var(--lilac)}
 .lbl{font-size:12px;color:var(--plum);margin:0 0 6px}
@@ -3780,9 +3780,10 @@ function renderDaily(){
    <div id="post"></div>
    <div id="prac"></div>
    <div class="row"><button class="btn gold" id="more">多練幾題</button><button class="btn" id="rev">複習錯題（${wrongs().length}）</button></div>
-   <button class="btn mint" data-go="room">去讀書房專注</button>`;
+   <button class="btn mint" data-go="room">去讀書房專注</button>
+   ${mockHas()&&scope().some(u=>/^(TOEIC|TP|TL)/.test(u))?'<button class="btn" id="tomock">多益模擬考（限時＋估分）</button>':''}`;
   const startPr=review=>{if(review&&!wrongs().length){toast('目前沒有錯題');return}pr={n:0,ok:0,q:null,review};practice();$('#prac').scrollIntoView({block:'start',behavior:'smooth'})};
-  $('#more').onclick=()=>{did('practice');startPr(false)};$('#rev').onclick=()=>renderMistakes();
+  $('#more').onclick=()=>{did('practice');startPr(false)};if($('#tomock'))$('#tomock').onclick=()=>renderMock();$('#rev').onclick=()=>renderMistakes();
   const post=$('#post');
   if(t.social==='sticker'){
     post.innerHTML=`<p class="small" style="margin:0 0 6px">送一個貼圖給大家</p><div class="chips">${STICKERS.map(s=>`<button class="chip" data-st="${s}">${s}</button>`).join('')}</div>`;
@@ -3834,6 +3835,132 @@ function practice(){
   paintSprites($('#prac'));
   if(!done)$('#prac').querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>{pr.c=+b.dataset.pi;pr.n++;if(pr.c===q.a){pr.ok++;if(pr.review)reviewedOk(q)}else addWrong(q);practice()});
   else{$('#pnext').onclick=()=>{pr.last=pr.q;pr.q=null;practice();$('#rev')&&($('#rev').textContent=`複習錯題（${wrongs().length}）`)};$('#pend').onclick=()=>{$('#prac').innerHTML='';toast(`這輪答對 ${pr.ok}/${pr.n} 題`)}}
+}
+/* ---------- 多益模擬考：限時作答，交卷後換算預估分數（聽力、閱讀各 5～495，總分 10～990）
+   題目從 TL（聽力 Part 2～4）、TP5A～D、TP6、TP7 抽；Part 3／4／7 同一段對話或文章的題目一起出。
+   估分只是參考：用正答率對照常見的多益換算表（聽力給分比閱讀寬）。 */
+const MOCK_MODES={
+  mini:{name:'迷你模擬考',min:12,L:{p2:4,p3:1,p4:1},R:{p5:5,p6:2,p7:1},coin:8},
+  half:{name:'半套模擬考',min:30,L:{p2:10,p3:3,p4:2},R:{p5:10,p6:5,p7:3},coin:20}
+};
+const MOCK_L=[[0,5],[6,15],[16,60],[26,115],[36,170],[46,225],[56,280],[66,335],[76,395],[86,445],[91,470],[96,495],[100,495]];
+const MOCK_R=[[0,5],[6,5],[16,45],[26,90],[36,140],[46,190],[56,245],[66,300],[76,360],[86,420],[91,450],[96,495],[100,495]];
+const MOCK_LV=[[860,'金色','#a8770a'],[730,'藍色','#2f6fb5'],[470,'綠色','#2e7d4f'],[220,'棕色','#8a5a2b'],[10,'橘色','#c4502c']];
+function mockScale(pct,tbl){for(let i=1;i<tbl.length;i++){const[a,x]=tbl[i-1],[b,y]=tbl[i];if(pct<=b)return Math.round((x+(y-x)*(pct-a)/(b-a))/5)*5}return 495}
+const mockLv=s=>MOCK_LV.find(l=>s>=l[0])||MOCK_LV[MOCK_LV.length-1];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* 同一段對話／文章的題目：聽力看 say，閱讀看【標題】那段 */
+function mockSets(list){const m=new Map();list.forEach(q=>{const k=q.say||q.q.split('\n▶')[0];if(!m.has(k))m.set(k,[]);m.get(k).push(q)});return [...m.values()]}
+const mockHas=()=>BANK[S.tier]&&BANK[S.tier].some(q=>q.u==='TL');
+function mockBuild(mode){
+  const B=BANK[S.tier],c=MOCK_MODES[mode],of=(u,t)=>B.filter(q=>(Array.isArray(u)?u.includes(q.u):q.u===u)&&(!t||q.t===t));
+  const take=(list,n)=>shuf(list).slice(0,n),sets=(list,n)=>shuf(mockSets(list)).slice(0,n).flat();
+  const tagged=(qs,part,sec)=>qs.map(q=>({q,part,sec,c:null}));
+  return [
+    ...tagged(take(of('TL','v'),c.L.p2),'Part 2 應答問題','L'),
+    ...tagged(sets(of('TL','g'),c.L.p3),'Part 3 簡短對話','L'),
+    ...tagged(sets(of('TL','c'),c.L.p4),'Part 4 簡短獨白','L'),
+    ...tagged(take(of(['TP5A','TP5B','TP5C','TP5D']),c.R.p5),'Part 5 單句填空','R'),
+    ...tagged(take(of('TP6'),c.R.p6),'Part 6 段落填空','R'),
+    ...tagged(sets(of('TP7'),c.R.p7),'Part 7 閱讀理解','R')
+  ];
+}
+let mk=null;
+function renderMock(){
+  did('mock');curTab='mock';$('#app').classList.remove('wide');$('#nav').hidden=false;
+  $('#nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab==='me'?'page':'false'));
+  if(mk&&!mk.done){mockQ();return}
+  if(mk&&mk.done&&mk.r){mockResult();return}
+  $('#view').scrollTop=0;
+  const h=S.mock||[],best=h.reduce((a,x)=>Math.max(a,x.tot),0),last=h[h.length-1];
+  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="mkback" style="padding:5px 10px;font-size:13px">← 我的</button><span>多益模擬考</span>${coinChip()}</div>
+    <div class="box" style="background:var(--deep);line-height:1.7">照正式多益的順序出題：<b>先聽力（Part 2～4）再閱讀（Part 5～7）</b>，時間到自動交卷，交卷後換算預估分數（10～990）。<br><span class="small">聽力題按「播放音檔」用手機的英文朗讀念出來，請戴耳機。正式考試只播一次，這裡可以重播但會花掉時間。答錯的題目會收進錯題本（沒作答的不收）。</span></div>
+    ${h.length?`<div class="box paper mkp" style="display:flex;justify-content:space-around;text-align:center;gap:8px">
+      <div><p class="small" style="margin:0">最佳</p><b style="font-size:22px;color:${mockLv(best)[2]}">${best}</b></div>
+      <div><p class="small" style="margin:0">上一次</p><b style="font-size:22px">${last.tot}</b><p class="small" style="margin:0">聽 ${last.L}・讀 ${last.R}</p></div>
+      <div><p class="small" style="margin:0">已考</p><b style="font-size:22px">${h.length}</b><p class="small" style="margin:0">次</p></div></div>`:''}
+    ${Object.entries(MOCK_MODES).map(([k,c])=>{const L=c.L.p2+3*(c.L.p3+c.L.p4),R=c.R.p5+c.R.p6+3*c.R.p7;
+      return `<button class="btn ${k==='half'?'gold':''}" data-mk="${k}" style="line-height:1.5">${c.name}・約 ${Math.round((L+R)/5)*5} 題・${c.min} 分鐘<br><span class="small" style="color:var(--night);opacity:.75">聽力約 ${L} 題＋閱讀約 ${R} 題${S.mockCoin&&S.mockCoin[today()+k]?'・今天的金幣已領':`・完成 +${c.coin} 金幣`}</span></button>`}).join('')}
+    <p class="small" style="margin:0;line-height:1.6">預估分數是用正答率對照常見換算表算的，題數少誤差會比較大，只能當參考，不是官方成績。</p>`;
+  $('#mkback').onclick=()=>go('me');
+  $('#view').querySelectorAll('[data-mk]').forEach(b=>b.onclick=()=>{const k=b.dataset.mk,c=MOCK_MODES[k];
+    const m=modal(`<h2>開始${c.name}？</h2><p class="small" style="line-height:1.6">限時 ${c.min} 分鐘，開始後就會倒數。可以跳題、回頭改答案，寫完按「交卷」。</p><div class="row"><button class="btn" data-close>再等等</button><button class="btn gold" id="mkgo">開始</button></div>`);
+    m.querySelector('#mkgo').onclick=()=>{m.remove();mk={mode:k,items:mockBuild(k),i:0,end:Date.now()+c.min*60e3,done:false};mockQ();mockTick()}});
+}
+function mockTick(){
+  clearInterval(mockTick.t);
+  mockTick.t=setInterval(()=>{
+    if(!mk||mk.done){clearInterval(mockTick.t);return}
+    const left=mk.end-Date.now();
+    if(left<=0){clearInterval(mockTick.t);try{speechSynthesis.cancel()}catch(e){}toast('時間到，自動交卷');mockSubmit();return}
+    const e=$('#mktime');if(e){e.textContent=mockClock(left);e.style.color=left<60e3?'var(--coral)':''}
+  },500);
+}
+const mockClock=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
+function mockQ(){
+  const it=mk.items[mk.i],q=it.q,n=mk.items.length,ans=mk.items.filter(x=>x.c!=null).length;
+  const first=mk.i===0||mk.items[mk.i-1].part!==it.part;
+  $('#view').innerHTML=`<div id="mk" style="display:flex;flex-direction:column;gap:10px">
+    <div class="bar"><span>${esc(MOCK_MODES[mk.mode].name)}</span><b id="mktime">${mockClock(mk.end-Date.now())}</b><button class="btn coral" id="mksub" style="padding:5px 10px;font-size:13px">交卷</button></div>
+    <div class="box paper" style="display:flex;flex-direction:column;gap:8px">
+      <p class="lbl" style="margin:0">${it.sec==='L'?'🎧 聽力':'📖 閱讀'}・${esc(it.part)}・第 ${mk.i+1}／${n} 題（已答 ${ans}）</p>
+      ${first?`<p class="small" style="margin:0;color:var(--night)">${it.sec==='L'&&it.part.startsWith('Part 2')?'聽一句話，選出最適合的回應。':it.sec==='L'?'先聽對話或獨白，再回答問題（同一段音檔有好幾題）。':it.part.startsWith('Part 5')?'選出最適合填入空格的答案。':'讀文章後回答問題（同一篇文章有好幾題）。'}</p>`:''}
+      ${qPic(q)}<div class="qtext" style="line-height:1.6">${esc(q.q)}</div>
+      ${q.o.map((o,i)=>`<button class="btn opt" data-mo="${i}" style="padding:7px 10px;${it.c===i?'background:var(--gold);color:var(--night)':''}">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}
+      <div class="row"><button class="btn ghost" id="mkprev" style="color:var(--night);border-color:var(--night)" ${mk.i?'':'disabled'}>上一題</button><button class="btn gold" id="mknext">${mk.i<n-1?'下一題':'檢查並交卷'}</button></div>
+    </div>
+    <div class="box" style="background:var(--deep)"><p class="small" style="margin:0 0 6px">題號（金色＝已作答，點一下可以跳過去）</p>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${mk.items.map((x,i)=>`<button data-mj="${i}" style="width:30px;height:30px;font:inherit;font-size:12px;border:2px solid ${i===mk.i?'var(--paper)':'var(--ink)'};background:${x.c!=null?'var(--gold)':'var(--night)'};color:${x.c!=null?'var(--night)':'var(--paper)'};padding:0">${i+1}</button>`).join('')}</div></div></div>`;
+  paintSprites($('#view'));
+  $('#view').querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{it.c=+b.dataset.mo;if(mk.i<n-1){mk.i++}mockQ()});
+  $('#view').querySelectorAll('[data-mj]').forEach(b=>b.onclick=()=>{mk.i=+b.dataset.mj;mockQ()});
+  $('#mkprev').onclick=()=>{if(mk.i){mk.i--;mockQ()}};
+  $('#mknext').onclick=()=>{if(mk.i<n-1){mk.i++;mockQ()}else mockAsk()};
+  $('#mksub').onclick=mockAsk;
+  $('#view').scrollTop=0;window.scrollTo(0,0);
+}
+function mockAsk(){
+  const left=mk.items.filter(x=>x.c==null).length;
+  const m=modal(`<h2>確定交卷？</h2><p class="small" style="line-height:1.6">${left?`還有 <b style="color:var(--coral)">${left}</b> 題沒作答，沒答的算錯（正式多益答錯不倒扣，記得每題都猜一個）。`:'全部都答完了！'}還剩 ${mockClock(mk.end-Date.now())}。</p><div class="row"><button class="btn" data-close>繼續作答</button><button class="btn gold" id="mkyes">交卷</button></div>`);
+  m.querySelector('#mkyes').onclick=()=>{m.remove();mockSubmit()};
+}
+function mockSubmit(){
+  if(!mk||mk.done)return;mk.done=true;clearInterval(mockTick.t);try{speechSynthesis.cancel()}catch(e){}
+  document.querySelectorAll('.modal').forEach(x=>x.remove());
+  const it=mk.items,sec=s=>it.filter(x=>x.sec===s),ok=l=>l.filter(x=>x.c===x.q.a).length;
+  const Ls=sec('L'),Rs=sec('R'),L=mockScale(100*ok(Ls)/Ls.length,MOCK_L),R=mockScale(100*ok(Rs)/Rs.length,MOCK_R),tot=L+R;
+  const c=MOCK_MODES[mk.mode],err=it.length>=40?45:80,lv=mockLv(tot);
+  it.forEach(x=>{if(x.c!=null&&x.c!==x.q.a)addWrong(x.q)});
+  S.mock=(S.mock||[]).concat([{d:today(),mode:mk.mode,L,R,tot,n:it.length,ok:ok(it)}]).slice(-30);
+  S.mockCoin=S.mockCoin||{};let got=0;const k=today()+mk.mode;
+  if(!S.mockCoin[k]&&it.filter(x=>x.c!=null).length>=it.length/2){S.mockCoin[k]=1;S.tx=(S.tx||0)+c.coin;got=c.coin}
+  save();
+  mk.r={L,R,tot,got,err,lv,Ls,Rs};
+  if(curTab==='mock'&&$('#mk'))mockResult();else toast('模擬考時間到，已自動交卷，到「我的 → 多益模擬考」看成績');
+}
+function mockResult(){
+  const it=mk.items,c=MOCK_MODES[mk.mode],ok=l=>l.filter(x=>x.c===x.q.a).length,{L,R,tot,got,err,lv,Ls,Rs}=mk.r;
+  const parts=[...new Set(it.map(x=>x.part))];
+  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="mkback" style="padding:5px 10px;font-size:13px">← 模擬考</button><span>成績</span>${coinChip()}</div>
+    <div class="box paper mkp" style="text-align:center;display:flex;flex-direction:column;gap:4px">
+      <p class="small" style="margin:0">${esc(c.name)}・預估多益總分</p>
+      <b style="font-size:44px;line-height:1.1;color:${lv[2]}">${tot}</b>
+      <p class="small" style="margin:0">大約落在 ${Math.max(10,tot-err)}～${Math.min(990,tot+err)} 分・${lv[1]}證書等級</p>
+      <div style="display:flex;justify-content:space-around;margin-top:6px"><div><p class="small" style="margin:0">🎧 聽力</p><b style="font-size:22px">${L}</b><p class="small" style="margin:0">${ok(Ls)}/${Ls.length} 題</p></div><div><p class="small" style="margin:0">📖 閱讀</p><b style="font-size:22px">${R}</b><p class="small" style="margin:0">${ok(Rs)}/${Rs.length} 題</p></div></div>
+      ${got?`<p style="margin:6px 0 0;color:var(--night)">完成獎勵 +${got} 金幣</p>`:''}
+    </div>
+    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:6px"><p class="small" style="margin:0">各大題答對率（最低的先加強）</p>
+      ${parts.map(p=>{const l=it.filter(x=>x.part===p),r=Math.round(100*ok(l)/l.length);return `<div><div class="bar small"><span>${esc(p)}</span><span>${ok(l)}/${l.length}・${r}%</span></div><div style="height:8px;background:var(--night);border:2px solid var(--ink)"><div style="height:100%;width:${r}%;background:${r>=70?'var(--mint)':r>=40?'var(--gold)':'var(--coral)'}"></div></div></div>`}).join('')}
+    </div>
+    <div class="row"><button class="btn gold" id="mkagain">再考一次</button><button class="btn" id="mkwrong">錯題本</button></div>
+    <div class="flist">${it.map((x,i)=>x.c===x.q.a?'':`<details class="titem"><summary style="cursor:pointer;line-height:1.6;list-style:none">
+      <div class="bar"><span class="small">第 ${i+1} 題・${esc(x.part)}</span><span class="small" style="color:var(--coral)">${x.c==null?'沒作答':'你選 '+'ABCD'[x.c]}</span></div>
+      <div class="qtext">${esc(x.q.q)}</div></summary>
+      ${x.q.say?`<div class="qtext small" style="margin-top:6px">聽力原文：<br>${esc(x.q.say)}</div>`:''}
+      <div class="qtext" style="margin-top:6px;font-size:15px"><span style="color:var(--mint)">答案：${'ABCD'[x.q.a]}. ${esc(x.q.o[x.q.a])}</span>${x.q.ex?`<br><span class="small">${esc(x.q.ex)}</span>`:''}</div></details>`).join('')||'<p class="small" style="margin:0">全對！太強了！</p>'}</div>`;
+  paintSprites($('#view'));
+  $('#mkback').onclick=()=>{mk=null;renderMock()};$('#mkagain').onclick=()=>{mk=null;renderMock()};$('#mkwrong').onclick=()=>{mk=null;renderMistakes()};
+  $('#view').scrollTop=0;window.scrollTo(0,0);
 }
 /* 答題統計＋留言：單機版用模擬數字，線上版抓真的 */
 async function fillSocial(q){
@@ -5008,6 +5135,7 @@ function renderMe(){
      <p class="small" style="margin:0">目前：${esc(scopeName())}・${pool().length.toLocaleString()} 題。</p>
    </div>`:''}
    <button class="btn" id="mywrong">錯題本（${wrongs().length} 題）</button>
+   ${mockHas()?'<button class="btn gold" id="mymock">多益模擬考（限時＋估分）</button>':''}
    <div id="mytrophy"></div>
    <button class="btn" id="mygarden" style="background:#3f8f5a;color:var(--paper)">我的魔法花園</button>
    <button class="btn" id="myach" style="background:var(--gold);color:var(--night)">我的成就</button>
@@ -5029,7 +5157,7 @@ function renderMe(){
     l.innerHTML=list.length?list.map(([w,c])=>`<div class="card"><div style="font-size:14px">${esc(w)}</div><div style="color:var(--plum)">${esc(c.zh)}</div>${c.n>1?`<div>×${c.n}</div>`:''}</div>`).join(''):'<p class="small" style="margin:0">找不到這個字</p>'};
   if($('#cardlist')){$('#cardq').oninput=drawCards;$('#cardsort').onchange=drawCards;drawCards()}
   $('#share').onclick=share;$('#meinv').onclick=showInvite;bindReminder();checkCardRewards();$('#howto').onclick=()=>showTutorial(true);$('#mylog').onclick=showChangelog;drawTrophies();
-  if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mysugg').onclick=openSuggest;$('#myach').onclick=openAch;loadAch().then(a=>{const b=$('#myach');if(b)b.textContent=`我的成就（${achCount(a)}／${ACH.length*3}）`});$('#mywrong').onclick=()=>renderMistakes();
+  if(ONLINE)cloud.run(()=>sb.rpc('my_focus_total')).then(t=>{const e=$('#mytotal');if(e&&typeof t==='number')e.textContent=((t+(S.pendingFocus||[]).reduce((a,p)=>a+p.minutes,0))/60).toFixed(1)});$('#mygarden').onclick=openMyGarden;$('#mysugg').onclick=openSuggest;$('#myach').onclick=openAch;loadAch().then(a=>{const b=$('#myach');if(b)b.textContent=`我的成就（${achCount(a)}／${ACH.length*3}）`});$('#mywrong').onclick=()=>renderMistakes();if($('#mymock'))$('#mymock').onclick=()=>renderMock();
   $('#myroom').onclick=()=>renderHome();$('#deco').onclick=()=>renderShop('room','me');$('#wear').onclick=()=>renderShop('wear','me');
   if($('#tdash'))$('#tdash').onclick=()=>renderTeacher('class');
   if($('#scope'))bindScope($('#scope'),renderMe);
