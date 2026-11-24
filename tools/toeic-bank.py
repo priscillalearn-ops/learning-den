@@ -16,8 +16,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PATH = os.path.join(HERE, '..', 'banks', 'sage.json')
 # 組合包：放在原本「多益衝刺（商務職場）」前面，大學生預設會推薦第一個名字有「多益」的組合包
 PRESETS = [
-    {'name': '多益全備（單字＋文法 Part 5）', 'ids': ['TOEIC', 'TP5A', 'TP5B', 'TP5C', 'TP5D']},
+    {'name': '多益全備（單字＋Part 5＋Part 6）', 'ids': ['TOEIC', 'TP5A', 'TP5B', 'TP5C', 'TP5D', 'TP6']},
     {'name': '多益文法 Part 5（四個單元）', 'ids': ['TP5A', 'TP5B', 'TP5C', 'TP5D']},
+    {'name': '多益段落填空 Part 6', 'ids': ['TP6']},
 ]
 
 def parse(path):
@@ -51,7 +52,8 @@ def main():
     at = next((i + 1 for i, u in enumerate(data['units']) if u['id'] == 'TOEIC'), len(data['units']))
     data['units'][at:at] = units
     names = {p['name'] for p in PRESETS}
-    data['presets'] = [p for p in data['presets'] if p['name'] not in names]
+    # 舊版組合包改過名字的也一起拿掉（名字開頭一樣就算）
+    data['presets'] = [p for p in data['presets'] if p['name'] not in names and not p['name'].startswith(('多益全備', '多益文法', '多益段落'))]
     at = next((i for i, p in enumerate(data['presets']) if '多益' in p['name']), len(data['presets']))
     data['presets'][at:at] = PRESETS
     json.dump(data, open(PATH, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
