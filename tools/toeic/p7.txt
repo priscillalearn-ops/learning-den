@@ -1,0 +1,86 @@
+# 單元 TP7：Part 7 閱讀理解（短篇）
+# 「@代號 標題｜短文」定義一篇短文；題目行用「=代號 問題 || 正解 | 錯1 | 錯2 | 錯3 || 解析」引用它。
+@A 簡訊對話｜Kevin Ma (9:12): The client just called. Their flight was delayed, so they won't arrive until 11. / Lisa Chen (9:14): Should I move the 10:00 meeting? / Kevin Ma (9:15): Yes, please. And let the caterer know lunch will be an hour later too. / Lisa Chen (9:16): Will do.
+@B 公告｜Greenfield Apartments: Water Shut-Off. On Wednesday, March 8, water will be turned off from 9 a.m. to 1 p.m. while plumbers replace a main pipe. Residents are advised to store water in advance. Bottled water will be available in the lobby. We apologize for the inconvenience. — Building Management
+@C 廣告｜Sunrise Language School. Improve your business English in just 8 weeks! Evening classes Mon–Thu, 7–9 p.m. Small groups of no more than 10 students. Sign up before May 15 and save 15%. Free placement test available online. Call 555-0148 or visit sunriselang.com.
+@D Email｜To: All staff. From: Hannah Ito, HR. Subject: Annual health check. This year's health checks will take place on June 4 and 5 in the 3rd-floor meeting rooms. Each check takes about 30 minutes. Please book a time slot on the HR website by May 28. Employees who cannot attend may visit Grace Clinic by June 30 and submit the receipt for reimbursement.
+@E 收據｜Bella Café — Order #2281. 2 x Latte $9.00 / 1 x Blueberry muffin $3.50 / 1 x Turkey sandwich $7.50. Subtotal $20.00. Member discount (10%) −$2.00. Total $18.00. Paid by credit card. Thank you! Show this receipt next visit for a free cookie (valid until July 31).
+@F 備忘錄｜To: Sales team. From: Raj Patel. As you know, our quarterly sales were 8% below target, mainly because of slow orders from overseas clients. Starting next month, two team members will be assigned to focus on the Asian market. I will announce who in Friday's meeting. Please come prepared with ideas for reaching new clients.
+@G 線上評論｜★★★★☆ "Great location, small rooms." The Harbor Hotel is just five minutes from the train station, and the staff were very friendly. Breakfast had lots of choices. However, my room was smaller than it looked online, and the Wi-Fi was slow in the evening. I would stay here again for a short business trip. — M. Duarte
+@H 徵才廣告｜Now hiring: Part-time Office Assistant. Dalton Legal is looking for an organized assistant to answer phones, schedule appointments, and file documents. 20 hours per week, Tue–Fri afternoons. Previous office experience preferred but not required. Send your résumé to jobs@daltonlegal.com by October 10.
+@I 簡訊對話｜Anna Lopez (2:03): Is the projector in Room B working again? / Tom Reid (2:05): The technician came this morning. / Anna Lopez (2:05): Great, I have a client presentation at 3. / Tom Reid (2:06): I'd still bring your laptop's HDMI adapter. The new cable is a bit short.
+@J 公告｜City Library Book Sale. Saturday, Sept 21, 10 a.m.–4 p.m., Community Hall. Thousands of used books, DVDs, and magazines. Hardcovers $2, paperbacks $1. All proceeds support the library's children's reading program. Volunteers are needed to help set up on Friday evening — contact Ms. Park at the front desk.
+@K Email｜Dear Mr. Silva, thank you for your order of 200 printed notebooks. Unfortunately, the blue covers you selected are temporarily out of stock. We can ship the order in green on Monday, or in blue in about three weeks. Please let us know which you prefer. We are sorry for the trouble. — Ellen Kim, Customer Service
+@L 時刻表說明｜Airport Express Bus. Buses leave Central Station every 20 minutes from 5:00 a.m. to 11:40 p.m. The trip takes about 45 minutes. Tickets: $12 one way, $20 round trip (valid for 30 days). Tickets can be bought from the driver (cash only) or online at a 10% discount.
+@M 公司內部通知｜Starting July 1, Kensington Corp. will switch to a new travel booking system called TripDesk. All business travel must be booked through TripDesk; bookings made elsewhere will not be reimbursed. A 20-minute training video is available on the intranet. Questions may be sent to Amy Wu in Finance.
+@N 新聞報導｜Local bakery chain Golden Crust announced yesterday that it will open three new stores next year, bringing its total to twelve. The company, founded by brothers Leo and Max Ford in 2010, has grown rapidly thanks to its popular whole-wheat bread. The new stores will also sell coffee for the first time.
+@O 會議邀請｜Team Lunch & Planning Session. Date: Friday, Nov 15. Time: 12:00–2:00 p.m. Place: Olive Garden Room, 5th floor. Lunch will be provided. We will review this year's results and set goals for next year. Please reply by Nov 12 and tell us if you have any dietary restrictions. — Carlos Mendes
+@P Email｜Hi Jenna, I'm writing to let you know I'll be out of the office from Aug 5 to Aug 9 for a conference in Chicago. During that time, please send any urgent design questions to Mark Lee. I'll have limited email access, but I'll check messages in the evenings. Thanks! — Priya
+@Q 產品說明｜AquaPure Water Filter. Replace the filter cartridge every 3 months or after 400 liters, whichever comes first. The indicator light turns red when a replacement is needed. Replacement cartridges are sold in packs of two. Do not use with hot water. One-year warranty from date of purchase.
+@R 公告｜Notice to Customers: Starting October 1, Maple Bank's Elm Street branch will close at 4 p.m. instead of 5 p.m. on weekdays. Saturday hours will remain 9 a.m.–12 p.m. ATMs will continue to operate 24 hours. Online and mobile banking services are always available.
+@S 簡訊對話｜Ben Clark (4:40): The printer on our floor is jammed again. / Mia Ross (4:41): I need to print 30 copies of the report for tomorrow. / Ben Clark (4:42): The one on the 6th floor works. / Mia Ross (4:42): That's what I'll do, then. Thanks.
+@T Email｜Dear Ms. Grant, we are pleased to inform you that your article, "Saving Energy in Small Offices," has been accepted for the March issue of Office Today. Our editor may make small changes for length. You will receive a payment of $300 within 30 days of publication. Congratulations! — Daniel Ross, Editor
+[v] 細節題
+=A Why will the meeting be moved? || The client's flight is late. | The caterer canceled. | Lisa Chen is sick. | The meeting room is not available. || 細節：Kevin 說客戶班機延誤 11 點才到
+=B What are residents advised to do? || Save water before 9 a.m. | Call a plumber. | Leave the building. | Pay a repair fee. || 細節：store water in advance 事先儲水
+=C How many students can be in one class at most? || 10 | 8 | 15 | 20 || 細節：Small groups of no more than 10 students
+=D By when should employees book a time slot? || May 28 | June 4 | June 5 | June 30 || 細節：book a time slot by May 28
+=E How much did the customer pay in total? || $18.00 | $20.00 | $9.00 | $2.00 || 細節：Total $18.00（打九折後）
+=F Why were sales below target? || Overseas clients ordered less. | Prices were too high. | The sales team was too small. | A new competitor appeared. || 細節：slow orders from overseas clients
+=G What did the reviewer like about the hotel? || Its location | Its room size | Its Wi-Fi | Its prices || 細節：Great location，離車站五分鐘
+=H How many hours per week is the job? || 20 | 10 | 30 | 40 || 細節：20 hours per week
+=J What will the money from the sale be used for? || A children's reading program | New library computers | Hiring volunteers | Repairing Community Hall || 細節：proceeds support the children's reading program
+=K What problem does Ms. Kim mention? || A cover color is not available. | The notebooks were damaged. | The price has increased. | The order was sent to the wrong address. || 細節：blue covers are out of stock
+=L How often do the buses leave? || Every 20 minutes | Every 45 minutes | Every hour | Every 30 minutes || 細節：every 20 minutes
+=M Who should employees contact with questions? || Amy Wu | The travel agency | Their manager | The IT department || 細節：Questions may be sent to Amy Wu in Finance
+=N How many stores does Golden Crust have now? || Nine | Three | Twelve | Ten || 細節：開三家後共 12 家，所以現在是 9 家
+=O What are attendees asked to do by Nov 12? || Reply to the invitation | Bring lunch | Prepare a presentation | Book the room || 細節：Please reply by Nov 12
+=P Who should Jenna contact about urgent design questions? || Mark Lee | Priya | The conference organizer | Her manager || 細節：send any urgent design questions to Mark Lee
+=Q When does the indicator light turn red? || When the filter needs replacing | When the water is hot | When the warranty ends | When the filter is new || 細節：turns red when a replacement is needed
+=R What will change on October 1? || The branch's weekday closing time | The ATM hours | Saturday hours | Online banking services || 細節：平日改 4 點關門，其他不變
+=T How much will Ms. Grant be paid? || $300 | $30 | $3,000 | Nothing || 細節：a payment of $300
+=E Until when can the free cookie offer be used? || July 31 | Next week | Today only | Forever || 細節：valid until July 31
+=C What can people do online for free? || Take a placement test | Attend a class | Buy textbooks | Meet a teacher || 細節：Free placement test available online
+=L How can passengers get a discount? || By buying tickets online | By paying cash | By traveling at night | By buying a round-trip ticket on the bus || 細節：online at a 10% discount
+[g] 推論・主旨題
+=B What is the purpose of the notice? || To inform residents about a water shut-off | To announce a rent increase | To invite residents to a meeting | To advertise plumbing services || 主旨：通知停水
+=C Who is the advertisement most likely for? || Working adults | Young children | Retired people | English teachers || 推論：晚上上課、商務英文，對象是上班族
+=D What is suggested about employees who cannot attend on June 4 or 5? || They can go to a clinic instead. | They must pay a fine. | They will be contacted by a doctor. | They should call Hannah Ito. || 推論：可到 Grace Clinic 並報銷
+=F What will Mr. Patel most likely do on Friday? || Name the staff for the Asian market | Hire new staff | Travel overseas | Meet with clients || 推論：I will announce who in Friday's meeting
+=G What is implied about the Wi-Fi? || It was not fast at night. | It was not available. | It cost extra. | It was only in the lobby. || 推論：Wi-Fi was slow in the evening
+=H What is indicated about applicants? || They do not need office experience. | They must work mornings. | They must have a law degree. | They should apply in person. || 推論：preferred but not required
+=J What is indicated about the book sale? || Help is needed before the event. | It lasts two days. | Only new books will be sold. | It takes place in the library. || 推論：週五晚上需要志工布置
+=K What does Ms. Kim ask Mr. Silva to do? || Choose between two options | Pay an extra fee | Cancel his order | Visit the store || 推論：let us know which you prefer
+=M What is the main purpose of the notice? || To introduce a new booking system | To announce new travel destinations | To cancel all business trips | To hire a travel agent || 主旨：改用 TripDesk 訂差旅
+=M What is suggested about bookings made outside TripDesk? || Their costs will not be paid back. | They are cheaper. | They need a manager's signature. | They will be canceled automatically. || 推論：will not be reimbursed 不報銷
+=N What is true about Golden Crust? || It was started by two brothers. | It already sells coffee. | It was founded last year. | It sells only cakes. || 細節推論：founded by brothers Leo and Max Ford
+=O What will most likely be discussed at the session? || Goals for next year | A new office location | Hiring procedures | Lunch menus || 推論：review results and set goals for next year
+=P Why is Priya writing to Jenna? || To say she will be away | To ask for design help | To invite her to Chicago | To schedule a meeting || 主旨：通知自己請假出差
+=Q What is NOT true about the water filter? || It can be used with hot water. | It has a one-year warranty. | Cartridges come in packs of two. | It has an indicator light. || NOT 題：Do not use with hot water
+=R What is suggested about the bank's customers? || They can still use ATMs after 4 p.m. | They must visit on Saturdays. | They cannot bank online. | They need an appointment. || 推論：ATM 24 小時
+=T What is the purpose of the email? || To tell a writer her article will be published | To ask for a payment | To offer a job as an editor | To reject an article || 主旨：文章被錄用
+=N What will be new at the bakery's new stores? || Coffee | Whole-wheat bread | Delivery service | Longer hours || 細節推論：sell coffee for the first time
+=A What will Lisa Chen most likely do next? || Contact the caterer | Pick up the client | Cancel lunch | Call the airline || 推論：Kevin 要她通知外燴，她說 Will do
+=S What will Ms. Ross most likely do? || Use the printer on the 6th floor | Fix the printer | Print the report tomorrow | Ask Mr. Clark to print it || 推論：That's what I'll do 指去 6 樓印
+=H What will the assistant probably NOT do? || Represent clients in court | Answer phones | Schedule appointments | File documents || NOT 題：工作內容是接電話、排約、歸檔
+[c] 意圖・字義題
+=A At 9:16, what does Ms. Chen mean when she writes, "Will do"? || She will follow Mr. Ma's requests. | She will go to the airport. | She is not sure what to do. | She has already called the client. || 意圖：Will do ＝好，我會照辦
+=I At 2:05, why does Mr. Reid write, "The technician came this morning"? || To suggest the projector has been fixed | To complain about the technician | To ask Ms. Lopez for help | To explain why he was late || 意圖：暗示投影機已修好
+=I What does Mr. Reid recommend? || Bringing an adapter | Using another room | Calling the technician | Canceling the presentation || 細節：bring your laptop's HDMI adapter
+=S At 4:42, what does Ms. Ross mean when she writes, "That's what I'll do, then"? || She will go to the 6th floor to print. | She will repair the printer. | She will not print the report. | She will buy a new printer. || 意圖：照 Ben 的建議去 6 樓
+=K The word "temporarily" in the email is closest in meaning to || for a short time | forever | quickly | partly || temporarily ≒ for a short time 暫時
+=D The word "submit" in the email is closest in meaning to || hand in | pay | print | keep || submit ≒ hand in 繳交
+=F The word "assigned" in the memo is closest in meaning to || given a task | fired | promoted | paid || assign ≒ give a task 指派
+=G The word "friendly" in the review is closest in meaning to || kind | busy | strict | quiet || friendly ≒ kind 親切的
+=J The word "proceeds" in the notice is closest in meaning to || money earned | steps | results | visitors || proceeds (n.) 收益
+=L The word "valid" in the information is closest in meaning to || usable | expensive | free | printed || valid ≒ usable 有效的
+=M The word "switch" in the notice is closest in meaning to || change | turn on | fix | pay || switch to ≒ change to 改用
+=N The word "rapidly" in the article is closest in meaning to || quickly | slowly | carefully | recently || rapidly ≒ quickly
+=O The phrase "dietary restrictions" is closest in meaning to || foods a person cannot eat | favorite restaurants | meeting times | travel plans || dietary restrictions 飲食限制
+=P The word "urgent" in the email is closest in meaning to || needing quick action | difficult | expensive | interesting || urgent ≒ needing quick action 緊急的
+=Q The phrase "whichever comes first" means the filter should be changed || at the earlier of the two times | only after 400 liters | only after 3 months | every week || 意思：3 個月或 400 公升，先到的那個
+=R The word "operate" in the notice is closest in meaning to || work | close | charge | move || operate ≒ work 運作
+=T The word "accepted" in the email is closest in meaning to || approved | received | read | written || accepted ≒ approved 被採用
+=B The phrase "in advance" in the notice is closest in meaning to || beforehand | later | quickly | together || in advance ≒ beforehand 事先
+=E The word "Subtotal" on the receipt refers to the amount || before the discount | after the discount | paid in cash | of the tip || Subtotal 小計（折扣前）
+=H The word "organized" in the advertisement is closest in meaning to || well-ordered | experienced | friendly | educated || organized ≒ well-ordered 有條理的
