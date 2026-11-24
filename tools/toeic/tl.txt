@@ -1,0 +1,79 @@
+# 單元 TL：聽力 Part 2～4（手機朗讀）
+# Part 2：題目 || 正解 | 錯1 | 錯2 | 錯3 || 解析 || 念出來的問句（不顯示在畫面上）
+# Part 3、4：%代號 標題｜腳本（W: 女生、M: 男生，「 / 」換行），題目用 =代號
+[v] Part 2 應答問題
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 1 題 || In Conference Room A. | At three o'clock. | Yes, I met him. | About the budget. || 問句：Where is the meeting being held? 問地點，回答會議室 || Where is the meeting being held?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 2 題 || Next Monday. | In the main office. | Ms. Lopez did. | By express mail. || 問句：When will the new manager start? 問時間 || When will the new manager start?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 3 題 || Mr. Tanaka, I think. | It's on the desk. | Twice a week. | Yes, it was. || 問句：Who is in charge of the training program? 問人 || Who is in charge of the training program?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 4 題 || Because the flight was delayed. | At the airport. | For two weeks. | Yes, by taxi. || 問句：Why did Ms. Kim arrive late? 問原因，用 Because 回答 || Why did Ms. Kim arrive late?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 5 題 || Sure, I'll do it now. | It's very heavy. | No, I didn't see it. | At the front desk. || 問句：Could you send me the report by noon? 請求，回答「好，我現在就做」 || Could you send me the report by noon?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 6 題 || About 20 minutes by bus. | It's 20 dollars. | At 8 a.m. | Yes, it's far. || 問句：How long does it take to get to the airport? 問多久 || How long does it take to get to the airport?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 7 題 || The blue one, please. | Yes, I'd like that. | It's on sale. | In size medium. || 問句：Would you prefer the blue folder or the black one? 二選一問句，直接選一個 || Would you prefer the blue folder or the black one?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 8 題 || I haven't decided yet. | Yes, it's a great hotel. | Last summer. | By plane. || 問句：Where are you going for your vacation? 「還沒決定」是常見的間接回答 || Where are you going for your vacation?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 9 題 || Yes, it was very helpful. | No, I'm not hungry. | It starts at nine. | In the lobby. || 問句：Did you attend the workshop yesterday? Yes/No 問句 || Did you attend the workshop yesterday?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 10 題 || That's a good idea. | Yes, I ordered it. | It's down the hall. | At noon. || 問句：Why don't we take a short break? 提議，回答「好主意」 || Why don't we take a short break?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 11 題 || Three copies should be enough. | On the second floor. | Yes, I copied it. | Mr. Lee will. || 問句：How many copies do you need? 問數量 || How many copies do you need?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 12 題 || It's in the top drawer. | It's a new stapler. | Yes, please staple them. | Ten dollars. || 問句：Do you know where the stapler is? 間接問句，問位置 || Do you know where the stapler is?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 13 題 || No, it's been postponed. | Yes, I enjoyed it. | In Room 202. | The sales team. || 問句：Is the client meeting still on for today? 回答「延期了」 || Is the client meeting still on for today?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 14 題 || Let me check the schedule. | It's 5 p.m. | Yes, I did. | By train. || 問句：What time does the last train leave? 「我查一下」是常見的間接回答 || What time does the last train leave?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 15 題 || The printer on the third floor. | Yes, it's printed. | Twenty pages. | Ms. Chen printed it. || 問句：Which printer should I use? 問哪一台 || Which printer should I use?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 16 題 || Yes, I'll be there. | No, it's not mine. | At the restaurant. | It was delicious. || 問句：You're coming to the dinner tonight, aren't you? 附加問句，回答 Yes / No || You're coming to the dinner tonight, aren't you?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 17 題 || I'd be happy to. | It's on the table. | It was last week. | No, it's broken. || 問句：Would you mind helping me move these boxes? 請求，回答「很樂意」 || Would you mind helping me move these boxes?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 18 題 || Probably about 200. | At the convention center. | It was successful. | Next Thursday. || 問句：How many people are expected at the conference? 問人數 || How many people are expected at the conference?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 19 題 || Mostly by email. | Once a month. | Yes, she contacted me. | The marketing team. || 問句：How do you usually contact your clients? 問方式 || How do you usually contact your clients?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 20 題 || Yes, there's one on Main Street. | No, I don't have any cash. | It's open until nine. | About 50 dollars. || 問句：Is there a bank near here? 問附近有沒有 || Is there a bank near here?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 21 題 || Because sales have been strong. | Next quarter. | In Singapore. | Yes, it's new. || 問句：Why is the company opening a new branch? 問原因 || Why is the company opening a new branch?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 22 題 || I think it's Mr. Ortiz's. | It's black leather. | Yes, it's open. | On the chair. || 問句：Whose umbrella is this? 問誰的 || Whose umbrella is this?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 23 題 || Either is fine with me. | Yes, I called them. | At the station. | It's too expensive. || 問句：Should we take a taxi or the subway? 二選一，「都可以」也是好回答 || Should we take a taxi or the subway?
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 24 題 || Sorry, I'll turn it down. | It's a new song. | Yes, I like music. | On the radio. || 問句：Your music is a little loud. 陳述句表抱怨，回答道歉並處理 || Your music is a little loud.
+【Part 2 應答】🎧 聽問句，選出最適合的回應。▶ 第 25 題 || Yes, it's been fixed. | It's on the fifth floor. | No, I took the stairs. | By the technician. || 問句：Is the elevator working again? || Is the elevator working again?
+%A Part 3 對話｜W: Hi, I'd like to return this coffee maker. I bought it last week, but it stopped working. / M: I'm sorry to hear that. Do you have your receipt? / W: Yes, here it is. / M: Thank you. Would you like a refund or an exchange for a new one? / W: An exchange, please. I really like this model.
+%B Part 3 對話｜M: Linda, are you going to the sales conference in Boston next month? / W: I'd like to, but I haven't booked my flight yet. Prices are really high right now. / M: You should talk to Julie in the travel office. She can get a discount with the company account. / W: Great, I'll call her this afternoon.
+%C Part 3 對話｜W: Good morning, Sunshine Dental. How can I help you? / M: Hi, this is Tom Baker. I have an appointment at 2 p.m. today, but something came up at work. Could I come in tomorrow instead? / W: Let me see. We have an opening tomorrow at 10 a.m. / M: That works. Thank you.
+%D Part 3 對話｜M: The projector in Room 3 isn't turning on, and my presentation starts in ten minutes. / W: Room 5 is free right now, and its projector was just repaired. / M: Really? Then I'll move there. Could you let the attendees know about the room change? / W: Sure, I'll send everyone a message.
+%E Part 3 對話｜W: I heard the company is going to start a new recycling program. / M: Yes, there will be separate bins for paper, plastic, and cans on every floor starting next week. / W: That's great. Will there be any training? / M: Just a short email with instructions. It's pretty simple.
+%F Part 3 對話｜M: Excuse me, I'm looking for a gift for my sister. She loves cooking. / W: How about this cookbook? It just came out and it's very popular. / M: That looks nice. Can you wrap it for me? / W: Of course. Gift wrapping is free today.
+%G Part 4 電話留言｜Hello, this is Karen from City Bank. I'm calling about the loan application you submitted last Friday. We need one more document: a copy of your most recent pay slip. You can bring it to any branch or upload it through our website. Please do this by Thursday so we can complete the review. Thank you.
+%H Part 4 廣播｜Attention, passengers. Flight 208 to Tokyo has been delayed because of bad weather. The new departure time is 4:30 p.m. Passengers on this flight can pick up a meal voucher at the service counter near Gate 12. We apologize for the inconvenience and thank you for your patience.
+%I Part 4 會議談話｜Good morning, everyone. Before we start, I have some good news. Our online sales grew by 30 percent last quarter, mostly thanks to the new mobile app. Because of this, the company will hire five more customer service staff. Today, I'd like to hear your ideas on how to train them quickly.
+%J Part 4 導覽｜Welcome to the Riverside Museum. My name is Sam, and I'll be your guide today. The tour will last about one hour. We'll start with the modern art gallery on the first floor and finish at the gift shop. Please note that photos are allowed, but flash is not. If you have any questions, feel free to ask.
+%K Part 4 廣告｜Is your office too crowded? Move to Parkview Business Center! We offer fully furnished offices of all sizes, high-speed internet, and free parking. Our building is just two minutes from Central Station. Call today to schedule a free tour, and get your first month's rent at half price.
+%L Part 4 新聞｜In local news, construction of the new city library will begin next month. The library will include a large children's area and a rooftop garden. The project is expected to take two years. During construction, Oak Street will be closed to traffic, so drivers are advised to use Pine Avenue instead.
+[g] Part 3 對話
+=A What is the woman's problem? || A product is not working. | She lost her receipt. | A store is closed. | She was charged twice. || 女：it stopped working 東西壞了
+=A What does the man ask for? || A receipt | A credit card | A phone number | A product manual || 男：Do you have your receipt?
+=A What does the woman decide to do? || Get a new coffee maker | Get her money back | Buy a different model | Repair the item || 女：An exchange, please 換新的
+=B Where will the conference take place? || In Boston | In New York | At their office | Online || 男：the sales conference in Boston
+=B What is the woman concerned about? || Flight prices | Her presentation | The hotel location | The weather || 女：Prices are really high
+=B What does the man suggest? || Contacting a coworker | Taking a train | Skipping the conference | Booking later || 男：talk to Julie in the travel office
+=C Where does the woman most likely work? || At a dental office | At a bank | At a restaurant | At a hotel || Sunshine Dental 牙醫診所
+=C Why is the man calling? || To change an appointment | To cancel a payment | To ask for directions | To order supplies || 男：Could I come in tomorrow instead? 改約
+=C When will the man probably visit? || Tomorrow at 10 a.m. | Today at 2 p.m. | Tomorrow at 2 p.m. | Today at 10 a.m. || 女：opening tomorrow at 10 a.m.，男：That works
+=D What problem does the man mention? || A projector is not working. | He is late for work. | A room is too small. | His laptop is broken. || 男：The projector isn't turning on
+=D What does the woman say about Room 5? || It is available. | It is being repaired. | It is reserved. | It is too far. || 女：Room 5 is free right now
+=D What will the woman probably do next? || Send a message to attendees | Fix the projector | Give a presentation | Book a new room || 女：I'll send everyone a message
+=E What are the speakers discussing? || A recycling program | A new office | A training course | A cleaning service || 主題：new recycling program
+=E When will the program start? || Next week | Tomorrow | Next month | Today || 男：starting next week
+=E How will employees get instructions? || By email | At a meeting | From a video | From posters || 男：Just a short email with instructions
+=F Who is the man buying a gift for? || His sister | His mother | A coworker | His friend || 男：a gift for my sister
+=F What does the woman recommend? || A cookbook | A cooking class | Kitchen tools | A gift card || 女：How about this cookbook?
+=F What is free today? || Gift wrapping | Delivery | A second book | Parking || 女：Gift wrapping is free today
+[c] Part 4 談話
+=G Why is the speaker calling? || About a loan application | To open an account | To offer a new card | About a missed payment || 說話者：calling about the loan application
+=G What does the listener need to provide? || A pay slip | A photo ID | A bank statement | A signature || a copy of your most recent pay slip
+=G By when should the listener act? || Thursday | Friday | Today | Next week || Please do this by Thursday
+=H Why has the flight been delayed? || Bad weather | A mechanical problem | A crew shortage | A late connecting flight || because of bad weather
+=H What can passengers get at the service counter? || A meal voucher | A new ticket | A hotel room | A refund || pick up a meal voucher
+=H What is the new departure time? || 4:30 p.m. | 2:08 p.m. | 12:00 p.m. | 4:00 p.m. || new departure time is 4:30 p.m.
+=I What good news does the speaker share? || Online sales increased. | A new office opened. | The app won an award. | Staff will get a bonus. || online sales grew by 30 percent
+=I What does the speaker say the company will do? || Hire more staff | Close a store | Lower prices | Build a new app || hire five more customer service staff
+=I What does the speaker ask the listeners for? || Training ideas | Sales reports | Job applications | Customer feedback || hear your ideas on how to train them
+=J Who most likely is the speaker? || A tour guide | A museum guard | An artist | A store clerk || I'll be your guide today
+=J Where will the tour end? || At the gift shop | At the modern art gallery | At the entrance | At the café || finish at the gift shop
+=J What are visitors NOT allowed to do? || Use a camera flash | Take photos | Ask questions | Visit the gift shop || photos are allowed, but flash is not
+=K What is being advertised? || Office space | A moving company | Office furniture | An internet service || Parkview Business Center 出租辦公室
+=K What is mentioned about the building's location? || It is near a train station. | It is next to a park. | It is downtown. | It is near the airport. || two minutes from Central Station
+=K What special offer is mentioned? || Half-price rent for the first month | Free furniture | Free internet for a year | A free parking space || first month's rent at half price
+=L What will be built? || A library | A park | A school | A parking garage || construction of the new city library
+=L How long will the project take? || Two years | One month | Six months | One year || expected to take two years
+=L What are drivers advised to do? || Use another street | Drive slowly | Park at the library | Take the bus || use Pine Avenue instead

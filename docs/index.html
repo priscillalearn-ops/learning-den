@@ -206,7 +206,25 @@ const SPR={
 };
 function sprite(name,z){const m=SPR[name]||SPR.bento;return `<svg width="${8*z}" height="${8*z}" viewBox="-.5 -.5 9 9" shape-rendering="crispEdges" style="display:block" aria-hidden="true">${fineRects(m,0,0,PAL,['kid','teen','sage','master','granny'].includes(name))}</svg>`}
 /* 看圖題的圖：每個出題的地方都要放，不然只剩 What is this? */
-const qPic=(q,z=6)=>q&&q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="${z}"></span></div>`:'';
+const qPic=(q,z=6)=>(q&&q.say?sayBtn(q):'')+(q&&q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="${z}"></span></div>`:'');
+/* 聽力題（多益 Part 2～4）：題目附 q.say 腳本，用手機內建英文朗讀念出來。
+   腳本一行一句，「W:」「M:」開頭代表女生、男生，換人時換聲音（找不到兩種聲音就改音調）。 */
+const sayBtn=q=>`<button class="btn gold" type="button" style="align-self:center" onclick="sayScript(QID['${q.id}'].say)">🔊 播放音檔（可以重播）</button>`;
+function sayScript(text){
+  try{
+    const ss=speechSynthesis;ss.cancel();
+    const en=ss.getVoices().filter(v=>/^en[-_]/i.test(v.lang));
+    const fem=en.find(v=>/female|samantha|victoria|karen|moira|tessa|zira|aria|jenny|google us english/i.test(v.name))||en[0];
+    const male=en.find(v=>v!==fem&&/male|daniel|alex|fred|david|guy|google uk english male/i.test(v.name))||en.find(v=>v!==fem);
+    String(text).split('\n').forEach(line=>{
+      const m=/^\s*([WM]):\s*(.*)$/.exec(line),who=m?m[1]:'',t=(m?m[2]:line).trim();if(!t)return;
+      const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.9;
+      const v=who==='M'?male:fem;if(v)u.voice=v;
+      if(who==='M'&&!male)u.pitch=.7;else if(who==='W')u.pitch=1.1;
+      ss.speak(u);
+    });
+  }catch(e){toast('這個瀏覽器不支援發音')}
+}
 function paintSprites(root=document){root.querySelectorAll('[data-s]').forEach(e=>{e.innerHTML=sprite(e.dataset.s,+e.dataset.z||4)})}
 
 /* ---------- 等級與題庫 ---------- */
@@ -234,7 +252,7 @@ function cardOf(ex,ans){
   return{w:ans,zh:/[\u4e00-\u9fff]/.test(ex||'')?cut(ex):''};
 }
 /* 題庫版本：網站版由 build-site.js 填入各題庫的內容指紋，題庫一改網址就變，手機的離線快取會馬上換新題庫 */
-const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"d6d4f4f454","w-kid":"e4e47da507","w-teen":"e76e0b9a69","w-sage":"41bfce3eb3"};
+const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"acd71e0f01","w-kid":"e4e47da507","w-teen":"e76e0b9a69","w-sage":"41bfce3eb3"};
 /* 題庫分成 banks/kid.json、teen.json、sage.json，選了等級才下載（高中題庫很大，國小國中生不用載）。
    由 tools/gept-kid.py、tools/jh-bank.py、tools/import-granny.js 產生。 */
 const SRCS={},QID={},bankLoading={};
@@ -242,7 +260,7 @@ function addBank(tier,data){
   SRCS[tier]={U:data.units,P:data.presets};BANK[tier]=[];
   data.units.forEach(u=>['v','g','c'].forEach(t=>(u[t]||[]).forEach((r,i)=>{
     const c=cardOf(r[3],r[1][r[2]]);
-    const q={id:`${u.id}:${t}:${i}`,u:u.id,t,q:r[0],o:r[1],a:r[2],ex:r[3]||'',w:c.w,zh:c.zh,src:u.short,pic:r[4],tag:u.tags&&u.tags[t],tr:tier};
+    const q={id:`${u.id}:${t}:${i}`,u:u.id,t,q:r[0],o:r[1],a:r[2],ex:r[3]||'',w:c.w,zh:c.zh,src:u.short,pic:r[4],say:r[5]||'',tag:u.tags&&u.tags[t],tr:tier};
     BANK[tier].push(q);QID[q.id]=q;
   })));
 }
@@ -325,14 +343,15 @@ const dkey=()=>today()+':'+S.tier;
 function markDay(){S.days[today()]=true;save()}
 const T=()=>TIERS[S.tier];
 const scope=()=>(SRCS[S.tier]&&S.scopes[S.tier])||[];
-function pool(){
-  const all=BANK[S.tier],sc=scope();if(!sc.length)return all;
+/* audio=true 才會包含聽力題（只有今日一題、多練幾題有播放鈕；小遊戲、釣魚等不出聽力題） */
+function pool(audio){
+  const all=audio?BANK[S.tier]:BANK[S.tier].filter(q=>!q.say),sc=scope();if(!sc.length)return all;
   const p=all.filter(q=>sc.includes(q.u));return p.length?p:all;
 }
 /* 今日一題：同等級每個人同一題（不看個人範圍），留言和統計才對得起來 */
 /* 今日一題跟著自己選的範圍；沒選範圍時從全部題庫出，但不出多益題。
    同一天、同一題的人共用留言和答對率。 */
-const DAILY_SKIP=['TOEIC','TP5A','TP5B','TP5C','TP5D','TP6','TP7','VQK','VQT','VQS'];
+const DAILY_SKIP=['TOEIC','TP5A','TP5B','TP5C','TP5D','TP6','TP7','TL','VQK','VQT','VQS'];
 /* 釣魚、貓頭鷹用的題目：一半出自己範圍的題目、一半出這個等級的「單字意思」自動題，最近出過的 30 題先不出，比較不會重複 */
 const isVQ=q=>/^VQ/.test(q.u),recentQ=[];
 function quizPick(){
@@ -341,7 +360,7 @@ function quizPick(){
   const fresh=all.filter(z=>!recentQ.includes(z.id)),q=pick(fresh.length?fresh:all);
   recentQ.push(q.id);if(recentQ.length>30)recentQ.shift();return q;
 }
-const dailyPool=()=>scope().length?pool():BANK[S.tier].filter(q=>!DAILY_SKIP.includes(q.u));
+const dailyPool=()=>scope().length?pool(true):BANK[S.tier].filter(q=>!DAILY_SKIP.includes(q.u));
 const todayQ=()=>{const p=dailyPool();return p[(dayNum()*7919)%p.length]};
 const pick=p=>p[Math.floor(Math.random()*p.length)];
 /* 錯題本：答錯就記下來，一直保留讓學生複習；複習答對只記次數（S.wrongOk），學生自己按「我會了」才移出 */
@@ -3730,7 +3749,7 @@ function renderDaily(){
    <div class="box paper">
      <p class="lbl">今日一題・${d.getMonth()+1}/${d.getDate()}${q.src?`・${esc(q.src)} ${q.tag||TAG[q.t]}`:''}</p>
      ${q.pic?`<div style="display:flex;justify-content:center;gap:14px;align-items:center;margin:4px 0 8px"><span data-s="${q.pic}" data-z="10"></span><button class="btn gold" id="say" aria-label="聽發音">聽發音</button></div>`:''}
-     <div class="qtext" style="font-size:${q.q.length>90?16:18}px">${esc(q.q)}</div>
+     ${q.say?`<div style="display:flex;justify-content:center;margin:4px 0 8px">${sayBtn(q)}</div>`:''}<div class="qtext" style="font-size:${q.q.length>90?16:18}px">${esc(q.q)}</div>
    </div>
    ${opts}
    <div id="after"></div>`;
@@ -3801,7 +3820,7 @@ function renderMistakes(){
 let pr=null;
 function practice(){
   if(!pr.q){
-    const src=pr.review?wrongs():pool();
+    const src=pr.review?wrongs():pool(true);
     if(!src.length){$('#prac').innerHTML=`<div class="box" style="background:var(--kid)"><h2>錯題本是空的！</h2><p style="margin:6px 0 0">這輪答對 ${pr.ok}/${pr.n} 題。</p></div>`;$('#rev')&&($('#rev').textContent='複習錯題（0）');return}
     pr.q=pick(src.length>1&&pr.last?src.filter(x=>x!==pr.last):src);pr.c=null;
   }
