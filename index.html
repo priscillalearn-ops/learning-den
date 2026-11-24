@@ -35,7 +35,7 @@ h2{font-size:17px;font-weight:400;margin:0}
 .opt{width:100%;text-align:left}
 /* 題目、選項、解析用清楚的字體（像素字留給介面），英文長句才看得清楚 */
 .qtext,.opt,.qopt{font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',-apple-system,'Segoe UI',Arial,sans-serif!important;-webkit-font-smoothing:antialiased;letter-spacing:.01em}
-.qtext{font-size:17px;line-height:1.65!important}.opt,.qopt{font-size:16px}
+.qtext{font-size:17px;line-height:1.65!important;white-space:pre-line}.opt,.qopt{font-size:16px}
 .opt.right{background:var(--mint)}.opt.wrong{background:var(--coral)}
 .nav{display:grid;grid-template-columns:repeat(5,1fr);border-top:4px solid var(--ink);background:var(--deep);padding-bottom:env(safe-area-inset-bottom,0px)}
 .nav button{background:none;border:0;padding:10px 4px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px}
@@ -320,7 +320,7 @@ function pool(){
 /* 今日一題：同等級每個人同一題（不看個人範圍），留言和統計才對得起來 */
 /* 今日一題跟著自己選的範圍；沒選範圍時從全部題庫出，但不出多益題。
    同一天、同一題的人共用留言和答對率。 */
-const DAILY_SKIP=['TOEIC','TP5A','TP5B','TP5C','TP5D','TP6','VQK','VQT','VQS'];
+const DAILY_SKIP=['TOEIC','TP5A','TP5B','TP5C','TP5D','TP6','TP7','VQK','VQT','VQS'];
 /* 釣魚、貓頭鷹用的題目：一半出自己範圍的題目、一半出這個等級的「單字意思」自動題，最近出過的 30 題先不出，比較不會重複 */
 const isVQ=q=>/^VQ/.test(q.u),recentQ=[];
 function quizPick(){
