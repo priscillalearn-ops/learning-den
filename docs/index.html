@@ -1176,8 +1176,10 @@ function gday(){if(!S.gday||S.gday.d!==today())S.gday={d:today(),match:0,speed:0
 function syncWallet(w){if(typeof w==='number'){S.tx=w-(coinsEarned()-coinsSpent());save()}}
 function gameShell(title,body,back){
   const to=back||(title==='金幣銀行'?'city':'games');
-  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="gback" style="padding:5px 10px;font-size:13px">← ${to==='city'?'城市':'遊樂場'}</button><span>${title}</span>${coinChip()}</div>${body}`;
+  gameCSS();const snd=title!=='金幣銀行';
+  $('#view').innerHTML=`<div class="bar"><button class="btn ghost" id="gback" style="padding:5px 10px;font-size:13px">← ${to==='city'?'城市':'遊樂場'}</button><span>${title}</span><span style="display:flex;align-items:center;gap:8px">${snd?`<button class="btn ghost" id="gmute" aria-label="${gMuted()?'打開音效':'關掉音效'}" style="padding:3px 7px;font-size:14px">${gMuted()?'🔇':'🔊'}</button>`:''}${coinChip()}</span></div>${body}`;
   paintSprites($('#view'));$('#gback').onclick=()=>go(to);
+  if(snd)$('#gmute').onclick=e=>{S.gmute=!S.gmute;save();const b=e.currentTarget;b.textContent=S.gmute?'🔇':'🔊';b.setAttribute('aria-label',S.gmute?'打開音效':'關掉音效');if(!S.gmute)gsfx('ok')};
 }
 function renderGames(){
   if(needFood())return;
@@ -1189,10 +1191,10 @@ function renderGames(){
      ${card('arena','sword','知識競技場','1 對 1 搶答，像知識王一樣比快比準','對戰排行')}
      ${card('adv','castle','冒險打怪','用英文打倒怪物，闖過 15 層',`今天 ${g.adventure||0}/${GAME_CAP}`)}
      ${card('wb','book','單字本','依課本版本背單字、玩單字小遊戲',`今天 ${g.words}/${GAME_CAP}`)}
-     ${card('match','card','單字翻牌',`翻牌配對英文和中文・第 ${lvOpen('match')}／4 關`,`今天 ${g.match}/${GAME_CAP}`)}
-     ${card('speed','lamp','60 秒快答',`跟時間賽跑・第 ${lvOpen('speed')}／4 關`,`今天 ${g.speed}/${GAME_CAP}`)}
-     ${card('granny','granny','恐怖阿嬤（迷你版）',`答題開門逃出去・第 ${lvOpen('granny')}／4 關`,`今天 ${g.granny}/${GAME_CAP}`)}
-     ${card('tower','castle','單字守城',`答對打倒怪物・第 ${lvOpen('tower')}／4 關`,`今天 ${g.tower}/${GAME_CAP}`)}
+     ${card('match','card','單字翻牌',`翻牌配對英文和中文・第 ${lvOpen('match')}／4 關`,`<span style="color:var(--gold)">★ ${gStarSum('match')}/12</span><br>今天 ${g.match}/${GAME_CAP}`)}
+     ${card('speed','lamp','60 秒快答',`跟時間賽跑・第 ${lvOpen('speed')}／4 關`,`<span style="color:var(--gold)">★ ${gStarSum('speed')}/12</span><br>今天 ${g.speed}/${GAME_CAP}`)}
+     ${card('granny','granny','恐怖阿嬤（迷你版）',`答題開門逃出去・第 ${lvOpen('granny')}／4 關`,`<span style="color:var(--gold)">★ ${gStarSum('granny')}/12</span><br>今天 ${g.granny}/${GAME_CAP}`)}
+     ${card('tower','castle','單字守城',`答對打倒怪物・第 ${lvOpen('tower')}／4 關`,`<span style="color:var(--gold)">★ ${gStarSum('tower')}/12</span><br>今天 ${g.tower}/${GAME_CAP}`)}
      ${S.tier==='kid'?'':card('chal','fire','雙倍挑戰','押金幣答 5 題，答得好翻倍',`剩 ${Math.max(0,CHAL_PER_DAY-g.chal)} 次`)}
      ${card('gacha','capsule','魔法盲盒','抽盲盒限定的服裝、寵物和家具',gachaFree()?'今天可以免費抽':`今天抽了 ${gstate().pulls}/${GACHA_DAY}`)}
      ${card('bank','coin','金幣銀行','存起來每天生利息',`存款 ${bank.toLocaleString()}`)}
@@ -1285,20 +1287,20 @@ async function wbFinish(u,title,ok,total,missed){
 }
 const wbRight=(u,w)=>{if(!S.cards[w[0]]){giveCard(w[0],w[1],true);cloud.card(w[0])}};
 function wbQuiz(u,mode){
-  wbUnit=u;const ws=u.words.slice().sort(()=>Math.random()-.5).slice(0,10);let i=0,ok=0;const missed=[];
+  wbUnit=u;const ws=u.words.slice().sort(()=>Math.random()-.5).slice(0,10);let i=0,ok=0,st=0;const missed=[];
   const next=()=>{
     if(i>=ws.length){wbFinish(u,mode==='listen'?'聽音選字':'選意思',ok,ws.length,missed).then(b=>b.onclick=()=>wbQuiz(u,mode));return}
     const w=ws[i],en=mode==='listen'||Math.random()<.5,opts=[w,...u.words.filter(x=>x!==w).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
     const label=o=>mode==='listen'?o[0]:en?o[1]:o[0];
     wbShell(mode==='listen'?'聽音選字':'選意思',`<p class="small" style="margin:0;text-align:center">第 ${i+1}／${ws.length} 題・答對 ${ok}</p>
-      <div class="box paper" style="display:flex;flex-direction:column;gap:8px">
+      <div class="box paper gq" style="display:flex;flex-direction:column;gap:8px">
         ${mode==='listen'?'<button class="btn gold" id="wsay" style="font-size:20px">🔊 聽一次</button><p class="small" style="margin:0;text-align:center">聽到的是哪個字？</p>'
           :`<div class="qtext" style="font-size:20px;text-align:center">${en?esc(w[0]):esc(w[1])}</div><p class="small" style="margin:0;text-align:center">${en?'是什麼意思？':'英文是？'}</p>`}
         ${opts.map((o,k)=>`<button class="btn opt" data-wo="${k}" style="padding:8px 10px">${'ABCD'[k]}. ${esc(label(o))}</button>`).join('')}</div>`);
     if($('#wsay'))$('#wsay').onclick=()=>speak(w[0]);if(mode==='listen'||en)speak(w[0]);
     $('#view').querySelectorAll('[data-wo]').forEach(b=>b.onclick=()=>{
       $('#view').querySelectorAll('[data-wo]').forEach(x=>{x.disabled=true;if(opts[+x.dataset.wo]===w)x.classList.add('right')});
-      if(opts[+b.dataset.wo]===w){ok++;wbRight(u,w)}else{b.classList.add('wrong');missed.push(w);if(mode!=='listen')speak(w[0])}
+      if(opts[+b.dataset.wo]===w){ok++;st++;wbRight(u,w);gsfx('ok');gStreak($('#view .gq'),st)}else{st=0;b.classList.add('wrong');missed.push(w);gsfx('bad');gfx($('#view .gq'),'gshk');if(mode!=='listen')speak(w[0])}
       i++;setTimeout(next,opts[+b.dataset.wo]===w?600:1400)});
   };
   next();
@@ -1319,10 +1321,16 @@ function wbSpell(u){
         <div class="row" style="width:100%"><button class="btn" id="wdel">← 刪掉</button><button class="btn" id="wskip">跳過</button><button class="btn" id="wsay">🔊</button></div></div>`);
       $('#view').querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{typed.push(+b.dataset.tl);
         const sp=typed.map(t=>tiles[t].c).join('');
-        if(sp.length===ans.length){if(sp===ans){ok++;wbRight(u,w);speak(w[0]);toast('拼對了！');i++;setTimeout(next,600);return}
-          tries++;toast(tries>=2?`正確是 ${w[0]}`:'不對喔，再試一次');if(tries>=2){missed.push(w);i++;setTimeout(next,1200);return}typed=[]}
+        if(sp.length===ans.length){if(sp===ans){ok++;wbRight(u,w);speak(w[0]);gsfx('ok');toast('拼對了！');i++;setTimeout(next,600);return}
+          tries++;gsfx('bad');toast(tries>=2?`正確是 ${w[0]}`:'不對喔，再試一次');if(tries>=2){missed.push(w);i++;setTimeout(next,1200);return}typed=[]}
         draw()});
       $('#wdel').onclick=()=>{typed.pop();draw()};$('#wsay').onclick=()=>speak(w[0]);
+      /* 電腦可以直接打字：按字母選字塊，Backspace 刪掉 */
+      const myW=$('#wdel'),kb=e=>{if($('#wdel')!==myW){document.removeEventListener('keydown',kb);return}if(e.ctrlKey||e.metaKey||e.altKey||document.querySelector('.modal'))return;
+        if(e.key==='Backspace'){e.preventDefault();document.removeEventListener('keydown',kb);myW.click();return}
+        const ch=e.key.length===1?e.key.toLowerCase():'';const t=ch&&[...$('#view').querySelectorAll('[data-tl]')].find(x=>!x.disabled&&tiles[+x.dataset.tl].c===ch);
+        if(t){e.preventDefault();document.removeEventListener('keydown',kb);t.click()}};
+      document.addEventListener('keydown',kb);
       $('#wskip').onclick=()=>{missed.push(w);toast(`正確是 ${w[0]}`);i++;setTimeout(next,900)}};
     draw();
   };
@@ -1340,12 +1348,77 @@ function wbMatch(u){
       <div style="display:flex;flex-direction:column;gap:8px">${R.map((w,k)=>`<button class="btn" data-mr="${k}" ${done.has(w)?'disabled':''} style="${done.has(w)?'background:var(--mint);':''}font-size:15px">${esc(w[1])}</button>`).join('')}</div></div>`);
       $('#view').querySelectorAll('[data-ml]').forEach(b=>b.onclick=()=>{sel=L[+b.dataset.ml];speak(sel[0]);draw()});
       $('#view').querySelectorAll('[data-mr]').forEach(b=>b.onclick=()=>{if(!sel){toast('先點左邊的英文');return}const w=R[+b.dataset.mr];
-        if(w===sel){done.add(w);if(!missed.includes(w)){ok++;wbRight(u,w)}sel=null;if(done.size===set.length){round++;setTimeout(play,400)}else draw()}
-        else{if(!missed.includes(sel))missed.push(sel);miss++;toast('不是這個喔');sel=null;draw()}})};
+        if(w===sel){done.add(w);gsfx('ok');if(!missed.includes(w)){ok++;wbRight(u,w)}sel=null;if(done.size===set.length){round++;setTimeout(play,400)}else draw()}
+        else{if(!missed.includes(sel))missed.push(sel);miss++;gsfx('bad');toast('不是這個喔');sel=null;draw()}})};
     draw();
   };
   play();
 }
+/* ---------- 小遊戲共用手感：音效、震動、跳字、星等、鍵盤作答 ----------
+   音效全部用 Web Audio 現場合成（跟讀書音樂共用 ac()／tone()），右上角喇叭可以關（S.gmute）。
+   電腦上可以按 1～4 或 A～D 作答（只對 .gq 裡的選項有效，不會影響其他頁面）。 */
+const gMuted=()=>!!S.gmute;
+function gsfx(k){if(gMuted())return;try{const A=ac();if(!A)return;const t=A.currentTime+.01,D=A.destination;
+  const noise=(freq,dur,vol)=>{const s=A.createBufferSource();s.buffer=noiseBuf(A);const f=A.createBiquadFilter(),g=A.createGain();f.type='lowpass';f.frequency.value=freq;
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(f).connect(g).connect(D);s.start(t);s.stop(t+dur+.02)};
+  if(k==='ok'){tone(A,D,660,t,.08,.05,'square');tone(A,D,990,t+.06,.14,.05,'square')}
+  else if(k==='bad'){tone(A,D,200,t,.12,.07,'sawtooth');tone(A,D,150,t+.1,.22,.07,'sawtooth')}
+  else if(k==='combo')[660,880,1100,1320].forEach((f,i)=>tone(A,D,f,t+i*.05,.12,.045,'square'));
+  else if(k==='flip')tone(A,D,900,t,.04,.025,'triangle');
+  else if(k==='tick')tone(A,D,1250,t,.03,.03,'square');
+  else if(k==='hit')noise(1400,.18,.12);
+  else if(k==='boom'){noise(700,.35,.16);tone(A,D,110,t,.3,.08,'square')}
+  else if(k==='hurt'){tone(A,D,150,t,.25,.1,'square');noise(500,.2,.08)}
+  else if(k==='door'){tone(A,D,392,t,.08,.05,'triangle');tone(A,D,587,t+.08,.14,.05,'triangle')}
+  else if(k==='step')tone(A,D,85,t,.07,.06,'square');
+  else if(k==='beat'){tone(A,D,60,t,.09,.12,'sine');tone(A,D,55,t+.16,.09,.1,'sine')}
+  else if(k==='win')[523,659,784,1047].forEach((f,i)=>tone(A,D,f,t+i*.1,.25,.06,'triangle'));
+  else if(k==='lose')[392,330,262].forEach((f,i)=>tone(A,D,f,t+i*.15,.3,.06,'triangle'));
+  else if(k==='star')tone(A,D,1319,t,.2,.05,'triangle');
+  else if(k==='freeze')[1568,1319,1760,2093].forEach((f,i)=>tone(A,D,f,t+i*.05,.25,.035,'sine'));
+}catch(e){}}
+const gbuzz=p=>{if(!gMuted())try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+/* 在 host 上方跳出一段字（+1、連對 ×3…）；x、y 是百分比位置 */
+function gpop(host,txt,col,big,x,y){if(!host)return;if(getComputedStyle(host).position==='static')host.style.position='relative';
+  const d=document.createElement('div');d.className='gpop'+(big?' big':'');d.textContent=txt;if(col)d.style.color=col;if(x!=null)d.style.left=x+'%';if(y!=null)d.style.top=y+'%';host.appendChild(d);setTimeout(()=>d.remove(),950)}
+function gfx(el,cls,ms){if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms||400)}
+/* 連對：3 連以上跳字＋音效 */
+function gStreak(host,n){if(n>=3){gpop(host,`連對 ×${n}`,n>=5?'#ff8a5c':'#ffd166',n>=5);gsfx('combo');gbuzz(20)}}
+/* 答錯時把正確選項標出來，讓人看到答案 */
+const gReveal=(box,attr,a)=>box&&box.querySelectorAll(`[data-${attr}]`).forEach(b=>{if(+b.getAttribute('data-'+attr)===a)b.classList.add('right')});
+function gameCSS(){if(document.getElementById('gamecss'))return;document.head.insertAdjacentHTML('beforeend',`<style id="gamecss">
+.gpop{position:absolute;left:50%;top:30%;transform:translate(-50%,0);font:bold 22px 'DotGothic16',sans-serif;color:#ffd166;text-shadow:2px 2px 0 #1a1026,-1px -1px 0 #1a1026;pointer-events:none;animation:gpop .95s forwards;z-index:6;white-space:nowrap}
+.gpop.big{font-size:30px}@keyframes gpop{0%{opacity:0;transform:translate(-50%,10px) scale(.5)}18%{opacity:1;transform:translate(-50%,0) scale(1.2)}30%{transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-44px)}}
+.gshk{animation:gshk .35s}@keyframes gshk{20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.gbump{animation:gbump .3s}@keyframes gbump{40%{transform:scale(1.06)}}
+.gq .opt,.gq .qopt{transition:transform .08s}.gq .opt:active,.gq .qopt:active{transform:scale(.97)}
+.gbar{height:10px;border:3px solid var(--ink);background:var(--deep);position:relative;overflow:hidden}.gbar i{position:absolute;inset:0;transform-origin:left;background:var(--mint);transition:transform .2s linear}
+.gbar.low i{background:var(--coral);animation:glow .5s steps(2) infinite}@keyframes glow{50%{opacity:.55}}
+.gstars{display:flex;justify-content:center;gap:6px;font-size:40px;line-height:1}.gstars span{color:#4a4060;text-shadow:3px 3px 0 #1a1026}.gstars span.on{color:var(--gold);animation:gstar .45s backwards}
+@keyframes gstar{0%{transform:scale(0) rotate(-90deg)}70%{transform:scale(1.35) rotate(10deg)}100%{transform:none}}
+.gkeys{display:none}@media (hover:hover) and (pointer:fine){.gkeys{display:block}}
+.mcard{perspective:600px;padding:0;border:0;background:none;min-height:58px;cursor:pointer;font:inherit}.mcard>b{display:block;position:relative;width:100%;height:100%;min-height:inherit;transition:transform .32s;transform-style:preserve-3d}
+.mcard.up>b,.mcard.done>b{transform:rotateY(180deg)}.mcard i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:3px solid var(--ink);font-style:normal;padding:4px;text-align:center;line-height:1.25;word-break:break-word}
+.mcard i.bk{background:var(--plum);color:var(--gold);font-size:20px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)}.mcard i.fr{background:var(--paper);color:var(--night);transform:rotateY(180deg);font-family:'Noto Sans TC',sans-serif}
+.mcard.done i.fr{background:var(--mint);animation:gbump .35s}.mcard.miss i.fr{background:var(--coral)}
+#mboard{display:grid;gap:6px;grid-template-columns:repeat(4,1fr)}
+@media (min-width:768px){#mboard{grid-template-columns:repeat(var(--mc,6),1fr);gap:8px}.mcard{min-height:84px}.mcard i{font-size:15px!important}}
+#gwrap{position:relative}#gwrap.danger::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 40px 10px rgba(217,79,79,.7);animation:glow .6s steps(2) infinite}
+@media (hover:hover) and (pointer:fine) and (min-width:768px){#gpad{display:none!important}}
+</style>`)}
+/* 電腦鍵盤作答：1～4 或 A～D */
+document.addEventListener('keydown',e=>{
+  if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||e.isComposing||document.querySelector('.modal'))return;
+  if(e.target&&e.target.closest&&e.target.closest('input,select,textarea'))return;
+  const k=e.key.toLowerCase(),n='1234'.includes(k)&&k.length===1?+k-1:'abcd'.includes(k)&&k.length===1?'abcd'.indexOf(k):-1;if(n<0)return;
+  const bs=[...document.querySelectorAll('#view .gq .opt,#view .gq .qopt')].filter(b=>!b.disabled&&b.offsetParent);
+  if(bs[n]){e.preventDefault();bs[n].click()}
+});
+/* 星等：每關最好的成績記在這台裝置（S.gstar），遊樂場和選關畫面會顯示 */
+function gStarSave(game,lv,n){S.gstar=S.gstar||{};const g=S.gstar[game]=S.gstar[game]||{},old=g[lv]||0;if(n>old){g[lv]=n;save()}return old}
+const gStarGot=(game,lv)=>((S.gstar||{})[game]||{})[lv]||0;
+const gStarSum=game=>[1,2,3,4].reduce((a,l)=>a+gStarGot(game,l),0);
+const starRow=(n,anim)=>`<div class="gstars">${[1,2,3].map(i=>`<span class="${i<=n?'on':''}" style="${anim?`animation-delay:${.25+i*.3}s`:'animation:none'}">★</span>`).join('')}</div>`;
 /* ---------- 小遊戲關卡：每種 4 關，過了才開下一關；越後面每場金幣上限越高（15／18／21／24） ---------- */
 const GLV={
   match:['10 組翻牌','12 組翻牌','14 組翻牌','16 組・150 秒內翻完'],
@@ -1358,20 +1431,26 @@ const lvMax=lv=>GAME_MAX+3*(lv-1);
 const lvOpen=g=>Math.min(4,((S.glv||{})[g])||1);
 function pickLevel(game){
   const run={match:gMatch,speed:gSpeed,granny:gGranny,tower:gTower}[game],open=lvOpen(game);
-  const m=modal(`<h2 style="text-align:center">${GNAME[game]}</h2><p class="small" style="margin:0;text-align:center">過了才會開下一關，越難的關卡金幣越多</p>
-    <div class="flist">${GLV[game].map((d,i)=>{const lv=i+1,lock=lv>open;
-      return `<button class="frow" data-lv="${lv}" ${lock?'aria-disabled="true"':''} style="padding:10px;${lock?'opacity:.5':''}"><span style="font-size:18px;color:var(--gold);min-width:56px">第 ${lv} 關</span><span class="grow">${d}</span><span class="small">${lock?'還沒解鎖':`最多 ${lvMax(lv)} 金幣`}</span></button>`}).join('')}</div>
+  const m=modal(`<h2 style="text-align:center">${GNAME[game]}</h2><p class="small" style="margin:0;text-align:center">過了才會開下一關，越難的關卡金幣越多・星星 <b style="color:var(--gold)">${gStarSum(game)}／12</b></p>
+    <div class="flist">${GLV[game].map((d,i)=>{const lv=i+1,lock=lv>open,st=gStarGot(game,lv);
+      return `<button class="frow" data-lv="${lv}" ${lock?'aria-disabled="true"':''} style="padding:10px;${lock?'opacity:.5':''}"><span style="font-size:18px;color:var(--gold);min-width:56px">第 ${lv} 關</span><span class="grow">${d}${lock?'':`<br><span style="color:var(--gold);letter-spacing:2px">${'★'.repeat(st)}<span style="color:#4a4060">${'★'.repeat(3-st)}</span></span>`}</span><span class="small">${lock?'還沒解鎖':`最多 ${lvMax(lv)} 金幣`}</span></button>`}).join('')}</div>
+    <p class="small" style="margin:0;text-align:center">${GSTAR_TIP[game]}</p>
     <button class="btn ghost" data-close>取消</button>`);
   m.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{const lv=+b.dataset.lv;if(lv>open){toast(`先過第 ${lv-1} 關`);return}m.remove();run(lv)});
 }
-/* 打完一場：過關就解鎖下一關，跳結算視窗 */
-function gameOver(game,lv,win,title,detail,r,score){
+const GSTAR_TIP={match:'★★★：翻牌次數越少越好，連續配對有加分',speed:'★★★：答對超過目標越多越好，連對 3 題加 2 秒',granny:'★★★：不答錯、跑得快',tower:'★★★：城堡一顆心都不掉，連對 4 題會冰凍怪物'};
+/* 打完一場：過關就解鎖下一關，跳結算視窗（星星、最佳紀錄、金幣） */
+function gameOver(game,lv,win,title,detail,r,score,stars=0){
   let unlocked=false;
   if(win&&lv<4&&lvOpen(game)===lv){S.glv=S.glv||{};S.glv[game]=lv+1;save();unlocked=true}
-  const run={match:gMatch,speed:gSpeed,granny:gGranny,tower:gTower}[game];
-  const m=modal(`<h2 style="text-align:center">${title}</h2><p style="text-align:center;margin:0">第 ${lv} 關・${detail}</p>
+  const old=win?gStarSave(game,lv,stars):gStarGot(game,lv),run={match:gMatch,speed:gSpeed,granny:gGranny,tower:gTower}[game];
+  gsfx(win?'win':'lose');gbuzz(win?[40,40,80]:[120]);
+  if(win)for(let i=1;i<=stars;i++)setTimeout(()=>gsfx('star'),550+i*300);
+  const m=modal(`<h2 style="text-align:center">${title}</h2>${win?starRow(stars,true):''}<p style="text-align:center;margin:0">第 ${lv} 關・${detail}</p>
+    ${win&&stars>old&&old?`<p style="text-align:center;margin:0;color:var(--mint)">新紀錄！從 ${old} 顆星進步到 ${stars} 顆</p>`:''}
     ${score?`<p style="text-align:center;margin:0;color:var(--gold)">${r?`+${r} 金幣`:'今天這個遊戲的金幣領滿了'}</p>`:''}
     ${unlocked?`<p style="text-align:center;margin:0;color:var(--mint)">解鎖第 ${lv+1} 關！</p>`:''}
+    ${win&&stars<3?`<p class="small" style="text-align:center;margin:0">${GSTAR_TIP[game]}</p>`:''}
     <div class="row"><button class="btn" id="ghub2">回遊樂場</button><button class="btn ${win&&lv<4&&lvOpen(game)>lv?'':'gold'}" id="gre">再玩一次</button></div>
     ${win&&lv<4&&lvOpen(game)>lv?'<button class="btn gold" id="gnext">挑戰下一關</button>':''}`);
   m.querySelector('#ghub2').onclick=()=>{m.remove();go('games')};
@@ -1400,49 +1479,69 @@ function gMatch(lv=1){
   const N=[10,12,14,16][lv-1],LIMIT=lv===4?150:0,pairs=matchPairs(N);
   let tick=null;const t0=Date.now();
   const cards=pairs.flatMap((q,i)=>[{i,t:q.w,en:1},{i,t:q.zh}]).sort(()=>Math.random()-.5);
-  let open=[],done=new Set(),moves=0,lock=false;
-  gameShell(`單字翻牌・第 ${lv} 關`,`${LIMIT?`<div class="timer" id="mclock" style="font-size:28px">${LIMIT}</div>`:''}<p class="small" style="margin:0">把英文和中文配成一對，翻越少次分數越高。${Object.keys(S.cards).length>=N?'這局用的是你收集的單字卡！':`收集 ${N} 張單字卡後，就會用你自己的卡來玩。`}</p>
-    <div id="mboard" style="display:grid;grid-template-columns:repeat(${N>6?4:3},1fr);gap:${N>6?6:8}px"></div>
-    <p class="small" id="mmoves" style="margin:0;text-align:center">翻了 0 次</p>`);
-  const draw=()=>{$('#mboard').innerHTML=cards.map((c,k)=>{const up=open.includes(k)||done.has(c.i);
-    return `<button class="btn" data-k="${k}" style="min-height:${N>6?56:64}px;padding:4px;font-size:${N>6?(c.en?12:13):(c.en?14:15)}px;background:${done.has(c.i)?'var(--mint)':up?'var(--paper)':'var(--plum)'};color:${up?'var(--night)':'var(--gold)'}">${up?esc(c.t):'?'}</button>`}).join('');
-    $('#mboard').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>flip(+b.dataset.k))};
-  const flip=async k=>{
-    if(lock||open.includes(k)||done.has(cards[k].i))return;
-    open.push(k);draw();if(open.length<2)return;
+  let open=[],done=new Set(),moves=0,lock=false,streak=0,best=0,over=false;
+  gameShell(`單字翻牌・第 ${lv} 關`,`${LIMIT?'<div class="gbar" id="mbar"><i></i></div>':''}<p class="small" style="margin:0">把英文和中文配成一對，翻越少次越好，連續配對有加分。${Object.keys(S.cards).length>=N?'這局用的是你收集的單字卡！':`收集 ${N} 張單字卡後，就會用你自己的卡來玩。`}</p>
+    <div id="mboard" style="--mc:${N/2}">${cards.map((c,k)=>`<button class="mcard" data-k="${k}" aria-label="第 ${k+1} 張牌"><b><i class="bk">?</i><i class="fr" style="font-size:${c.t.length>9?12:c.en?14:15}px"></i></b></button>`).join('')}</div>
+    <div class="bar"><span class="small" id="mmoves">翻了 0 次</span><span class="small" id="mcombo" style="color:var(--gold)"></span><span class="small" id="mclock">${LIMIT?`剩 ${LIMIT} 秒`:`配對 0／${N}`}</span></div>`);
+  const board=$('#mboard'),el=k=>board.querySelector(`[data-k="${k}"]`),alive=()=>!over&&$('#mboard')===board;
+  const face=(k,up)=>{const b=el(k);if(up){b.querySelector('.fr').textContent=cards[k].t;b.classList.add('up');b.setAttribute('aria-label',cards[k].t)}
+    else{b.classList.remove('up','miss');b.setAttribute('aria-label',`第 ${k+1} 張牌`);setTimeout(()=>{if(!b.classList.contains('up'))b.querySelector('.fr').textContent=''},330)}};
+  const finish=async()=>{over=true;clearInterval(tick);
+    const ratio=moves/N,stars=ratio<=1.6?3:ratio<=2.2?2:1;
+    const score=Math.round(Math.max(3,GAME_MAX-Math.floor(Math.max(0,moves-pairs.length*1.5)/2)+Math.max(0,best-2))*(1+.2*(lv-1)));const r=await claimGame('match',score,lv);
+    gameOver('match',lv,true,'全部配對完成！',`翻了 ${moves} 次・最多連續配對 ${best} 組${LIMIT?`・花了 ${Math.round((Date.now()-t0)/1000)} 秒`:''}`,r,score,stars)};
+  const flip=k=>{
+    if(!alive()||lock||open.includes(k)||done.has(cards[k].i))return;
+    open.push(k);face(k,true);gsfx('flip');if(open.length<2)return;
     moves++;$('#mmoves').textContent=`翻了 ${moves} 次`;
-    const [a,b]=open;
-    if(cards[a].i===cards[b].i&&cards[a].en!==cards[b].en){done.add(cards[a].i);open=[];draw();
-      if(done.size===pairs.length){clearInterval(tick);const score=Math.round(Math.max(3,GAME_MAX-Math.floor(Math.max(0,moves-pairs.length*1.5)/2))*(1+.2*(lv-1)));const r=await claimGame('match',score,lv);
-        gameOver('match',lv,true,'全部配對完成！',`翻了 ${moves} 次${LIMIT?`・花了 ${Math.round((Date.now()-t0)/1000)} 秒`:''}`,r,score)}}
-    else{lock=true;setTimeout(()=>{open=[];lock=false;draw()},800)}
+    const [a,b]=open;open=[];
+    if(cards[a].i===cards[b].i){done.add(cards[a].i);streak++;best=Math.max(best,streak);
+      [a,b].forEach(x=>el(x).classList.add('done'));gsfx(streak>=3?'combo':'ok');gbuzz(15);speak(cards[cards[a].en?a:b].t);
+      if(streak>=2)gpop(board,`連續配對 ×${streak}`,streak>=4?'#ff8a5c':'#ffd166',streak>=4);
+      $('#mcombo').textContent=streak>=2?`連續 ×${streak}`:'';if(!LIMIT)$('#mclock').textContent=`配對 ${done.size}／${N}`;
+      if(done.size===pairs.length)setTimeout(finish,500)}
+    else{streak=0;$('#mcombo').textContent='';lock=true;gsfx('bad');
+      [a,b].forEach(x=>{el(x).classList.add('miss');gfx(el(x),'gshk')});
+      setTimeout(()=>{if(!alive())return;face(a,false);face(b,false);lock=false},850)}
   };
-  draw();
-  if(LIMIT){const myB=$('#mboard');tick=setInterval(()=>{if($('#mboard')!==myB){clearInterval(tick);return}
-    const left=Math.max(0,LIMIT-Math.floor((Date.now()-t0)/1000));$('#mclock').textContent=left;
-    if(left<=0){clearInterval(tick);lock=true;gameOver('match',lv,false,'時間到了…',`配對了 ${done.size}／${N} 組`,0,0)}},250)}
+  board.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>flip(+b.dataset.k));
+  if(LIMIT){let lastS=LIMIT;tick=setInterval(()=>{if(!alive()){clearInterval(tick);return}
+    const left=Math.max(0,LIMIT-(Date.now()-t0)/1000),s=Math.ceil(left);$('#mclock').textContent=`剩 ${s} 秒`;
+    const bar=$('#mbar');bar.querySelector('i').style.transform=`scaleX(${left/LIMIT})`;bar.classList.toggle('low',left<20);
+    if(s!==lastS){lastS=s;if(s<=10&&s>0)gsfx('tick')}
+    if(left<=0){clearInterval(tick);over=true;lock=true;gameOver('match',lv,false,'時間到了…',`配對了 ${done.size}／${N} 組`,0,0)}},200)}
 }
 /* 60 秒快答 */
 function gSpeed(lv=1){
-  const SECS=[60,45,30,30][lv-1],GOAL=[5,8,8,10][lv-1],PEN=lv===4?3000:0;
-  const src=pool().filter(q=>q.q.length<=90);let n=0,ok=0,cur=null,end=Date.now()+SECS*1000,tick=null,last=null;
-  gameShell(`快答・第 ${lv} 關`,`<div class="timer" id="sclock" style="font-size:40px">${SECS}</div>
-    <p class="small" id="sscore" style="margin:0;text-align:center">答對 0／${GOAL} 題${PEN?'・答錯扣 3 秒':''}</p><div id="sq"></div>`);
+  const SECS=[60,45,30,30][lv-1],GOAL=[5,8,8,10][lv-1],PEN=lv===4?3000:0,BONUS=2000;
+  const src=pool().filter(q=>q.q.length<=90);let n=0,ok=0,cur=null,end=Date.now()+SECS*1000,tick=null,last=null,streak=0,best=0,total=SECS*1000;
+  gameShell(`快答・第 ${lv} 關`,`<div class="bar"><div class="timer" id="sclock" style="font-size:40px">${SECS}</div><span class="small" id="sscore" style="text-align:right">答對 0／${GOAL} 題${PEN?'<br>答錯扣 3 秒':''}</span></div>
+    <div class="gbar" id="sbar"><i></i></div><p class="small" style="margin:0;text-align:center">連對 3 題 +2 秒<span class="gkeys">・可以按鍵盤 1～4 作答</span></p><div id="sq" class="gq"></div>`);
   const myClock=$('#sclock'),alive=()=>$('#sclock')===myClock;
+  const hud=()=>{$('#sscore').innerHTML=`答對 <b style="color:${ok>=GOAL?'var(--mint)':'var(--gold)'}">${ok}</b>／${GOAL} 題${streak>=2?`<br>連對 ×${streak}`:PEN?'<br>答錯扣 3 秒':''}`};
   const next=()=>{if(!alive())return;cur=pick(src.length>1&&last?src.filter(x=>x!==last):src);last=cur;
     $('#sq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:8px">
       ${cur.pic?`<div style="display:flex;justify-content:center"><span data-s="${cur.pic}" data-z="6"></span></div>`:''}
       <div class="qtext" style="line-height:1.6">${esc(cur.q)}</div>
       ${cur.o.map((o,i)=>`<button class="btn opt" data-si="${i}" style="padding:7px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
     paintSprites($('#sq'));
-    $('#sq').querySelectorAll('[data-si]').forEach(b=>b.onclick=()=>{n++;if(+b.dataset.si===cur.a){ok++;b.classList.add('right')}else{b.classList.add('wrong');addWrong(cur);if(PEN){end-=PEN;toast('答錯扣 3 秒！')}}
-      $('#sscore').textContent=`答對 ${ok}／${GOAL} 題`;setTimeout(()=>{if(Date.now()<end)next()},250)})};
-  let done=false;
+    $('#sq').querySelectorAll('[data-si]').forEach(b=>b.onclick=()=>{if(done)return;n++;const right=+b.dataset.si===cur.a,box=$('#sq .box');
+      $('#sq').querySelectorAll('[data-si]').forEach(x=>x.disabled=true);
+      if(right){ok++;streak++;best=Math.max(best,streak);b.classList.add('right');gsfx('ok');gpop(box,'+1','#3f8f5a',false,85,10);
+        if(streak%3===0){end+=BONUS;total=Math.max(total,end-Date.now());gpop(box,`連對 ×${streak}・+2 秒`,'#ff8a5c',true);gsfx('combo');gbuzz(25)}
+        if(ok===GOAL){toast('過關了！繼續答，多答幾題拿星星')}}
+      else{streak=0;b.classList.add('wrong');gReveal($('#sq'),'si',cur.a);addWrong(cur);gsfx('bad');gbuzz(60);gfx(box,'gshk');if(PEN){end-=PEN;gpop(box,'-3 秒','#d94f4f',true)}}
+      hud();setTimeout(()=>{if(Date.now()<end)next()},right?260:800)})};
+  let done=false,lastS=SECS;
   const finish=async()=>{clearInterval(tick);if(done||!alive())return;done=true;$('#sq').innerHTML='';const win=ok>=GOAL,score=Math.round(ok*(1+.2*(lv-1))),r=await claimGame('speed',score,lv);
-    const bk='speedBest'+(lv>1?lv:''),best=Math.max(S[bk]||0,ok),nb=ok>(S[bk]||0);S[bk]=best;save();
-    gameOver('speed',lv,win,win?'過關了！':'時間到！',`答了 ${n} 題，答對 ${ok} 題（目標 ${GOAL}）${nb?'・新紀錄！':`・最佳 ${best} 題`}`,r,score)};
-  tick=setInterval(()=>{const left=Math.max(0,Math.ceil((end-Date.now())/1000));if(!alive()){clearInterval(tick);return}$('#sclock').textContent=left;if(left<=0)finish()},200);
-  next();
+    const bk='speedBest'+(lv>1?lv:''),bestRec=Math.max(S[bk]||0,ok),nb=ok>(S[bk]||0);S[bk]=bestRec;save();
+    const stars=ok>=Math.ceil(GOAL*1.6)?3:ok>=Math.ceil(GOAL*1.25)?2:1;
+    gameOver('speed',lv,win,win?'過關了！':'時間到！',`答了 ${n} 題，答對 ${ok} 題（目標 ${GOAL}）・最多連對 ${best}${nb?'・新紀錄！':`・最佳 ${bestRec} 題`}${win&&stars<3?`<br><span class="small">答對 ${Math.ceil(GOAL*(stars<2?1.25:1.6))} 題可以拿到 ${stars+1} 顆星</span>`:''}`,r,score,stars)};
+  tick=setInterval(()=>{if(!alive()){clearInterval(tick);return}const ms=Math.max(0,end-Date.now()),left=Math.ceil(ms/1000);$('#sclock').textContent=left;
+    const bar=$('#sbar');bar.querySelector('i').style.transform=`scaleX(${Math.min(1,ms/total)})`;bar.classList.toggle('low',ms<10000);
+    if(left!==lastS){lastS=left;if(left<=5&&left>0)gsfx('tick')}
+    if(left<=0)finish()},100);
+  hud();next();
 }
 /* 雙倍挑戰：5 題全對 ×2、4 題 ×1.5、3 題拿回本金、2 題以下沒收 */
 const payout=(n,st)=>n===5?st*2:n===4?Math.floor(st*3/2):n===3?st:0;
@@ -1470,7 +1569,7 @@ function playChal(id,st,qs){
   const ans=[],end=Date.now()+300000;let i=0,tick=null;
   const show=()=>{const q=qs[i];
     gameShell('雙倍挑戰',`<div class="bar"><span>第 ${i+1}／5 題・押 ${st} 金幣</span><span class="timer" id="cclock" style="font-size:20px">5:00</span></div>
-      <div class="box paper" style="display:flex;flex-direction:column;gap:8px">${q.src?`<p class="lbl" style="margin:0">${esc(q.src)} ${q.tag||TAG[q.t]}</p>`:''}
+      <div class="box paper gq" style="display:flex;flex-direction:column;gap:8px">${q.src?`<p class="lbl" style="margin:0">${esc(q.src)} ${q.tag||TAG[q.t]}</p>`:''}
       ${qPic(q)}<div class="qtext" style="line-height:1.6">${esc(q.q)}</div>
       ${q.o.map((o,k)=>`<button class="btn opt" data-ci="${k}" style="padding:7px 10px">${'ABCD'[k]}. ${esc(o)}</button>`).join('')}</div>`);
     $('#gback').onclick=()=>{const m=modal(`<h2>離開挑戰？</h2><p class="small">押的金幣不會退，沒答的題目算錯。</p><div class="row"><button class="btn" data-close>繼續答題</button><button class="btn coral" id="yes">離開</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();while(ans.length<5)ans.push(-1);submit()}};
@@ -1713,7 +1812,7 @@ async function gGacha(){
     const cost=free||ticket?0:n===1?GACHA_ONE:GACHA_TEN;
     if(!free&&!ticket&&g.pulls+n>GACHA_DAY){toast(`今天最多抽 ${GACHA_DAY} 次，明天再來`);return}
     if(cost>coins()){toast('金幣不夠');return}
-    $('#gmach').animate([{transform:'rotate(0)'},{transform:'rotate(-8deg)'},{transform:'rotate(8deg)'},{transform:'rotate(0)'}],{duration:450,iterations:2});
+    gsfx('tick');setTimeout(()=>gsfx('tick'),300);setTimeout(()=>gsfx('tick'),600);$('#gmach').animate([{transform:'rotate(0)'},{transform:'rotate(-8deg)'},{transform:'rotate(8deg)'},{transform:'rotate(0)'}],{duration:450,iterations:2});
     let res;
     if(ONLINE){const r=await cloud.rpc('gacha_pull',{p_n:n,p_free:!!free,p_ticket:!!ticket});if(!r)return;res=r.results;syncWallet(r.wallet);
       res.forEach(x=>{if(!x.dup)S.owned[x.item]=0});const g2=gstate();g2.pity=r.pity;g2.pulls=r.pulls;g2.tickets=r.tickets||0;if(free)g2.free=today();save()}
@@ -1734,7 +1833,7 @@ function revealGacha(res){
     const x=res[k++],it=ITEM[x.item],c=RARITY[x.rarity][1];
     const el=document.createElement('div');el.className='sitem';el.style.cssText=`border-color:${c};${x.rarity==='SSR'?`outline:3px solid ${c};outline-offset:-6px`:''}`;
     el.innerHTML=`${itemThumb(it)}<span>${esc(it.name)}</span><span class="pill" style="background:${c};color:var(--night)">${x.rarity}</span><span class="small">${x.dup?`重複 +${x.refund} 金幣`:'新！'}</span>`;
-    box.appendChild(el);el.animate([{transform:'scale(.2) rotateY(90deg)',opacity:0},{transform:'scale(1.12)',opacity:1},{transform:'scale(1)'}],{duration:x.rarity==='SSR'?700:350});
+    box.appendChild(el);gsfx(x.rarity==='SSR'?'win':x.rarity==='SR'?'combo':'flip');if(x.rarity==='SSR')gbuzz([60,40,60,40,120]);el.animate([{transform:'scale(.2) rotateY(90deg)',opacity:0},{transform:'scale(1.12)',opacity:1},{transform:'scale(1)'}],{duration:x.rarity==='SSR'?700:350});
     setTimeout(next,res.length>1?(x.rarity==='SSR'?750:200):0)};
   next();
 }
@@ -2443,7 +2542,7 @@ function advBattle(f){
       <p class="small" id="afoe" style="margin:0;color:var(--paper)"></p><b id="aname" style="color:var(--gold)"></b>
       <div class="lock" style="width:70%;height:10px"><i id="ahp" style="background:var(--coral)"></i></div><div id="amon" style="margin-top:6px"></div></div>
     <div class="bar"><span style="display:flex;align-items:center;gap:6px">${avatarSVG(myLook().outfit,4)}<span id="ahearts" style="color:var(--coral);font-size:18px"></span></span><span id="acombo" class="small"></span><span class="small" id="acoins"></span></div>
-    <div id="aq"></div>`,'games');
+    <div id="aq" class="gq"></div><p class="small gkeys" style="margin:0;text-align:center">可以按鍵盤 1～4 作答</p>`,'games');
   $('#gback').textContent='← 冒險';$('#gback').onclick=()=>renderAdventure('fight');
   const hud=()=>{$('#ahearts').textContent='♥'.repeat(hearts)+'♡'.repeat(5-hearts);$('#acombo').textContent=combo>=2?`連對 ${combo}！`:'';$('#acoins').textContent=`金幣 +${coins}`;
     const id=foes[i];$('#ahp').style.width=`${Math.max(0,hp/maxHp(id)*100)}%`};
@@ -2455,13 +2554,13 @@ function advBattle(f){
     $('#aq').querySelectorAll('[data-ao]').forEach(b=>b.onclick=()=>{if(busy)return;busy=true;const ok=+b.dataset.ao===q.a;
       $('#aq').querySelectorAll('[data-ao]').forEach(x=>{x.disabled=true;if(+x.dataset.ao===q.a)x.classList.add('right')});
       const fx=(txt,col)=>{const d=document.createElement('div');d.className='dmg';d.textContent=txt;d.style.color=col;$('#arena').appendChild(d);setTimeout(()=>d.remove(),800)};
-      if(ok){combo++;const dmg=combo>=3?2:1;hp-=dmg;const sv=$('#amon svg');sv.classList.remove('mbob');sv.classList.add('mhit');fx(dmg>1?`會心一擊 -${dmg}`:`-${dmg}`,'#ffd166');
-        setTimeout(()=>{if(!$('#amon'))return;if(hp<=0){const id=foes[i];kills++;coins+=MONS[id].boss?6:2;$('#amon svg').classList.add('mdie');
+      if(ok){combo++;const dmg=combo>=3?2:1;hp-=dmg;gsfx(dmg>1?'combo':'hit');gbuzz(dmg>1?[20,30,40]:20);const sv=$('#amon svg');sv.classList.remove('mbob');sv.classList.add('mhit');fx(dmg>1?`會心一擊 -${dmg}`:`-${dmg}`,'#ffd166');
+        setTimeout(()=>{if(!$('#amon'))return;if(hp<=0){const id=foes[i];kills++;coins+=MONS[id].boss?6:2;$('#amon svg').classList.add('mdie');gsfx('boom');
           setTimeout(()=>{if(!$('#amon'))return;i++;if(i>=foes.length)finish(true);else spawn()},600)}else{sv.classList.remove('mhit');sv.classList.add('mbob');hud();$('#aname').textContent=`${MONS[foes[i]].boss?'👑 ':''}${MONS[foes[i]].name}・HP ${hp}`;ask()}},500)}
-      else{combo=0;hearts--;b.classList.add('wrong');addWrong(q);$('#arena').classList.add('shake');fx('-1 ♥','#d94f4f');setTimeout(()=>$('#arena')&&$('#arena').classList.remove('shake'),400);hud();
+      else{combo=0;hearts--;b.classList.add('wrong');addWrong(q);gsfx('hurt');gbuzz([80,40,80]);$('#arena').classList.add('shake');fx('-1 ♥','#d94f4f');setTimeout(()=>$('#arena')&&$('#arena').classList.remove('shake'),400);hud();
         setTimeout(()=>{if(!$('#aq'))return;if(hearts<=0)finish(false);else ask()},1300)}
       hud()})};
-  const finish=async win=>{const st=advState();let unlocked=false;if(win&&f>=st.max&&f<ADV_FLOORS){st.max=f+1;unlocked=true}save();did('adv');
+  const finish=async win=>{const st=advState();let unlocked=false;gsfx(win?'win':'lose');if(win&&f>=st.max&&f<ADV_FLOORS){st.max=f+1;unlocked=true}save();did('adv');
     const score=Math.min(20,coins),r=score?await claimGame('adventure',score,1):0;
     const m=modal(`<div style="display:flex;justify-content:center">${win?monSVG(foes[foes.length-1],7):avatarSVG(myLook().outfit,7)}</div>
       <h2 style="text-align:center">${win?(boss?`打倒 ${MONS[foes[foes.length-1]].name}！`:`第 ${f} 層過關！`):'被打倒了…'}</h2>
@@ -2934,42 +3033,65 @@ const GRANNY_MAP=['#################','#P..#...#...#..E#','#.#.#.#.#.#.#.#.#','#
 const GRANNY_MAPS={1:GRANNY_MAP,2:['#################','#P..D...#...#..E#','#.###.#.#.#.#.#.#','#...#.#...#.D.#.#','###.#.#####.###.#','#...D...#...#...#','#.#####.#.#.#.###','#G......#.#.D..H#','#################'],3:['###################','#P.#.....#.....#..#','#..D.###.#.###.D..#','##.#.#...D...#.##.#','#..#.#.#####.#..#.#','#.##.#...H...##.#.#','#....###.#.###..D.#','#G.#.....D......#E#','###################'],4:['###################','#P..#...D...#....E#','#.#.#.###.#.#.###.#','#.#.D.#...#.D.#...#','#.#####D###.###.###','#.....#.#H#.....#.#','###.#.D.#.#.###.D.#','#G..#...#.....#...#','###################']};
 const GRANNY_TAUNT=['You can’t escape!','阿嬤來了～','單字背了沒？','Come back here!','不要跑！'];
 function gGranny(lv=1){
-  const TWO=lv>=3,DARK=lv===4,M=GRANNY_MAPS[lv].map(r=>[...r]),GW=M[0].length,GH=M.length,TL=20;
+  gameCSS();const TWO=lv>=3,DARK=lv===4,M=GRANNY_MAPS[lv].map(r=>[...r]),GW=M[0].length,GH=M.length,TL=20,PAR=[40,50,60,70][lv-1];
   let P,G,H=null,E;M.forEach((r,y)=>r.forEach((c,x)=>{if(c==='P'){P=[x,y];r[x]='.'}if(c==='G'){G=[x,y];r[x]='.'}if(c==='H'){if(TWO)H=[x,y];r[x]='.'}if(c==='E')E=[x,y]}));
-  let speed=Math.round((S.tier==='kid'?1100:850)*[1,.8,1,.85][lv-1]),wrong=0,q=null,door=null,over=false,t0=Date.now(),last=Date.now()+2500,bubble=null,loopId=0;
-  gameShell(`恐怖阿嬤・第 ${lv} 關`,`<p class="small" style="margin:0">走到門口答對題目才能開門，快逃到綠色出口！答錯阿嬤會變快。${TWO?'這關有兩個阿嬤！':''}${DARK?'停電了，只看得到身邊。':''}</p>
-    <canvas id="gcv" width="${GW*TL*2}" height="${GH*TL*2}" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);display:block"></canvas>
-    <div id="gq"></div>
-    <div style="display:grid;grid-template-columns:repeat(3,64px);gap:6px;justify-content:center" id="gpad">
+  let speed=Math.round((S.tier==='kid'?1100:850)*[1,.8,1,.85][lv-1]),wrong=0,doors=0,q=null,door=null,over=false,t0=Date.now(),last=Date.now()+2500,bubble=null,loopId=0,hold=null,beatAt=0,near=99,flash=0;
+  gameShell(`恐怖阿嬤・第 ${lv} 關`,`<p class="small" style="margin:0">走到門口答對題目才能開門，快逃到綠色出口！答錯阿嬤會變快。${TWO?'這關有兩個阿嬤！':''}${DARK?'停電了，只看得到身邊。':''}<span class="gkeys">用鍵盤方向鍵移動，1～4 作答。</span></p>
+    <style>@media (min-width:768px){#gwrap #gq{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92%,560px);z-index:4}#gwrap #gq:empty{display:none}}</style>
+    <div id="gwrap" style="width:min(100%,calc(58vh * ${GW/GH}));margin:0 auto"><canvas id="gcv" width="${GW*TL*2}" height="${GH*TL*2}" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);display:block;touch-action:none"></canvas><div id="gq" class="gq"></div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,64px);gap:6px;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none" id="gpad">
       <span></span><button class="btn" data-d="0,-1" aria-label="上">▲</button><span></span>
       <button class="btn" data-d="-1,0" aria-label="左">◀</button><span></span><button class="btn" data-d="1,0" aria-label="右">▶</button>
-      <span></span><button class="btn" data-d="0,1" aria-label="下">▼</button><span></span></div>`);
+      <span></span><button class="btn" data-d="0,1" aria-label="下">▼</button><span></span></div>
+    <p class="small" style="margin:0;text-align:center">按住方向鍵可以一直走，也可以在地圖上滑動或點一下要去的方向</p>`);
   const myCv=$('#gcv'),alive=()=>!over&&$('#gcv')===myCv;
   const walk=(x,y,g)=>M[y]&&M[y][x]&&(M[y][x]==='.'||M[y][x]==='E'&&!g);
-  const move=(dx,dy)=>{if(!alive()||q)return;const x=P[0]+dx,y=P[1]+dy;const c=M[y]&&M[y][x];
-    if(c==='D'){door=[x,y];ask();return}
-    if(walk(x,y)){P=[x,y];if(x===E[0]&&y===E[1])end(true)}};
-  const ask=()=>{q=pick(pool().filter(z=>z.q.length<=110));
-    $('#gq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">上鎖的門：答對才能打開</p>
+  const move=(dx,dy)=>{if(!alive()||q)return false;const x=P[0]+dx,y=P[1]+dy;const c=M[y]&&M[y][x];
+    if(c==='D'){door=[x,y];stopHold();ask();return false}
+    if(walk(x,y)){P=[x,y];if(x===E[0]&&y===E[1])end(true);return true}return false};
+  const ask=()=>{q=pick(pool().filter(z=>z.q.length<=110));$('#gpad').style.visibility='hidden';
+    $('#gq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">🔒 上鎖的門：答對才能打開（阿嬤先停下來）</p>
       ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div class="qtext" style="line-height:1.5">${esc(q.q)}</div>
       ${q.o.map((o,i)=>`<button class="btn opt" data-gi="${i}" style="padding:6px 10px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div>`;
     paintSprites($('#gq'));
-    $('#gq').querySelectorAll('[data-gi]').forEach(b=>b.onclick=()=>{
-      if(+b.dataset.gi===q.a){M[door[1]][door[0]]='.';P=door;q=null;$('#gq').innerHTML='';toast('門打開了！')}
-      else{addWrong(q);wrong++;speed=Math.max(380,speed-110);bubble={t:'阿嬤變快了！',until:Date.now()+1500};q=null;$('#gq').innerHTML='';toast('答錯了，阿嬤變快了！')}
-      last=Date.now();
+    $('#gq').querySelectorAll('[data-gi]').forEach(b=>b.onclick=()=>{if(!q)return;const cq=q;
+      $('#gq').querySelectorAll('[data-gi]').forEach(x=>x.disabled=true);
+      if(+b.dataset.gi===cq.a){b.classList.add('right');M[door[1]][door[0]]='.';P=door;doors++;gsfx('door');gbuzz(20);
+        setTimeout(()=>{q=null;$('#gq').innerHTML='';$('#gpad').style.visibility='';last=Date.now();gpop($('#gwrap'),'門打開了！','#9fe1cb')},350)}
+      else{b.classList.add('wrong');gReveal($('#gq'),'gi',cq.a);addWrong(cq);wrong++;speed=Math.max(380,speed-110);gsfx('bad');gbuzz([80,40,80]);gfx($('#gq .box'),'gshk');
+        setTimeout(()=>{bubble={t:'阿嬤變快了！',until:Date.now()+1500};q=null;$('#gq').innerHTML='';$('#gpad').style.visibility='';last=Date.now();gpop($('#gwrap'),'阿嬤變快了！','#ff8a5c')},1100)}
     });
   };
-  const step=G=>{/* 阿嬤往玩家走一步（只能走地板和打開的門） */
-    const k=(x,y)=>y*GW+x,prev=new Map([[k(...G),null]]),qq=[G];
+  const k=(x,y)=>y*GW+x;
+  const route=(from)=>{const prev=new Map([[k(...from),null]]),qq=[from];
     while(qq.length){const [x,y]=qq.shift();if(x===P[0]&&y===P[1])break;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(walk(nx,ny,true)&&!prev.has(k(nx,ny))){prev.set(k(nx,ny),[x,y]);qq.push([nx,ny])}}}
-    if(!prev.has(k(...P)))return G;let c=P;while(prev.get(k(...c))&&(prev.get(k(...c))[0]!==G[0]||prev.get(k(...c))[1]!==G[1]))c=prev.get(k(...c));return c;
+    return prev};
+  const step=G=>{/* 阿嬤往玩家走一步（只能走地板和打開的門） */
+    const prev=route(G);if(!prev.has(k(...P)))return G;let c=P;while(prev.get(k(...c))&&(prev.get(k(...c))[0]!==G[0]||prev.get(k(...c))[1]!==G[1]))c=prev.get(k(...c));return c;
   };
-  const chase=()=>{G=step(G);if(H)H=step(H);if(Math.random()<.08)bubble={t:pick(GRANNY_TAUNT),until:Date.now()+1400}};
-  const end=async win=>{over=true;cancelAnimationFrame(loopId);
+  const dist=G=>{const prev=route(G);if(!prev.has(k(...P)))return 99;let n=0,c=P;while(prev.get(k(...c))){c=prev.get(k(...c));n++}return n};
+  const chase=()=>{G=step(G);if(H)H=step(H);if(Math.random()<.08)bubble={t:pick(GRANNY_TAUNT),until:Date.now()+1400};
+    near=Math.min(dist(G),H?dist(H):99);if(near<=5)gsfx('step');$('#gwrap').classList.toggle('danger',near<=3)};
+  const end=async win=>{over=true;stopHold();cancelAnimationFrame(loopId);$('#gwrap')&&$('#gwrap').classList.remove('danger');
     const secs=Math.round((Date.now()-t0)/1000),score=win?Math.round(Math.max(5,15-wrong*2-Math.floor(secs/30))*(1+.2*(lv-1))):0,r=win?await claimGame('granny',score,lv):0;
-    gameOver('granny',lv,win,win?'逃出來了！':'被阿嬤抓到了…',win?`花了 ${secs} 秒・答錯 ${wrong} 題`:'再試一次，先背熟題目！',r,score)};
-  $('#gpad').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const [dx,dy]=b.dataset.d.split(',').map(Number);move(dx,dy)});
+    const stars=wrong===0&&secs<=PAR?3:wrong<=1?2:1;
+    if(!win){gsfx('hurt');gbuzz([200,80,200])}
+    gameOver('granny',lv,win,win?'逃出來了！':'被阿嬤抓到了…',win?`花了 ${secs} 秒・開了 ${doors} 扇門・答錯 ${wrong} 題${stars<3?`<br><span class="small">0 錯、${PAR} 秒內逃出就有 3 顆星</span>`:''}`:'再試一次，先背熟題目！',r,score,stars)};
+  /* 按住方向鍵一直走 */
+  function stopHold(){if(hold){clearInterval(hold);hold=null}}
+  const startHold=(dx,dy)=>{stopHold();move(dx,dy);hold=setInterval(()=>{if(!alive()||q){stopHold();return}move(dx,dy)},150)};
+  $('#gpad').querySelectorAll('[data-d]').forEach(b=>{const [dx,dy]=b.dataset.d.split(',').map(Number);
+    b.onpointerdown=e=>{e.preventDefault();ac();startHold(dx,dy)};b.onclick=e=>{if(e.detail===0)move(dx,dy)};['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,stopHold));b.oncontextmenu=e=>e.preventDefault()});
+  /* 在地圖上滑動或點一下：往那個方向走 */
+  let sw=null;
+  myCv.onpointerdown=e=>{sw={x:e.clientX,y:e.clientY}};
+  myCv.onpointerup=e=>{if(!sw)return;let dx=e.clientX-sw.x,dy=e.clientY-sw.y;sw=null;
+    if(Math.hypot(dx,dy)<14){const r=myCv.getBoundingClientRect(),s=r.width/(GW*TL);dx=e.clientX-r.left-(P[0]+.5)*TL*s;dy=e.clientY-r.top-(P[1]+.5)*TL*s}
+    const d=Math.abs(dx)>Math.abs(dy)?[Math.sign(dx),0]:[0,Math.sign(dy)];if(!d[0]&&!d[1])return;
+    /* 滑動＝沿著走廊一直走到轉角或門口 */
+    stopHold();let go=true;const halt=()=>{go=false;stopHold()};
+    const run=()=>{if(!alive()||q||!move(...d)){halt();return}const [x,y]=[P[0]+d[0],P[1]+d[1]],side=[[d[1],d[0]],[-d[1],-d[0]]].some(([a,b2])=>walk(P[0]+a,P[1]+b2));
+      if(side||!walk(x,y)&&!(M[y]&&M[y][x]==='D'))halt()};run();if(go)hold=setInterval(run,110)};
   const key=e=>{if(!alive()){document.removeEventListener('keydown',key);return}const d={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(d){e.preventDefault();move(...d)}};
   document.addEventListener('keydown',key);
   const me=avatarGrid(myLook().outfit);
@@ -2979,62 +3101,87 @@ function gGranny(lv=1){
       if(ch==='#'){c.fillStyle='#2b2140';c.fillRect(X,Y+9,TL,2);c.fillRect(X+(y%2?4:14),Y,2,9);c.fillRect(X+(y%2?14:4),Y+11,2,9)}
       else{c.fillStyle='#7a5232';c.fillRect(X,Y+TL-2,TL,2)}
       if(ch==='D'){c.fillStyle='#5a3d2b';c.fillRect(X+2,Y+1,TL-4,TL-2);c.fillStyle='#ffd166';c.fillRect(X+8,Y+8,4,5);c.fillRect(X+9,Y+6,2,2)}
-      if(ch==='E'){c.fillStyle='#3f8f5a';c.fillRect(X+2,Y+1,TL-4,TL-2);c.fillStyle='#f4ecd8';c.fillRect(X+12,Y+10,2,2)}}));
-    const spr=(g,pal,x,y)=>g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){c.fillStyle=pal[ch];c.fillRect(x*TL+2+xx*2,y*TL+2+yy*2,2,2)}}));
-    spr(me.g,me.pal,P[0],P[1]);spr(SPR.granny,PAL,G[0],G[1]);if(H)spr(SPR.granny,PAL,H[0],H[1]);
+      if(ch==='E'){const gl=.5+.5*Math.sin(performance.now()/250);c.fillStyle='#3f8f5a';c.fillRect(X+2,Y+1,TL-4,TL-2);c.fillStyle=`rgba(159,225,203,${.25+.35*gl})`;c.fillRect(X+4,Y+3,TL-8,TL-6);c.fillStyle='#f4ecd8';c.fillRect(X+12,Y+10,2,2)}}));
+    const spr=(g,pal,x,y,bob)=>g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){c.fillStyle=pal[ch];c.fillRect(x*TL+2+xx*2,y*TL+2+yy*2+(bob||0),2,2)}}));
+    const bob=Math.round(Math.sin(performance.now()/160));
+    spr(me.g,me.pal,P[0],P[1]);spr(SPR.granny,PAL,G[0],G[1],near<=3?bob:0);if(H)spr(SPR.granny,PAL,H[0],H[1],near<=3?-bob:0);
     if(DARK){const cx=P[0]*TL+TL/2,cy=P[1]*TL+TL/2,R=TL*2.6;c.save();c.fillStyle='rgba(8,5,16,.93)';c.beginPath();c.rect(0,0,GW*TL,GH*TL);c.arc(cx,cy,R,0,Math.PI*2,true);c.fill('evenodd');c.restore();
       c.fillStyle='#3f8f5a';c.fillRect(E[0]*TL+6,E[1]*TL+6,TL-12,TL-12)}
     if(bubble&&bubble.until>Date.now()){c.font='8px "DotGothic16",sans-serif';const w=c.measureText(bubble.t).width+6,bx=Math.min(GW*TL-w-2,Math.max(2,G[0]*TL+10-w/2));c.fillStyle='#f4ecd8';c.fillRect(bx,G[1]*TL-12,w,11);c.fillStyle='#1a1026';c.fillText(bubble.t,bx+3,G[1]*TL-3)}
+    if(flash>Date.now()){c.fillStyle='rgba(217,79,79,.35)';c.fillRect(0,0,GW*TL,GH*TL)}
   };
-  const tick=()=>{if(!alive())return;if(!q&&Date.now()-last>speed){last=Date.now();chase();if(G[0]===P[0]&&G[1]===P[1]||H&&H[0]===P[0]&&H[1]===P[1]){draw();end(false);return}}draw();loopId=requestAnimationFrame(tick)};
+  const tick=()=>{if(!alive())return;
+    if(!q&&Date.now()-last>speed){last=Date.now();chase();if(G[0]===P[0]&&G[1]===P[1]||H&&H[0]===P[0]&&H[1]===P[1]){flash=Date.now()+600;draw();end(false);return}}
+    if(!q&&near<=3&&Date.now()-beatAt>(near<=1?450:750)){beatAt=Date.now();gsfx('beat');if(near<=1)gbuzz(30)}
+    draw();loopId=requestAnimationFrame(tick)};
   bubble={t:'阿嬤三秒後出發！',until:Date.now()+2400};tick();
 }
 
 /* ---------- 遊樂場：單字守城 ----------
    怪物從右邊走向城堡，答對最前面那隻的題目就發射魔法消滅牠；有 3 隻碰到城堡就輸了。 */
 function gTower(lv=1){
-  const src=pool().filter(z=>z.q.length<=90),TOTAL=[12,16,20,24][lv-1],LEN=320,BOSS=lv>=3;
-  let mons=[],spawned=0,killed=0,hp=lv===4?2:3,cur=null,over=false,lastSpawn=0,t0=performance.now(),bolts=[],loopId=0;
+  const src=pool().filter(z=>z.q.length<=90),TOTAL=[12,16,20,24][lv-1],LEN=320,BOSS=lv>=3,HPMAX=lv===4?2:3;
+  let mons=[],spawned=0,killed=0,hp=HPMAX,cur=null,over=false,lastSpawn=0,t0=performance.now(),bolts=[],parts=[],loopId=0,streak=0,best=0,frozen=0,shake=0,hurtFlash=0,busy=false;
   const spd=(S.tier==='kid'?9:13)*[1,1.25,1.4,1.6][lv-1];
-  gameShell(`單字守城・第 ${lv} 關`,`<div class="bar"><span id="thp"></span><span class="small" id="tcount"></span></div>
-    <canvas id="tcv" width="${LEN*2}" height="180" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);display:block"></canvas>
-    <div id="tq"></div>`);
-  const myCv=$('#tcv'),alive=()=>!over&&$('#tcv')===myCv;
+  gameShell(`單字守城・第 ${lv} 關`,`<div class="bar"><span id="thp"></span><span class="small" id="tcombo" style="color:var(--gold)"></span><span class="small" id="tcount"></span></div>
+    <div class="gbar"><i id="tprog" style="transform:scaleX(0)"></i></div>
+    <div id="twrap" style="position:relative"><canvas id="tcv" width="${LEN*2}" height="180" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);display:block"></canvas></div>
+    <div id="tq" class="gq"></div><p class="small gkeys" style="margin:0;text-align:center">可以按鍵盤 1～4 作答</p>`);
+  const myCv=$('#tcv'),alive=()=>!over&&$('#tcv')===myCv,wrap=$('#twrap');
   const kinds=['slime','bat','ghost'];
-  const spawn=()=>{const boss=BOSS&&spawned===TOTAL-1;mons.push({x:LEN-22,k:boss?'granny':kinds[spawned%3],q:pick(src),y:boss?44:[28,50,72][spawned%3],boss,life:boss?3:1});spawned++};
+  const spawn=()=>{const boss=BOSS&&spawned===TOTAL-1;mons.push({x:LEN-22,k:boss?'granny':kinds[spawned%3],q:pick(src),y:boss?44:[28,50,72][spawned%3],boss,life:boss?3:1,hit:0});spawned++};
   const front=()=>mons.slice().sort((a,b)=>a.x-b.x)[0];
-  const showQ=()=>{const m=front();if(!m){$('#tq').innerHTML='<p class="small" style="text-align:center">下一波怪物來了…</p>';cur=null;return}
-    if(cur===m)return;cur=m;const q=m.q;
+  const burst=(x,y,col,n)=>{for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=30+Math.random()*70;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-30,life:.5+Math.random()*.3,col})}};
+  const showQ=(force)=>{const m=front();if(!m){$('#tq').innerHTML='<p class="small" style="text-align:center">下一波怪物來了…</p>';cur=null;return}
+    if(cur===m&&!force)return;cur=m;const q=m.q;busy=false;
     $('#tq').innerHTML=`<div class="box paper" style="display:flex;flex-direction:column;gap:6px"><p class="lbl" style="margin:0">${m.boss?`大魔王！還要答對 ${m.life} 題`:'答對就能打倒最前面的怪物'}</p>
       ${q.pic?`<div style="display:flex;justify-content:center"><span data-s="${q.pic}" data-z="5"></span></div>`:''}<div class="qtext" style="line-height:1.5">${esc(q.q)}</div>
-      <div class="chips">${q.o.map((o,i)=>`<button class="chip qopt" data-ti="${i}" style="font-size:14px;padding:8px 12px">${esc(o)}</button>`).join('')}</div></div>`;
+      <div class="chips">${q.o.map((o,i)=>`<button class="chip qopt" data-ti="${i}" style="font-size:14px;padding:8px 12px">${'ABCD'[i]}. ${esc(o)}</button>`).join('')}</div></div>`;
     paintSprites($('#tq'));
     $('#tq').querySelectorAll('[data-ti]').forEach(b=>b.onclick=()=>{
-      if(!alive()||cur!==m)return;
-      if(+b.dataset.ti===q.a){bolts.push({x:40,y:m.y+8,m});m.life--;if(m.life>0){m.q=pick(src.filter(z=>z!==m.q));m.x=Math.min(LEN-22,m.x+30);cur=null;toast('打中大魔王了！');showQ();return}mons=mons.filter(z=>z!==m);killed++;cur=null;hud();showQ()}
-      else{addWrong(q);b.style.background='var(--coral)';b.style.color='var(--night)';m.x-=18;toast('答錯了，怪物衝過來了！')}
+      if(!alive()||cur!==m||busy)return;busy=true;
+      if(+b.dataset.ti===q.a){b.style.background='var(--mint)';b.style.color='var(--night)';streak++;best=Math.max(best,streak);bolts.push({x:40,y:m.y+8,m});gsfx('ok');
+        if(streak>=2)$('#tcombo').textContent=`連對 ×${streak}`;
+        if(streak%4===0){frozen=performance.now()+2200;gsfx('freeze');gbuzz(30);gpop(wrap,'❄ 冰凍魔法！怪物停住了','#9fe1cb',true)}else if(streak>=3)gStreak(wrap,streak);
+        m.life--;m.hit=performance.now()+250;
+        if(m.life>0){m.q=pick(src.filter(z=>z!==m.q));m.x=Math.min(LEN-22,m.x+30);gpop(wrap,'打中大魔王！','#ffd166',false,m.x/LEN*100,m.y/90*100);setTimeout(()=>alive()&&showQ(true),250);return}
+        setTimeout(()=>{if(!alive()||!mons.includes(m)){showQ();return}mons=mons.filter(z=>z!==m);killed++;burst(m.x+8,m.y+8,m.boss?'#ff8a5c':'#ffd166',m.boss?40:16);gsfx(m.boss?'boom':'hit');
+          gpop(wrap,m.boss?'打倒大魔王！':'+1',m.boss?'#ff8a5c':'#ffd166',m.boss,m.x/LEN*100,m.y/90*100);cur=null;hud();showQ()},120)}
+      else{streak=0;$('#tcombo').textContent='';b.style.background='var(--coral)';b.style.color='var(--night)';addWrong(q);gsfx('bad');gbuzz(60);m.x-=18;
+        $('#tq').querySelectorAll('[data-ti]').forEach(x=>{if(+x.dataset.ti===q.a){x.style.background='var(--mint)';x.style.color='var(--night)'}});
+        gpop(wrap,'怪物衝過來了！','#d94f4f',false,Math.max(10,m.x/LEN*100),m.y/90*100);
+        /* 看過正解後換一題，不能用刪去法一直猜 */
+        setTimeout(()=>{if(!alive()||!mons.includes(m))return;m.q=pick(src.filter(z=>z!==q));showQ(true)},900)}
     });
   };
-  const hud=()=>{$('#thp').innerHTML=`城堡 ${'<span data-s="heart" data-z="2" style="display:inline-block;vertical-align:middle"></span>'.repeat(hp)}`;paintSprites($('#thp'));$('#tcount').textContent=`打倒 ${killed}／${TOTAL}`};
+  const hud=()=>{$('#thp').innerHTML=`城堡 ${'<span data-s="heart" data-z="2" style="display:inline-block;vertical-align:middle"></span>'.repeat(hp)}`;paintSprites($('#thp'));$('#tcount').textContent=`打倒 ${killed}／${TOTAL}`;$('#tprog').style.transform=`scaleX(${killed/TOTAL})`};
   const end=async win=>{over=true;cancelAnimationFrame(loopId);const score=Math.round((killed+hp)*(1+.2*(lv-1))),r=await claimGame('tower',score,lv);
-    gameOver('tower',lv,win,win?'守住城堡了！':'城堡被攻破了…',`打倒 ${killed} 隻怪物・城堡剩 ${hp} 顆心`,r,score)};
-  const draw=()=>{const cv=$('#tcv');if(!cv)return;const c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);c.imageSmoothingEnabled=false;
-    c.fillStyle='#1d2a5c';c.fillRect(0,0,LEN,90);c.fillStyle='#3f8f5a';c.fillRect(0,40,LEN,50);c.fillStyle='#c9b98f';c.fillRect(30,44,LEN,40);
+    const stars=hp>=HPMAX?3:hp>=HPMAX-1?2:1;
+    gameOver('tower',lv,win,win?'守住城堡了！':'城堡被攻破了…',`打倒 ${killed} 隻怪物・城堡剩 ${hp} 顆心・最多連對 ${best}${win&&stars<3?'<br><span class="small">一顆心都不掉就有 3 顆星</span>':''}`,r,score,stars)};
+  const draw=t=>{const cv=$('#tcv');if(!cv)return;const c=cv.getContext('2d');const sx=shake>t?Math.round((Math.random()-.5)*6):0;c.setTransform(2,0,0,2,sx*2,0);c.imageSmoothingEnabled=false;
+    c.fillStyle='#1d2a5c';c.fillRect(-4,0,LEN+8,90);c.fillStyle='#3f8f5a';c.fillRect(-4,40,LEN+8,50);c.fillStyle='#c9b98f';c.fillRect(30,44,LEN,40);
     for(let i=0;i<14;i++){c.fillStyle='#ffd166';c.fillRect((i*47)%LEN,(i*13)%34,1,1)}
     /* 城堡 */
-    c.fillStyle='#9aa3b5';c.fillRect(2,18,34,70);for(let i=0;i<4;i++)c.fillRect(2+i*9,12,6,6);c.fillStyle='#5a3d2b';c.fillRect(13,62,12,26);c.fillStyle='#7a3f9e';c.fillRect(18,2,2,10);c.fillRect(20,2,8,5);
-    const spr=(g,pal,x,y,z)=>g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){c.fillStyle=pal[ch];c.fillRect(x+xx*z,y+yy*z,z,z)}}));
+    c.fillStyle=hurtFlash>t?'#d94f4f':'#9aa3b5';c.fillRect(2,18,34,70);for(let i=0;i<4;i++)c.fillRect(2+i*9,12,6,6);c.fillStyle='#5a3d2b';c.fillRect(13,62,12,26);c.fillStyle='#7a3f9e';c.fillRect(18,2,2,10);c.fillRect(20,2,8,5);
+    const spr=(g,pal,x,y,z,tint)=>g.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(pal[ch]&&ch!=='.'){c.fillStyle=tint||pal[ch];c.fillRect(x+xx*z,y+yy*z,z,z)}}));
     const me=avatarGrid(myLook().outfit);spr(me.g,me.pal,38,58,2);
-    mons.forEach(m=>{spr(SPR[m.k],PAL,Math.round(m.x),m.y+Math.round(Math.sin(performance.now()/200+m.y)*2),m.boss?4:2);if(m===cur){c.fillStyle='#ffd166';c.fillRect(Math.round(m.x)+6,m.y-6,4,4)}});
-    bolts.forEach(b=>{c.fillStyle='#9fe1cb';c.fillRect(b.x,b.y,6,3);c.fillStyle='#f4ecd8';c.fillRect(b.x+4,b.y,2,3)});
+    const ice=frozen>t;
+    mons.forEach(m=>{const bob=ice?0:Math.round(Math.sin(t/200+m.y)*2);spr(SPR[m.k],PAL,Math.round(m.x),m.y+bob,m.boss?4:2,m.hit>t?'#f4ecd8':null);
+      if(ice){c.fillStyle='rgba(159,225,203,.45)';c.fillRect(Math.round(m.x)-1,m.y-1,(m.boss?4:2)*8+2,(m.boss?4:2)*8+2)}
+      if(m===cur){c.fillStyle='#ffd166';c.fillRect(Math.round(m.x)+6,m.y-6-(Math.floor(t/250)%2),4,4)}
+      if(m.boss){c.fillStyle='#1a1026';c.fillRect(Math.round(m.x),m.y-5,32,3);c.fillStyle='#ff8a5c';c.fillRect(Math.round(m.x),m.y-5,32*m.life/3,3)}});
+    bolts.forEach(b=>{c.fillStyle='#9fe1cb';c.fillRect(b.x,b.y,6,3);c.fillStyle='#f4ecd8';c.fillRect(b.x+4,b.y,2,3);c.fillStyle='rgba(159,225,203,.4)';c.fillRect(b.x-8,b.y+1,8,1)});
+    parts.forEach(p=>{c.fillStyle=p.col;c.fillRect(Math.round(p.x),Math.round(p.y),2,2)});
   };
   let prev=performance.now();
   const tick=t=>{if(!alive())return;const dt=Math.min(.05,(t-prev)/1000);prev=t;
-    if(spawned<TOTAL&&(t-lastSpawn>(S.tier==='kid'?6000:4500)*[1,.9,.85,.8][lv-1]||!mons.length)&&t-t0>800){spawn();lastSpawn=t;showQ()}
-    mons.forEach(m=>m.x-=spd*dt);
-    mons.filter(m=>m.x<36).forEach(m=>{hp--;mons=mons.filter(z=>z!==m);if(cur===m){cur=null}toast('怪物打到城堡了！');hud();showQ()});
-    bolts.forEach(b=>b.x+=260*dt);bolts=bolts.filter(b=>b.x<LEN);
-    draw();
+    if(spawned<TOTAL&&(t-lastSpawn>(S.tier==='kid'?6000:4500)*[1,.9,.85,.8][lv-1]||!mons.length)&&t-t0>800&&(frozen<t||!mons.length)){spawn();lastSpawn=t;showQ()}
+    if(frozen<t)mons.forEach(m=>m.x-=spd*dt);
+    mons.filter(m=>m.x<36).forEach(m=>{hp--;mons=mons.filter(z=>z!==m);if(cur===m){cur=null}streak=0;$('#tcombo').textContent='';shake=t+350;hurtFlash=t+300;gsfx('hurt');gbuzz([100,50,100]);
+      gpop(wrap,'城堡被打到了！','#d94f4f',true,15,30);hud();showQ()});
+    bolts.forEach(b=>b.x+=260*dt);bolts=bolts.filter(b=>b.x<LEN&&b.x<b.m.x+8);
+    parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=160*dt;p.life-=dt});parts=parts.filter(p=>p.life>0);
+    draw(t);
     if(hp<=0){end(false);return}
     if(spawned>=TOTAL&&!mons.length){end(true);return}
     loopId=requestAnimationFrame(tick)};
