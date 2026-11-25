@@ -3283,7 +3283,7 @@ const TOUR_FULL=[
  ['book','魔法學院：今日一題','每天一題，答題 +10 金幣、答對再 +5，還能收集單字卡。答錯的題目會放進錯題本，可以到圖書館複習。'],
  ['scroll','先選你的題目範圍','SCOPE'],
  ['bento','魔法餐廳：每天吃一餐','每天去餐廳吃一次飯就算打卡。頁面上方有三顆飽足度愛心，每少吃一天少一顆，連續三天沒吃會餓倒變成小幽靈！'],
- ['lamp','讀書房：一起專注','選 15、25、50 分鐘或 2 小時，跟同學一起專注，每分鐘 +1 金幣。同年級的同學會出現在座位上，點座位還能參觀他們的房間；讀書房裡也能聊天打氣。'],
+ ['lamp','讀書房：一起專注','選 15、25、50 分鐘、2 小時或不限時，跟同學一起專注，每分鐘 +1 金幣。同年級的同學會出現在座位上，點座位還能參觀他們的房間；讀書房裡也能聊天打氣。'],
  ['coin','金幣怎麼用？','到百貨公司買家具、服裝、寵物，布置「我的家」。遊樂場有小遊戲和雙倍挑戰；銀行存錢每天會生利息。'],
  ['scroll','任務板和布告欄','噴水池旁的任務板有每日、每週和老師出的任務，完成就能領金幣。布告欄可以看老師的公告和本週排行。'],
  ['chat','好友與老師信箱',`可以直接加同學好友（國小只能加國小），互傳私訊、送禮物、培養好感度。老師傳來的訊息會出現在「好友」頁的老師信箱，也可以回覆老師。`],
@@ -3438,6 +3438,9 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-26',title:'讀書房可以不限時了',items:[
+  ['lamp','不限時專注','讀書房多了「不限時」：從 0 開始往上算，想讀多久就讀多久，讀完按「結束並記錄」，時數和金幣照算！',()=>go('room')],
+ ]},
  {v:'2026-11-25',title:'知識競技場開幕＋釣魚變好玩了',items:[
   ['sword','1 對 1 搶答對戰','遊樂場多了「知識競技場」：跟同程度的同學比快比準，5 題定勝負，最後一題分數 ×2。贏了拿金幣、升段位，還有每週排行榜！',()=>gArena()],
   ['book','看得到魚影的池塘','魚影會游過來咬餌，浮標輕輕點水是假動作，整個沉下去再拉！手機會震動，拉得夠快會出現「完美！」，直接幫你刪掉一個錯的選項。',()=>openFishing()],
@@ -3676,7 +3679,6 @@ const cloud={
   teacher(fn,args){return this.run(()=>sb.rpc(fn,args||{}),'後台資料載不到，檢查網路或稍後再試')},
   comment(body,qid){return this.run(()=>sb.from('comments').insert({user_id:ME,day:today(),tier:S.tier,body,qid}),'留言沒送出，再試一次')},
   comments(qid){return this.run(()=>sb.from('comments').select('id,body,user_id,profiles(name)').eq('day',today()).eq('qid',qid).order('created_at').limit(50))},
-  report(id){return this.run(()=>sb.from('reports').insert({comment_id:id}))},
   block(uid){return this.run(()=>sb.from('blocks').insert({blocked_id:uid}))},
   unblockAll(){return this.run(()=>sb.from('blocks').delete().eq('user_id',ME))},
   focus(minutes){return this.run(()=>sb.from('focus_sessions').insert({day:today(),minutes}))},
@@ -3698,7 +3700,6 @@ const cloud={
   },
   markRead(uid){return this.run(()=>sb.rpc('mark_read',{p_friend:uid}))},
   unread(){return this.run(()=>sb.from('messages').select('sender').eq('recipient',ME).is('read_at',null))},
-  reportMsg(id){return this.run(()=>sb.from('message_reports').insert({message_id:id}))},
   gifts(){return this.run(()=>sb.rpc('my_gifts'))},
   giftsSeen(){return this.run(()=>sb.rpc('gifts_seen'))},
   /* 收到禮物後重新拿錢包和擁有的東西 */
@@ -3825,7 +3826,7 @@ async function logout(){TEACHER=false;leaveRoom();leaveCity();city=null;if(dmCha
 
 /* ---------- 讀書房即時在線 ---------- */
 let chan=null,chanName='',peers=[];
-const myMins=()=>(S.minutes[today()]||0)+(tm.mode==='focus'?Math.floor((tm.len-tm.left)/60):0);
+const myMins=()=>(S.minutes[today()]||0)+(tm.mode==='focus'?Math.floor((tm.free?tm.el:tm.len-tm.left)/60):0);
 function joinRoom(){
   if(!ONLINE||!ME||!S.tier)return;
   const name='room-'+(S.freeRoom?'free':roomKey());if(chan&&chanName===name)return;
@@ -4363,11 +4364,10 @@ async function fillSocial(q){
   }
   $('#cmts').innerHTML=list.map((c,i)=>`
     <div class="cmt"><span class="who">${esc(c.who)}${c.me?'（你）':''}</span><span class="txt">${esc(c.txt)}
-    ${c.me?'':`<div class="menu" id="m${i}" hidden>${c.uid&&dmOpen()?`<button data-add="${i}">加好友</button>`:''}<button data-rep="${i}">檢舉</button><button data-blk="${i}">封鎖</button></div>`}</span>
+    ${c.me?'':`<div class="menu" id="m${i}" hidden>${c.uid&&dmOpen()?`<button data-add="${i}">加好友</button>`:''}<button data-blk="${i}">封鎖</button></div>`}</span>
     ${c.me?'':`<button class="more" data-m="m${i}" aria-label="更多選項">⋯</button>`}</div>`).join('');
   $('#cmts').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{const m=document.getElementById(b.dataset.m);m.hidden=!m.hidden});
   $('#cmts').querySelectorAll('[data-add]').forEach(b=>b.onclick=async()=>{const c=list[+b.dataset.add];b.closest('.menu').hidden=true;if(await cloud.request(c.uid)!==undefined)toast(`已送出好友邀請給 ${c.who}`)});
-  $('#cmts').querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>{const c=list[+b.dataset.rep];b.closest('.menu').hidden=true;if(c.id)cloud.report(c.id);toast('已檢舉，老師會收到通知')});
   $('#cmts').querySelectorAll('[data-blk]').forEach(b=>b.onclick=()=>{const c=list[+b.dataset.blk];
     if(c.uid){S.blocked.push(`u:${c.uid}:${c.who}`);cloud.block(c.uid);peers=peers.filter(p=>p.uid!==c.uid)}else S.blocked.push(c.who);
     save();toast(`已封鎖 ${c.who}`);renderDaily()});
@@ -4390,6 +4390,12 @@ async function checkCardRewards(){
 
 /* ---------- 讀書房 ---------- */
 let tm={mode:'idle',end:0,len:0,left:0,speed:1,tick:null,wake:null};
+/* 不限時模式（S.timerLen === FREE_LEN）：從 0 開始往上算，按「結束」才記錄。
+   tm.free=true、tm.t0=開始時間（暫停後會往後挪）、tm.el=已經讀了幾秒。
+   一次最多 FREE_MAX 分鐘（忘記關也不會一直灌時數），到了自動結算。
+   資料庫一筆最多 120 分鐘，超過會拆成好幾筆存（見 queueFocus）。 */
+const FREE_LEN=-1,FREE_MAX=360;
+const hm=m=>m>=60?`${Math.floor(m/60)} 小時${m%60?` ${m%60} 分鐘`:''}`:`${m} 分鐘`;
 const botMin={};
 function roomBots(){dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,5).forEach((b,i)=>{if(botMin[b[0]]==null)botMin[b[0]]=5+hash(b[0]+today())%70});return dayBots().filter(b=>!S.blocked.includes(b[0])).slice(0,5)}
 /* 自由房的 NPC：三個等級各抽幾位，混在一起 */
@@ -4421,11 +4427,11 @@ function renderRoom(){
    <div class="box room" id="seats"></div>
    ${reactBar()}
    <div class="box" style="background:var(--deep);display:flex;flex-direction:column;gap:8px" id="tables"></div>
-   <div class="timer" id="clock" aria-live="off">${fmt(tm.mode==='idle'?len*60:tm.left)}</div>
-   <p class="small" id="mlabel" style="text-align:center;margin:0">${tm.mode==='break'?'休息時間・來一題快問快答':tm.mode==='idle'?'選好時間，按開始':'專注中…'}</p>
+   <div class="timer" id="clock" aria-live="off">${fmt(tm.mode==='idle'?(len===FREE_LEN?0:len*60):tm.free?tm.el:tm.left)}</div>
+   <p class="small" id="mlabel" style="text-align:center;margin:0">${tm.mode==='break'?'休息時間・來一題快問快答':tm.mode==='idle'?(len===FREE_LEN?`不限時：從 0 開始往上算，讀完按「結束並記錄」（一次最多 ${FREE_MAX/60} 小時）`:'選好時間，按開始'):tm.free?'專注中…（不限時，讀完按「結束並記錄」）':'專注中…'}</p>
    <div class="prog"><i id="bar"></i></div>
    <p class="small" style="text-align:center;margin:0">今天已專注 ${S.minutes[today()]||0} 分鐘・累計 ${(Object.values(S.minutes).reduce((a,b)=>a+b,0)/60).toFixed(1)} 小時${(S.pendingFocus||[]).length?`・<span style="color:var(--coral)">${S.pendingFocus.length} 次還在存檔，有網路就會自動補上</span>`:ONLINE?'・已存到雲端 ✓':''}</p>
-   <div class="chips" style="justify-content:center">${[15,25,50,120].map(m=>`<button class="chip" data-len="${m}" aria-pressed="${len===m}" ${tm.mode!=='idle'?'aria-disabled="true"':''}>${m===120?'2 小時':m+' 分鐘'}</button>`).join('')}</div>
+   <div class="chips" style="justify-content:center">${[15,25,50,120,FREE_LEN].map(m=>`<button class="chip" data-len="${m}" aria-pressed="${len===m}" ${tm.mode!=='idle'?'aria-disabled="true"':''}>${m===FREE_LEN?'不限時':m===120?'2 小時':m+' 分鐘'}</button>`).join('')}</div>
    <div class="row" id="ctl"></div>
    ${musicBox()}
    <div id="quiz"></div>
@@ -4437,14 +4443,17 @@ function renderRoom(){
   $('#view').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const f=b.dataset.rm==='free';if(!!S.freeRoom===f)return;
     S.freeRoom=f;S.table=0;save();if(ONLINE){leaveRoom();joinRoom()}rchat.room='';renderRoom();toast(`換到${roomLabel()}`)});
   $('#view').querySelectorAll('[data-len]').forEach(b=>b.onclick=()=>{if(tm.mode!=='idle'){toast('專注中不能換時間');return}S.timerLen=+b.dataset.len;save();renderRoom()});
-  if($('#spd'))$('#spd').onclick=()=>{tm.speed=tm.speed>1?1:60;if(tm.mode!=='idle'&&!tm.paused)tm.end=Date.now()+tm.left*1000/tm.speed;renderRoom()};
+  if($('#spd'))$('#spd').onclick=()=>{tm.speed=tm.speed>1?1:60;if(tm.mode!=='idle'&&!tm.paused){if(tm.free&&tm.mode==='focus')tm.t0=Date.now()-tm.el*1000/tm.speed;else tm.end=Date.now()+tm.left*1000/tm.speed}renderRoom()};
   const ctl=$('#ctl');
   if(tm.mode==='idle')ctl.innerHTML=`<button class="btn gold" id="start">開始專注</button><button class="btn" id="inv">邀請好友</button>`;
-  else if(tm.mode==='focus')ctl.innerHTML=`<button class="btn coral" id="pause">${tm.paused?'繼續':'暫停'}</button><button class="btn ghost" id="stop">放棄</button>`;
+  else if(tm.mode==='focus')ctl.innerHTML=`${tm.free?'<button class="btn gold" id="fin">結束並記錄</button>':''}<button class="btn coral" id="pause">${tm.paused?'繼續':'暫停'}</button><button class="btn ghost" id="stop">放棄</button>`;
   else ctl.innerHTML=`<button class="btn mint" id="skip">結束休息</button>`;
   if($('#start'))$('#start').onclick=()=>startFocus(len);
   if($('#inv'))$('#inv').onclick=showInvite;
-  if($('#pause'))$('#pause').onclick=()=>{if(tm.paused){tm.paused=false;tm.end=Date.now()+tm.left*1000/tm.speed}else{tm.paused=true}saveTimer();trackMe();renderRoom()};
+  if($('#pause'))$('#pause').onclick=()=>{if(tm.paused){tm.paused=false;if(tm.free)tm.t0=Date.now()-tm.el*1000/tm.speed;else tm.end=Date.now()+tm.left*1000/tm.speed}else{if(tm.free)tm.el=(Date.now()-tm.t0)*tm.speed/1000;tm.paused=true}saveTimer();trackMe();renderRoom()};
+  if($('#fin'))$('#fin').onclick=()=>{if(!tm.paused)tm.el=(Date.now()-tm.t0)*tm.speed/1000;
+    if(tm.el<60){const m=modal(`<h2>還不到 1 分鐘</h2><p class="small">讀滿 1 分鐘才會記錄喔。</p><div class="row"><button class="btn" data-close>繼續讀</button><button class="btn coral" id="yes">不記錄，結束</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();endTimer();renderRoom()};return}
+    finishFocus()};
   if($('#stop'))$('#stop').onclick=()=>{const m=modal(`<h2>確定要放棄嗎？</h2><p class="small">這次的專注時間不會算進紀錄。</p><div class="row"><button class="btn" data-close>繼續讀</button><button class="btn coral" id="yes">放棄</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();endTimer();renderRoom()}};
   if($('#skip'))$('#skip').onclick=()=>{endTimer();renderRoom()};
   if(tm.mode==='break')renderQuiz();
@@ -4452,7 +4461,7 @@ function renderRoom(){
 }
 /* ---------- 讀書房聊天室 ----------
    跟讀書房同一間（年級房或自由房），只留最近 24 小時。國小只能送貼圖，國中 30 字、高中 60 字，有不雅字過濾。
-   可以檢舉和封鎖；3 個人檢舉就自動藏起來，老師在後台處理。專注中先收起來，免得分心。 */
+   可以封鎖不想看到的人。專注中先收起來，免得分心。 */
 const RCHAT_MAX={kid:0,teen:30,sage:60};
 let rchat={room:'',msgs:[],chan:null,open:false,last:0};
 const chatRoom=()=>S.freeRoom?'free':roomKey();
@@ -4491,12 +4500,12 @@ function drawRoomChat(){
     <div id="rclist" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;padding-right:2px">
       ${list.length?list.map(m=>{const mine=ONLINE?m.user_id===ME:m.user_id==='me';
         return mine?`<div class="bub me">${esc(m.body)}<time>${hhmm(m.created_at)}</time></div>`
-          :`<div class="bub them"><b style="font-size:12px;color:var(--plum)">${esc(m.name)}</b><br>${esc(m.body)}<time>${hhmm(m.created_at)}・<button class="more" data-rcr="${m.id}" style="font-size:11px;padding:0;color:var(--plum)">檢舉</button>・<button class="more" data-rcb="${m.id}" style="font-size:11px;padding:0;color:var(--plum)">封鎖</button></time></div>`}).join('')
+          :`<div class="bub them"><b style="font-size:12px;color:var(--plum)">${esc(m.name)}</b><br>${esc(m.body)}<time>${hhmm(m.created_at)}・<button class="more" data-rcb="${m.id}" style="font-size:11px;padding:0;color:var(--plum)">封鎖</button></time></div>`}).join('')
         :'<p class="small" style="margin:0">還沒有人說話，打個招呼吧！</p>'}
     </div>
     ${max?`<div class="row"><input type="text" id="rcin" maxlength="${max}" placeholder="說點什麼（${max} 字內）" aria-label="聊天訊息"><button class="btn gold" id="rcsend" style="flex:0 0 auto">送出</button></div>`:''}
     <div class="chips">${STICKERS.map(x=>`<button class="chip" data-rcs="${x}">${x}</button>`).join('')}</div>
-    <p class="small" style="margin:0">${max?'':'見習魔法師用貼圖聊天。'}看到不舒服的話可以檢舉或封鎖，老師會處理。</p>`;
+    <p class="small" style="margin:0">${max?'':'見習魔法師用貼圖聊天。'}看到不舒服的話可以按「封鎖」，就不會再看到他的訊息。</p>`;
   const lst=$('#rclist');lst.scrollTop=lst.scrollHeight;
   if($('#rcclose'))$('#rcclose').onclick=()=>{rchat.open=false;drawRoomChat()};
   const send=async txt=>{
@@ -4509,8 +4518,6 @@ function drawRoomChat(){
     return true};
   if($('#rcsend')){const go=async()=>{if(await send($('#rcin').value))$('#rcin').value=''};$('#rcsend').onclick=go;$('#rcin').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing)go()}}
   box.querySelectorAll('[data-rcs]').forEach(b=>b.onclick=()=>send(b.dataset.rcs));
-  box.querySelectorAll('[data-rcr]').forEach(b=>b.onclick=async()=>{const id=+b.dataset.rcr;
-    if(ONLINE&&id>0){if(await cloud.rpc('report_room_chat',{p_id:id})===undefined)return}toast('已檢舉，老師會收到通知')});
   box.querySelectorAll('[data-rcb]').forEach(b=>b.onclick=()=>{const m=rchat.msgs.find(x=>x.id===+b.dataset.rcb);if(!m)return;
     if(ONLINE&&m.user_id&&m.user_id!=='bot'){S.blocked.push(`u:${m.user_id}:${m.name}`);cloud.block(m.user_id);peers=peers.filter(p=>p.uid!==m.user_id)}else S.blocked.push(m.name);
     save();toast(`已封鎖 ${m.name}`);drawRoomChat()});
@@ -4596,13 +4603,17 @@ async function renderGuild(){
     toast(`讀書會任務完成！+${got} 金幣`);renderGuild()});
 }
 function startFocus(len){
-  tm={...tm,mode:'focus',len:len*60,left:len*60,end:Date.now()+len*60*1000/tm.speed,paused:false,sid:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
+  const free=len===FREE_LEN;if(free)len=0;
+  tm={...tm,mode:'focus',free,t0:Date.now(),el:0,len:len*60,left:len*60,end:Date.now()+len*60*1000/tm.speed,paused:false,sid:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)};
   try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>tm.wake=w).catch(()=>{})}catch(e){}
   ac();saveTimer();loop();trackMe();renderRoom();bgmSync();
 }
 function endTimer(){clearInterval(tm.tick);tm.mode='idle';tm.paused=false;try{tm.wake&&tm.wake.release()}catch(e){}tm.wake=null;saveTimer();trackMe();bgmSync()}
 /* 專注紀錄先放進待存清單，資料庫確認存好才移除；存不上就在打開 app、回到 app、網路恢復時自動補存 */
-function queueFocus(sid,day,minutes){if(!ONLINE)return;S.pendingFocus=(S.pendingFocus||[]).concat([{sid,day,minutes}]);save();flushFocus()}
+function queueFocus(sid,day,minutes){if(!ONLINE)return;
+  /* 資料庫一筆最多 120 分鐘：不限時讀很久就拆成好幾筆，第一筆用原本的 sid（讀書小桌獎勵靠它對） */
+  const parts=[];for(let left=minutes,i=0;left>0;left-=120,i++)parts.push({sid:i?sid+'~'+(i+1):sid,day,minutes:Math.min(120,left)});
+  S.pendingFocus=(S.pendingFocus||[]).concat(parts);save();flushFocus()}
 let flushing=false;
 async function flushFocus(quiet){
   if(!ONLINE||!ME||flushing||!(S.pendingFocus||[]).length)return;flushing=true;
@@ -4619,19 +4630,25 @@ async function flushFocus(quiet){
 window.addEventListener('online',()=>flushFocus(true));
 /* 手機切到別的 App 常會重新載入頁面：把計時狀態存起來，回來時接著算 */
 const TKEY='wordden.timer.v1';
-function saveTimer(){S.timer=tm.mode==='idle'?null:{mode:tm.mode,end:tm.end,len:tm.len,left:tm.left,paused:!!tm.paused,speed:tm.speed,sid:tm.sid};save();
+function saveTimer(){S.timer=tm.mode==='idle'?null:{mode:tm.mode,end:tm.end,len:tm.len,left:tm.left,paused:!!tm.paused,speed:tm.speed,sid:tm.sid,free:!!tm.free,t0:tm.t0,el:tm.el};save();
   try{localStorage.setItem(TKEY,JSON.stringify({uid:S.uid||S.name,t:S.timer}))}catch(e){}}
 function restoreTimer(){
   /* 優先用獨立存的計時狀態（同一台裝置開兩個分頁時，另一個分頁存檔不會把它蓋掉） */
   let t=S.timer;try{const x=JSON.parse(localStorage.getItem(TKEY)||'null');if(x&&x.uid===(S.uid||S.name))t=x.t}catch(e){}
   if(!t||tm.mode!=='idle')return;
   Object.assign(tm,t);if(tm.paused)return;
+  if(tm.free&&tm.mode==='focus'){tm.el=(Date.now()-tm.t0)*tm.speed/1000;if(tm.el>=FREE_MAX*60)finishFocus();else loop();return}
   tm.left=(tm.end-Date.now())*tm.speed/1000;
   if(tm.left>0){loop();return}
   if(tm.mode==='focus')finishFocus();else{tm.mode='idle';saveTimer()}
 }
 function loop(){clearInterval(tm.tick);tm.tick=setInterval(()=>{
-  if(!tm.paused){tm.left=(tm.end-Date.now())*tm.speed/1000;
+  if(!tm.paused){
+    if(tm.free&&tm.mode==='focus'){tm.el=(Date.now()-tm.t0)*tm.speed/1000;
+      if(Date.now()-(tm.tracked||0)>60000)trackMe();
+      if(tm.el>=FREE_MAX*60){toast(`一次最多 ${FREE_MAX/60} 小時，先幫你記錄起來`);finishFocus();return}
+      bgmSync();drawClock();return}
+    tm.left=(tm.end-Date.now())*tm.speed/1000;
     Object.keys(botMin).forEach(k=>{if(Math.random()<.02*tm.speed/10)botMin[k]++});
     if(tm.mode==='focus'&&Date.now()-(tm.tracked||0)>60000)trackMe();
     if(tm.left<=0){tm.mode==='focus'?finishFocus():(endTimer(),ringOnce('magic'),toast('休息結束，再來一輪？'),curTab==='room'&&renderRoom());return}}
@@ -4640,23 +4657,25 @@ function loop(){clearInterval(tm.tick);tm.tick=setInterval(()=>{
 function drawClock(){
   if(curTab!=='room')return;const c=$('#clock'),b=$('#bar');if(!c)return;
   if(tm.mode==='idle'){b.style.width='0';return}
+  if(tm.free&&tm.mode==='focus'){c.textContent=fmt(tm.el);b.style.width=`${100*(tm.el%1500)/1500}%`;b.style.background='var(--mint)';return}
   c.textContent=fmt(tm.left);b.style.width=`${Math.min(100,100*(1-tm.left/tm.len))}%`;
   b.style.background=tm.mode==='break'?'var(--gold)':'var(--mint)';
   document.querySelectorAll('[data-bm]').forEach(e=>e.textContent=botMin[e.dataset.bm]);
 }
 function finishFocus(){
-  const mins=Math.round(tm.len/60),m0=S.minutes[today()]||0,before=bestStreak(),sid=tm.sid||('f'+tm.end);
+  const mins=tm.free?Math.min(FREE_MAX,Math.floor(tm.el/60)):Math.round(tm.len/60),m0=S.minutes[today()]||0,before=bestStreak(),sid=tm.sid||('f'+tm.end);
   S.doneSids=(S.doneSids||[]).slice(-30);
   if(S.doneSids.includes(sid)){tm={...tm,mode:'idle'};saveTimer();if(curTab==='room')renderRoom();return}
+  if(mins<1){tm={...tm,mode:'idle',free:false};endTimer();if(curTab==='room')renderRoom();return}
   S.doneSids.push(sid);
   S.minutes[today()]=m0+mins;markDay();queueFocus(sid,today(),mins);
   const gain=(Math.min(m0+mins,FOCUS_CAP)-Math.min(m0,FOCUS_CAP))*evMult(today());
   const q=pick(cardPool());
   const had=giveCard(q.w,q.zh);cloud.card(q.w);
-  tm={...tm,mode:'break',len:300,left:300,end:Date.now()+300*1000/tm.speed,paused:false,quiz:null};
+  tm={...tm,mode:'break',free:false,len:300,left:300,end:Date.now()+300*1000/tm.speed,paused:false,quiz:null};
   saveTimer();loop();trackMe();bgmSync();ringAlarm();if(curTab==='room')renderRoom();
   modal(`<div style="display:flex;justify-content:center"><span data-s="card" data-z="8"></span></div>
-    <h2 style="text-align:center">專注 ${mins} 分鐘完成！</h2>
+    <h2 style="text-align:center">專注 ${hm(mins)}完成！</h2>
     <p style="text-align:center;margin:0">獲得單字卡 <span style="color:var(--gold)">${esc(q.w)}</span>${had?`（第 ${S.cards[q.w].n} 張）`:''}<br><span class="small">${esc(q.zh)}</span></p>
     <p style="text-align:center;margin:0;color:var(--gold)">${gain?`+${gain} 金幣${evMult(today())>1?'（加成中）':''}`:`今天的專注金幣已經領滿了`}</p>
     <button class="btn gold" data-close>休息一下</button>`);
@@ -4716,7 +4735,7 @@ async function renderFriends(){
      <p class="small" style="margin:0">在城市或讀書房點同學的頭像，也可以直接加好友。</p>
    </div>
    <div id="flists"><p class="small">載入中…</p></div>
-   <p class="demo" style="text-align:left;line-height:1.6">私訊只能傳給好友。不要傳電話、地址、照片，也不要約見面。管理員看得到私訊內容，被檢舉的訊息老師會處理。</p>`;
+   <p class="demo" style="text-align:left;line-height:1.6">私訊只能傳給好友。不要傳電話、地址、照片，也不要約見面。管理員看得到私訊內容。</p>`;
   paintSprites($('#view'));
   const [rows]=await Promise.all([cloud.friends(),loadAffinity()]);if(curTab!=='friends'||!$('#flists'))return;
   /* 搜尋結果、同年級推薦：每個人一個「加入」按鈕；已經是好友或邀請中的會顯示狀態 */
@@ -4859,9 +4878,8 @@ function drawChat(){
   const tm2=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
   box.innerHTML=chatWith.msgs.length?chatWith.msgs.map((m,i)=>m.sender===ME
     ?`<div class="bub me">${esc(m.body)}<time>${tm2(m.created_at)}</time></div>`
-    :`<div class="bub them">${esc(m.body)}<time>${tm2(m.created_at)}・<button class="more" data-rm="${i}" style="font-size:11px;padding:0;color:var(--plum)">檢舉</button></time></div>`).join('')
+    :`<div class="bub them">${esc(m.body)}<time>${tm2(m.created_at)}</time></div>`).join('')
     :`<p class="small" style="margin:auto;text-align:center">跟 ${esc(chatWith.name)} 打聲招呼吧</p>`;
-  box.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const m=chatWith.msgs[+b.dataset.rm];cloud.reportMsg(m.id);b.textContent='已檢舉';b.disabled=true;toast('已檢舉，老師會處理')});
   box.lastElementChild&&box.lastElementChild.scrollIntoView({block:'end'});
 }
 
@@ -4876,7 +4894,7 @@ async function renderTeacher(view){
   $('#view').innerHTML=`
    <div class="bar"><h2>老師後台</h2><button class="btn ghost" id="tback" style="padding:5px 10px;font-size:13px">回到我的</button></div>
    <div class="bar" style="justify-content:flex-start;gap:10px"><span data-s="master" data-z="4"></span><span>學生看到的你：<span style="color:var(--gold)">${esc(TTITLE)}${TNAME?'（'+esc(TNAME)+'）':''}</span></span><button class="chip" id="ttitle">改稱號和名字</button></div>
-   <div class="chips">${[['class','班級總覽'],['msgs','學生訊息'],['ann','公告'],['mission','任務'],['reports','檢舉處理'],['recent','最新留言'],['sugg','建議箱']].map(([k,n])=>`<button class="chip" data-tv="${k}" aria-pressed="${tview===k}">${n}</button>`).join('')}</div>
+   <div class="chips">${[['class','班級總覽'],['msgs','學生訊息'],['ann','公告'],['mission','任務'],['recent','最新留言'],['sugg','建議箱']].map(([k,n])=>`<button class="chip" data-tv="${k}" aria-pressed="${tview===k}">${n}</button>`).join('')}</div>
    <div id="tclass"></div>
    <div id="tbody"><p class="small">載入中…</p></div>`;
   $('#tback').onclick=()=>go('me');paintSprites($('#view'));
@@ -4888,7 +4906,7 @@ async function renderTeacher(view){
       if(await cloud.rpc('set_teacher_title',{p_title:v})===undefined)return;if(await cloud.rpc('set_teacher_name',{p_name:n})===undefined)return;
       TTITLE=v;TNAME=n;m.remove();toast('改好了');renderTeacher()}};
   $('#view').querySelectorAll('[data-tv]').forEach(b=>b.onclick=()=>renderTeacher(b.dataset.tv));
-  if(!['reports','msgs','sugg'].includes(tview)){
+  if(!['msgs','sugg'].includes(tview)){
     if(!tclasses)tclasses=await cloud.teacher('teacher_classes');
     if(!tclasses){$('#tbody').innerHTML='<p class="small">載不到班級。確認已經在 Supabase 把你設成老師，並重跑過最新的 schema.sql。</p>';return}
     if(!tclasses.length){$('#tbody').innerHTML='<p class="small">還沒有學生登入。</p>';return}
@@ -4898,7 +4916,7 @@ async function renderTeacher(view){
       ${tclasses.map(c=>`<option value="${esc(c.class_code)}" ${c.class_code===S.tcls?'selected':''}>${c.class_code?esc(c.class_code)+' 班':'沒填班級代碼'}（${c.students} 人）</option>`).join('')}</select>`;
     $('#tsel').onchange=()=>{S.tcls=$('#tsel').value;save();renderTeacher()};
   }
-  ({class:tClass,msgs:tMsgs,ann:tAnn,mission:tMission,reports:tReports,recent:tRecent,sugg:tSugg})[tview]();
+  ({class:tClass,msgs:tMsgs,ann:tAnn,mission:tMission,recent:tRecent,sugg:tSugg})[tview]();
 }
 async function tClass(){
   const [rows,tot]=await Promise.all([cloud.teacher('teacher_class_report',{p_class:S.tcls}),cloud.run(()=>sb.rpc('teacher_focus_totals',{p_class:S.tcls}))]);
@@ -5526,39 +5544,6 @@ async function tMission(){
     if(!(n('mdays')>=1&&n('mdays')<=60)){err.textContent='期限要在 1 到 60 天之間';return}
     if(await cloud.rpc('post_mission',{p_class:pickedClass(),p_title:t,p_kind:$('#mkind').value,p_target:n('mtarget'),p_reward:n('mreward'),p_days:n('mdays')})!==undefined){toast('任務發布了');tMission()}};
   $('#tbody').querySelectorAll('[data-mdel]').forEach(b=>b.onclick=async()=>{if(await cloud.rpc('delete_mission',{p_id:+b.dataset.mdel})!==undefined){toast('已刪除');tMission()}});
-}
-async function tReports(){
-  const [cs,ms,rc]=await Promise.all([cloud.teacher('teacher_comment_reports'),cloud.teacher('teacher_message_reports'),cloud.teacher('teacher_chat_reports')]);
-  if(curTab!=='teacher'||!$('#tbody'))return;
-  if(!cs||!ms){$('#tbody').innerHTML='<p class="small">檢舉資料載不到。</p>';return}
-  const when=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
-  $('#tbody').innerHTML=`
-   <h2>被檢舉的留言（${cs.length}）</h2>
-   ${cs.length?cs.map(c=>`<div class="titem">
-     <div class="bar"><span>${esc(c.author)} <span class="small">${c.class_code?esc(c.class_code)+' 班・':''}${tday(c.day)}</span></span><span class="pill bad">${c.reports} 人檢舉</span></div>
-     <div style="line-height:1.6">${esc(c.body)}${c.hidden?' <span class="pill no">已隱藏</span>':''}</div>
-     <div class="acts"><button class="btn ${c.hidden?'':'coral'}" data-hide="${c.comment_id}" data-v="${c.hidden?0:1}">${c.hidden?'恢復顯示':'隱藏留言'}</button><button class="btn ghost" data-dc="${c.comment_id}">沒問題，撤銷檢舉</button><button class="btn ghost" data-mute="${c.author_id}" data-name="${esc(c.author)}">禁言 ${esc(c.author)}</button></div>
-   </div>`).join(''):'<p class="small">目前沒有被檢舉的留言。</p>'}
-   <h2>被檢舉的私訊（${ms.length}）</h2>
-   ${ms.length?ms.map(m=>`<div class="titem">
-     <div class="bar"><span>${esc(m.sender)} → ${esc(m.recipient)} <span class="small">${m.class_code?esc(m.class_code)+' 班・':''}${when(m.created_at)}</span></span><span class="pill bad">${m.reports} 人檢舉</span></div>
-     <div style="line-height:1.6">${esc(m.body)}</div>
-     <div class="acts"><button class="btn coral" data-dm="${m.message_id}">刪除這則私訊</button><button class="btn ghost" data-dmm="${m.message_id}">沒問題，撤銷檢舉</button><button class="btn ghost" data-mute="${m.sender_id}" data-name="${esc(m.sender)}">禁言 ${esc(m.sender)}</button></div>
-   </div>`).join(''):'<p class="small">目前沒有被檢舉的私訊。</p>'}
-   <h2>被檢舉的讀書房聊天（${(rc||[]).length}）</h2>
-   ${rc&&rc.length?rc.map(r=>`<div class="titem">
-     <div class="bar"><span>${esc(r.author)} <span class="small">${esc(r.room==='free'?'自由房':r.room.replace(/^[gt]-/,''))}・${when(r.created_at)}</span></span><span class="pill bad">${r.reports} 人檢舉</span></div>
-     <div style="line-height:1.6">${esc(r.body)}${r.hidden?' <span class="pill no">已隱藏</span>':''}</div>
-     <div class="acts"><button class="btn ${r.hidden?'':'coral'}" data-rch="${r.chat_id}" data-v="${r.hidden?0:1}">${r.hidden?'恢復顯示':'隱藏'}</button><button class="btn ghost" data-rcd="${r.chat_id}">沒問題，撤銷檢舉</button><button class="btn ghost" data-mute="${r.author_id}" data-name="${esc(r.author)}">禁言 ${esc(r.author)}</button></div>
-   </div>`).join(''):rc?'<p class="small">目前沒有被檢舉的聊天。</p>':'<p class="small">聊天檢舉載不到，請先跑最新的 SQL。</p>'}`;
-  $('#tbody').querySelectorAll('[data-rch]').forEach(b=>b.onclick=()=>act('teacher_hide_chat',{p_id:+b.dataset.rch,p_hidden:b.dataset.v==='1'},b.dataset.v==='1'?'已隱藏':'已恢復顯示'));
-  $('#tbody').querySelectorAll('[data-rcd]').forEach(b=>b.onclick=()=>act('teacher_dismiss_chat',{p_id:+b.dataset.rcd},'已撤銷檢舉'));
-  const act=async(fn,args,msg)=>{if(await cloud.teacher(fn,args)!==undefined){toast(msg);tReports()}};
-  $('#tbody').querySelectorAll('[data-hide]').forEach(b=>b.onclick=()=>act('teacher_hide_comment',{p_id:+b.dataset.hide,p_hidden:b.dataset.v==='1'},b.dataset.v==='1'?'已隱藏':'已恢復顯示'));
-  $('#tbody').querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>act('teacher_dismiss_comment',{p_id:+b.dataset.dc},'已撤銷檢舉'));
-  $('#tbody').querySelectorAll('[data-dmm]').forEach(b=>b.onclick=()=>act('teacher_dismiss_message',{p_id:+b.dataset.dmm},'已撤銷檢舉'));
-  $('#tbody').querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{const m=modal(`<h2>刪除這則私訊？</h2><p class="small">雙方都看不到了，無法復原。</p><div class="row"><button class="btn" data-close>取消</button><button class="btn coral" id="yes">刪除</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();act('teacher_delete_message',{p_id:+b.dataset.dm},'已刪除私訊')}});
-  $('#tbody').querySelectorAll('[data-mute]').forEach(b=>b.onclick=()=>{const m=modal(`<h2>禁言 ${esc(b.dataset.name)}？</h2><p class="small">禁言後不能留言和傳私訊，可以在「班級總覽」解除。</p><div class="row"><button class="btn" data-close>取消</button><button class="btn coral" id="yes">禁言</button></div>`);m.querySelector('#yes').onclick=()=>{m.remove();act('teacher_set_muted',{p_user:b.dataset.mute,p_muted:true},`已禁言 ${b.dataset.name}`)}});
 }
 async function tRecent(){
   const rows=await cloud.teacher('teacher_recent_comments',{p_class:S.tcls});
