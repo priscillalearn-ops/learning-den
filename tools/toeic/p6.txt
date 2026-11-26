@@ -75,3 +75,36 @@
 【公告・員工餐廳】Beginning Monday, the cafeteria will offer a wider variety of healthy meals. ____ Employees are encouraged to share their feedback about the new menu. || Prices will remain the same as before. | The parking lot will be repainted. | The CEO will visit the Tokyo office. | Our printer is out of order. || 新菜單＋價格不變，再請大家給意見
 【Email・研討會報名】Thank you for registering for the Global Marketing Summit. ____ Space in the workshops is limited. || You can now choose your workshops on our website. | The summit was canceled last year. | Marketing is a popular major. | Our hotel has a swimming pool. || 下一句講工作坊名額有限，前面先說可以選工作坊
 【備忘錄・遠距工作】The company will allow employees to work from home up to two days per week. ____ Employees working remotely must remain reachable during business hours. || Laptops will be provided to staff who need them. | The office kitchen will be cleaned on Friday. | Our sales grew by 5 percent. | Visitors must sign in at the front desk. || 遠距工作配套（提供筆電），與上下文同主題
+
+# ===== 2026-11-26 補題 =====
+[v] 上下文字彙
+【Email・會議改期】Due to a scheduling conflict, Thursday's budget meeting has been ____ until next Monday at 10 a.m. The agenda will remain the same. || postponed | promoted | proposed | pretended || postponed (v.) 延期　會議因時間衝突延到下週一
+【公告・新會員方案】Members who renew their membership before March 1 will receive two months of ____ access to our online classes. || unlimited | unlikely | unable | uneven || unlimited (adj.) 無限制的　續約送兩個月無限上線課
+【Email・供應商通知】Please be advised that, because of rising material costs, our prices will ____ by 5 percent starting next quarter. || increase | include | indicate | inform || increase (v.) 增加　原料成本上升，價格調漲
+【公告・員工訓練】All new employees are required to ____ a two-day safety training session during their first week. || attend | attract | attach | attempt || attend (v.) 參加　新進員工必須參加安全訓練
+【信件・推薦信】I have worked with Ms. Ng for five years, and I can say with confidence that she is one of the most ____ people on our team. || reliable | reluctant | remote | relative || reliable (adj.) 可靠的　推薦信稱讚她可靠
+【Email・客服回覆】Thank you for bringing this issue to our ____. Our technical team is now looking into the problem. || attention | intention | invention | tension || bring … to one's attention 讓某人注意到
+【公告・大樓管理】The fitness room will be closed on Sunday for routine ____. We expect it to reopen on Monday morning. || maintenance | maintainer | maintained | maintain || maintenance (n.) 例行維修保養
+【廣告・旅行社】Book your summer trip with Blue Sky Travel and enjoy ____ deals on flights and hotels across Asia. || exclusive | excessive | exhausted | exact || exclusive deals 獨家優惠
+【備忘錄・費用報銷】Receipts must be ____ with every expense report. Reports without receipts will not be processed. || submitted | subscribed | substituted | suspended || submitted (v.) 繳交　報帳要附上收據
+【Email・面試結果】After careful ____ of all applications, we are pleased to offer you the position of sales assistant. || consideration | construction | confirmation | contribution || after careful consideration 經過仔細考慮
+
+[g] 上下文文法
+【Email・會議改期】I apologize for any inconvenience this change may cause. Please let me know if you ____ attend on Monday. || cannot | not can | don't can | cannot to || 助動詞 can 的否定是 cannot，後面接原形
+【公告・新會員方案】To renew, simply log in to your account and click "Renew Now." The process takes ____ than two minutes. || less | fewer | little | least || 不到兩分鐘：less than（時間長度用 less）
+【Email・供應商通知】We value our partnership and have worked hard ____ these increases as small as possible. || to keep | keeping | kept | keeps || work hard to + 原形 V 努力去做
+【公告・員工訓練】The session ____ in Room 204, and lunch will be provided on both days. || will be held | will hold | holds | holding || 課程「被舉辦」→ 未來被動式 will be held
+【信件・推薦信】She not only manages her own projects well ____ also helps new staff members learn quickly. || but | and | or | so || not only … but also … 不但…而且…
+【Email・客服回覆】We expect the issue ____ within 48 hours. We will email you as soon as it is fixed. || to be resolved | resolving | to resolve | resolved it || expect + 受詞 + to be p.p.（問題被解決）
+【廣告・旅行社】Customers ____ book before April 30 will also receive a free airport transfer. || who | which | whose | whom || 先行詞 Customers 是人、在子句當主詞 → who
+【Email・面試結果】Your first day will be June 3. Please ____ to the HR office at 9 a.m. to complete some paperwork. || report | reporting | reported | to reporting || please + 原形動詞（祈使句）
+
+[c] 句子插入
+【Email・會議改期】Due to a scheduling conflict, Thursday's budget meeting has been postponed until next Monday. ____ Please bring the updated sales figures. || The meeting will still be held in Conference Room B. | The cafeteria will serve pizza on Friday. | Our office will close early for the holiday. | The new printer arrived yesterday. || 講完改期接「地點不變」，再接要帶的資料，最連貫
+【公告・新會員方案】Members who renew before March 1 will receive two months of free online classes. ____ Don't miss this chance! || This offer is not available after the deadline. | The pool will be cleaned on Tuesday. | Parking fees will increase next year. | Our staff meeting is on Friday. || 優惠活動後接「截止後就沒有了」呼應 Don't miss this chance
+【Email・供應商通知】Our prices will increase by 5 percent starting next quarter. ____ Orders placed before then will be charged at the current price. || We understand this may affect your budget. | Our factory was built in 1998. | Please update your password. | Our team won an award last year. || 漲價通知後表達體諒，再說明之前下單照舊價
+【公告・員工訓練】All new employees must attend a two-day safety training session. ____ Employees who miss the session will not be allowed to work on the factory floor. || Topics include fire safety and first aid. | The company picnic is next month. | Our sales grew by 10 percent. | The parking lot will be repainted. || 說明訓練內容，再接沒參加的後果
+【Email・客服回覆】Thank you for reporting the problem with our mobile app. ____ In the meantime, you can still use our website to place orders. || Our technical team is working to fix it now. | Our new store opens next week. | We are hiring new drivers. | The app was first released in 2015. || 先說正在修，再提供暫時替代方案（In the meantime）
+【廣告・旅行社】Book your summer trip with Blue Sky Travel and enjoy special deals. ____ Visit our website or call us today. || Our experienced agents can help you plan every detail. | Our office was renovated last year. | The weather was cold in January. | Hotel staff must wear uniforms. || 廣告接著介紹服務優點，最後呼籲行動
+【備忘錄・費用報銷】Starting next month, all expense reports must include receipts. ____ Please contact the finance team if you have any questions. || Reports without receipts will be returned. | The finance team moved to the 4th floor last year. | Our CEO will visit Japan. | The cafeteria opens at 7 a.m. || 說明新規定的後果，再提供聯絡窗口
+【Email・面試結果】We are pleased to offer you the position of sales assistant. ____ Please sign and return it by May 20. || A copy of the employment contract is attached. | We received many applications. | Our office is near the station. | The sales team had a great year. || 下一句的 it 指合約，所以要先提到附上的合約
