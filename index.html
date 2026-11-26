@@ -393,7 +393,7 @@ function pool(audio){
 /* 今日一題：同等級每個人同一題（不看個人範圍），留言和統計才對得起來 */
 /* 今日一題跟著自己選的範圍；沒選範圍時從全部題庫出，但不出多益題。
    同一天、同一題的人共用留言和答對率。 */
-const DAILY_SKIP=['TOEIC','TP5A','TP5B','TP5C','TP5D','TP6','TP7','TL','VQK','VQT','VQS'];
+const DAILY_SKIP=['TOEIC','TV','TP5A','TP5B','TP5C','TP5D','TP6','TP7','TL','VQK','VQT','VQS'];
 /* 釣魚、貓頭鷹用的題目：一半出自己範圍的題目、一半出這個等級的「單字意思」自動題，最近出過的 30 題先不出，比較不會重複 */
 const isVQ=q=>/^VQ/.test(q.u),recentQ=[];
 function quizPick(){
