@@ -307,7 +307,7 @@ function cardOf(ex,ans){
   return{w:ans,zh:/[\u4e00-\u9fff]/.test(ex||'')?cut(ex):''};
 }
 /* 題庫版本：網站版由 build-site.js 填入各題庫的內容指紋，題庫一改網址就變，手機的離線快取會馬上換新題庫 */
-const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"90beff2434","w-kid":"e4e47da507","w-teen":"e76e0b9a69","w-sage":"41bfce3eb3"};
+const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"5c4108a3fd","w-kid":"e4e47da507","w-teen":"e76e0b9a69","w-sage":"41bfce3eb3"};
 /* 題庫分成 banks/kid.json、teen.json、sage.json，選了等級才下載（高中題庫很大，國小國中生不用載）。
    由 tools/gept-kid.py、tools/jh-bank.py、tools/import-granny.js 產生。 */
 const SRCS={},QID={},bankLoading={};
@@ -406,7 +406,7 @@ function pool(audio){
 /* 今日一題：同等級每個人同一題（不看個人範圍），留言和統計才對得起來 */
 /* 今日一題跟著自己選的範圍；沒選範圍時從全部題庫出，但不出多益題。
    同一天、同一題的人共用留言和答對率。 */
-const DAILY_SKIP=['TOEIC','TP5A','TP5B','TP5C','TP5D','TP6','TP7','TL','VQK','VQT','VQS'];
+const DAILY_SKIP=['TOEIC','TV','TP5A','TP5B','TP5C','TP5D','TP6','TP7','TL','VQK','VQT','VQS'];
 /* 釣魚、貓頭鷹用的題目：一半出自己範圍的題目、一半出這個等級的「單字意思」自動題，最近出過的 30 題先不出，比較不會重複 */
 const isVQ=q=>/^VQ/.test(q.u),recentQ=[];
 function quizPick(){
@@ -1942,15 +1942,19 @@ function buildCity(){return CITY_MAP.map(r=>[...r])}
 const walk=(x,y)=>x>=0&&y>=0&&x<CW&&y<CH&&!'BTwNQLfc~p'.includes(CITY[y][x])&&!(standOn()&&x===HW_STAND[0]&&y===HW_STAND[1])&&!(xmasHas('snowman')&&x===SNOWMAN[0]&&y===SNOWMAN[1])&&!(xmasStage()>=3&&!halloween()&&x===SNOWMAN2[0]&&y===SNOWMAN2[1])&&!(x===MARKET_AT[0]&&y===MARKET_AT[1])&&!(x===ADV_GATE[0]&&y===ADV_GATE[1]);
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 const doorAt=(x,y)=>BUILDINGS.find(b=>b.door[0]===x&&b.door[1]===y);
-/* 圖書館：錯題本、單字卡 */
+/* 圖書館：多益模擬考室（高中・大學）、錯題本、單字卡 */
 function openLibrary(){
   const n=wrongs().length,done=!!S.answers[dkey()];
   const m=modal(`<div style="display:flex;justify-content:center"><span data-s="book" data-z="7"></span></div><h2 style="text-align:center">圖書館</h2>
     <p class="small" style="margin:0;text-align:center;line-height:1.6">安靜的角落，適合複習。錯題本有 <b style="color:var(--gold)">${n}</b> 題，單字卡收集了 <b style="color:var(--gold)">${Object.keys(S.cards).length}</b> 張。</p>
+    ${mockHas()?`<div class="box paper mkp" style="display:flex;flex-direction:column;gap:6px;text-align:center"><b style="color:var(--night)">📝 多益模擬考室</b><span class="small">先聽力再閱讀，限時作答，交卷馬上看預估分數（10～990）${(S.mock||[]).length?`・最佳 ${(S.mock||[]).reduce((a,x)=>Math.max(a,x.tot),0)} 分`:''}</span>
+      <div class="row"><button class="btn" id="lmini" style="font-size:13px">迷你 12 分鐘</button><button class="btn gold" id="lhalf" style="font-size:13px">半套 30 分鐘</button></div></div>`:''}
     <button class="btn gold" id="lrev">打開錯題本（${n}）</button><button class="btn" id="lmore">多練幾題</button><button class="btn mint" id="lcard">看我的單字卡</button><button class="btn" id="lwb" style="background:#5a3d2b;color:var(--paper)">單字本（依版本背單字）</button>
     <button class="btn ghost" data-close>離開</button>`);
   const toDaily=id=>{m.remove();if(!done){toast('先答今日一題，才能開始練習');go('daily');return}go('daily');setTimeout(()=>{const b=$(id);if(b)b.click()},120)};
   m.querySelector('#lrev').onclick=()=>{m.remove();renderMistakes()};
+  const lmk=k=>{m.remove();if(mk&&!mk.done){toast('你有一場模擬考還沒交卷，先接著考');renderMock();return}mk=null;renderMock();setTimeout(()=>{const x=document.querySelector(`[data-mk="${k}"]`);if(x)x.click()},60)};
+  if(m.querySelector('#lmini')){m.querySelector('#lmini').onclick=()=>lmk('mini');m.querySelector('#lhalf').onclick=()=>lmk('half')}
   m.querySelector('#lmore').onclick=()=>toDaily('#more');
   m.querySelector('#lcard').onclick=()=>{m.remove();go('me')};
   m.querySelector('#lwb').onclick=()=>{m.remove();renderWordbook('city')};
