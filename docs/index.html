@@ -307,7 +307,7 @@ function cardOf(ex,ans){
   return{w:ans,zh:/[\u4e00-\u9fff]/.test(ex||'')?cut(ex):''};
 }
 /* 題庫版本：網站版由 build-site.js 填入各題庫的內容指紋，題庫一改網址就變，手機的離線快取會馬上換新題庫 */
-const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"acd71e0f01","w-kid":"e4e47da507","w-teen":"e76e0b9a69","w-sage":"41bfce3eb3"};
+const BANK_VER={"kid":"80eb2dc783","teen":"4df424ecd1","sage":"90beff2434","w-kid":"e4e47da507","w-teen":"e76e0b9a69","w-sage":"41bfce3eb3"};
 /* 題庫分成 banks/kid.json、teen.json、sage.json，選了等級才下載（高中題庫很大，國小國中生不用載）。
    由 tools/gept-kid.py、tools/jh-bank.py、tools/import-granny.js 產生。 */
 const SRCS={},QID={},bankLoading={};

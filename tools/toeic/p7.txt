@@ -84,3 +84,51 @@
 =B The phrase "in advance" in the notice is closest in meaning to || beforehand | later | quickly | together || in advance ≒ beforehand 事先
 =E The word "Subtotal" on the receipt refers to the amount || before the discount | after the discount | paid in cash | of the tip || Subtotal 小計（折扣前）
 =H The word "organized" in the advertisement is closest in meaning to || well-ordered | experienced | friendly | educated || organized ≒ well-ordered 有條理的
+
+# ===== 2026-11-26 補題：短文 U～AD =====
+@U 簡訊對話｜Grace Liu (10:02): Are you still at the trade show? / David Kim (10:04): Yes, our booth is really busy. We've already handed out all the brochures. / Grace Liu (10:05): I can print more and bring them over at noon. / David Kim (10:05): That would save us!
+@V 公告｜Harbor City Gym: New Opening Hours. Starting May 1, the gym will open at 5:30 a.m. on weekdays, half an hour earlier than before. Weekend hours (7 a.m.–8 p.m.) will not change. The swimming pool will be closed for repairs from May 1 to May 14. Members will receive one free week added to their membership.
+@W Email｜To: Joan Park. From: Leo Brown, Facilities. Subject: Desk request. Hi Joan, I received your request for a standing desk. We have two models in stock: a basic model and an electric one that adjusts with a button. The electric model takes about three days to install. Please tell me which you prefer by Friday so I can arrange delivery. — Leo
+@X 廣告｜Clean & Fresh Laundry Service. We pick up and deliver to your door! Same-day service for orders received before 9 a.m. Prices: shirts $3 each, suits $12, bedding from $15. First-time customers get 20% off with the code FRESH20. Open seven days a week. Order through our app or call 555-0199.
+@Y 線上評論｜★★☆☆☆ "Good food, slow service." I visited Lotus Kitchen with three coworkers for lunch. The noodles were excellent and the prices were reasonable. However, we waited 40 minutes for our food, and we were almost late for a 1 p.m. meeting. If you're in a hurry, I'd suggest ordering takeout. — R. Santos
+@Z 邀請函｜You are invited to the grand opening of Maple Design Studio. Date: Saturday, April 12. Time: 3–6 p.m. Address: 88 River Street, 2nd floor. Enjoy light refreshments, meet our designers, and see our latest furniture collection. Guests who place an order that day will receive free delivery. Please RSVP to events@mapledesign.com by April 8.
+@AA 備忘錄｜To: All employees. From: Nina Ford, Office Manager. Over the past month, the kitchen refrigerator has become very crowded, and some food has been left for weeks. From now on, the refrigerator will be cleaned every Friday at 5 p.m. Anything left inside will be thrown away. Please label your food with your name and the date.
+@AB 簡訊對話｜Omar Hassan (8:31): My train is stopped between stations. There's a signal problem. / Julia Wong (8:33): Oh no. You're leading the 9:00 training, right? / Omar Hassan (8:34): Yes. Could you start with the introduction video? It's about 15 minutes. / Julia Wong (8:34): No problem. I'll set it up now.
+@AC 新聞報導｜Riverside City announced on Monday that it will add 50 new electric buses to its public transportation system by the end of next year. The buses will replace older diesel models and are expected to reduce air pollution in the downtown area. The project will cost about $40 million, with half of the money coming from a national government program.
+@AD Email｜Dear Mr. Novak, thank you for staying at the Lakeside Inn. We noticed that you left a black umbrella and a phone charger in Room 312. We will keep these items at the front desk for 30 days. If you would like us to mail them to you, please reply with your address. A small shipping fee will apply. — Front Desk, Lakeside Inn
+
+[v] 細節題
+=U What has David Kim run out of? || Brochures | Business cards | Free samples | Name tags || 細節：handed out all the brochures 傳單發完了
+=V When will the gym open on weekdays starting May 1? || At 5:30 a.m. | At 6:00 a.m. | At 7:00 a.m. | At 8:00 a.m. || 細節：open at 5:30 a.m. on weekdays
+=W What does Leo ask Joan to do by Friday? || Choose a desk model | Install a desk | Pay for a desk | Return an old desk || 細節：Please tell me which you prefer by Friday
+=X How can first-time customers get a discount? || By using a code | By ordering before 9 a.m. | By ordering bedding | By calling the store || 細節：20% off with the code FRESH20
+=Y How long did the reviewer wait for the food? || 40 minutes | 15 minutes | 30 minutes | One hour || 細節：we waited 40 minutes for our food
+=Z What will guests who order on April 12 receive? || Free delivery | A free chair | A discount coupon | A design consultation || 細節：place an order that day will receive free delivery
+=AA When will the refrigerator be cleaned? || Every Friday at 5 p.m. | Every Monday morning | Once a month | Every day at noon || 細節：cleaned every Friday at 5 p.m.
+=AB Why is Mr. Hassan delayed? || His train has a signal problem. | He missed his train. | He is stuck in traffic. | He is sick. || 細節：There's a signal problem
+=AC How many electric buses will be added? || 50 | 40 | 15 | 100 || 細節：add 50 new electric buses
+=AD What items did Mr. Novak leave behind? || An umbrella and a charger | A phone and a wallet | A jacket and a book | A laptop and a bag || 細節：a black umbrella and a phone charger
+
+[g] 推論・主旨題
+=U What will Ms. Liu most likely do at noon? || Bring printed materials to the booth | Meet a client | Order lunch | Close the booth || 推論：print more and bring them over at noon
+=V What is suggested about gym members? || They will get extra time on their memberships. | They must pay for pool repairs. | They can no longer use the pool. | They must renew in May. || 推論：one free week added to their membership（泳池關閉的補償）
+=W What is indicated about the electric desk? || It takes longer to install. | It is cheaper than the basic model. | It is out of stock. | It must be ordered online. || 推論：electric model takes about three days to install
+=X What is NOT mentioned as a service of Clean & Fresh? || Repairing clothes | Same-day service | Pickup and delivery | Ordering through an app || NOT 題：沒提到修改衣服
+=Y Why does the reviewer suggest ordering takeout? || The service is slow. | The restaurant is small. | The food is expensive. | The restaurant has no parking. || 推論：等太久，趕時間就外帶
+=Z What is the purpose of the invitation? || To invite people to a store opening | To announce a furniture sale | To hire new designers | To change an event date || 主旨：grand opening 開幕邀請
+=AA Why was the memo written? || Old food has been left in the refrigerator. | A new refrigerator was bought. | The kitchen will be closed. | Employees are eating at their desks. || 主旨：some food has been left for weeks
+=AB What will Ms. Wong most likely do next? || Prepare a video | Call a train company | Cancel the training | Pick up Mr. Hassan || 推論：I'll set it up now（準備介紹影片）
+=AC What is one expected result of the project? || Cleaner air downtown | Lower bus fares | More bus drivers | Faster train service || 推論：reduce air pollution in the downtown area
+=AD What is suggested about the hotel? || It will charge to mail the items. | It will throw the items away today. | It has already mailed the items. | It found the items in the lobby. || 推論：A small shipping fee will apply
+
+[c] 意圖・字義題
+=U At 10:05, what does Mr. Kim mean when he writes, "That would save us!"? || He would be very grateful for the help. | He wants to save money. | He thinks the booth is too small. | He plans to leave early. || 意圖：That would save us! ＝那真是救了我們
+=V The word "repairs" in the notice is closest in meaning to || fixing work | cleaning | price changes | new members || repairs ≒ fixing work 修理
+=W The word "arrange" in the email is closest in meaning to || organize | delay | cancel | describe || arrange delivery ≒ organize 安排
+=X The word "bedding" in the advertisement refers to || sheets and blankets | furniture | pillows only | curtains || bedding 寢具（床單、被子）
+=Y The word "reasonable" in the review is closest in meaning to || fair | expensive | strange | changing || reasonable prices ≒ fair 合理的價格
+=Z The word "light" in "light refreshments" is closest in meaning to || simple | bright | late | expensive || light refreshments 簡單的點心茶水
+=AA The phrase "thrown away" in the memo is closest in meaning to || discarded | returned | stored | shared || thrown away ≒ discarded 丟掉
+=AB At 8:34, what does Ms. Wong mean when she writes, "No problem"? || She agrees to help. | She has no questions. | The train is running again. | The training was canceled. || 意圖：No problem ＝沒問題，我來
+=AC The word "replace" in the article is closest in meaning to || take the place of | repair | sell | move || replace ≒ take the place of 取代
+=AD The word "apply" in the email is closest in meaning to || be charged | be requested | be written | be used for a job || A fee will apply ＝會收費
