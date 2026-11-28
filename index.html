@@ -884,7 +884,7 @@ async function eventRoll(kind){
   else{S.evDrops=S.evDrops||{};const k=today()+kind;if(S.evDrops[k]!=null)return;won=Math.random()<ev.drop;S.evDrops[k]=won;if(won)gstate().tickets++}
   save();
   if(won)setTimeout(()=>modal(`<div style="display:flex;justify-content:center"><span data-s="capsule" data-z="8"></span></div><h2 style="text-align:center;color:var(--gold)">${esc(ev.name)}驚喜！</h2>
-    <p style="text-align:center;margin:0">${kind==='answer'?'認真答題':'專注讀書'}的獎勵：<b style="color:var(--gold)">盲盒券 1 張</b><br><span class="small">到遊樂場的魔法盲盒免費抽</span></p><button class="btn gold" data-close>太好了</button>`),600);
+    <p style="text-align:center;margin:0">${kind==='answer'?'認真答題':'專注讀書'}的獎勵：<b style="color:var(--gold)">盲盒券 1 張</b><br><span class="small">到城市廣場的許願池免費抽</span></p><button class="btn gold" data-close>太好了</button>`),600);
 }
 function eventBar(){const e=curEvent();if(!e)return '';const [,m,d]=e.end.split('-');
   return `<div class="box" style="background:linear-gradient(90deg,var(--gold),var(--coral));color:var(--night);padding:8px 12px;outline-color:var(--night);font-size:14px;line-height:1.5"><b>${esc(e.name)} ×${e.mult}</b>・答題、專注、任務金幣 ${e.mult===2?'翻倍':e.mult+' 倍'}，還會隨機掉盲盒券！（到 ${+m}/${+d}）</div>`}
@@ -983,7 +983,7 @@ function equip(it){
 function pickItem(it){
   if(owns(it.id)){equip(it);return}
   if(it.cards){const n=Object.keys(S.cards).length;modal(`<div style="display:flex;justify-content:center">${itemThumb(it)}</div><h2 style="text-align:center">${esc(it.name)}</h2><p style="text-align:center;margin:0;line-height:1.6">收集 ${it.cards} 張單字卡就會自動得到，不能用金幣買。<br>你現在有 ${n} 張，還差 ${Math.max(0,it.cards-n)} 張。</p><button class="btn" data-close>好</button>`);return}
-  if(it.gacha){toast(it.old?`${it.name}是絕版盲盒獎品，已經抽不到了`:`${it.name}只能從遊樂場的魔法盲盒抽到（${it.gacha}）`);return}
+  if(it.gacha){toast(it.old?`${it.name}是絕版盲盒獎品，已經抽不到了`:`${it.name}只能在城市廣場的許願池抽到（${it.gacha}）`);return}
   if(it.bundle){toast(it.bundle==='invite'?`${it.name}：成功邀請 3 位好友就能得到`:it.bundle==='farm'?`${it.name}：用花園收成的作物到交換所換`:it.bundle==='friend'?`${it.name}：和好友的好感度升級才拿得到`:it.bundle==='fish'?`${it.name}：魚圖鑑 14 種全部收齊就送你`:it.bundle==='advent'?`${it.name}：降臨月曆開滿 ${it.id==='pet_snowman'?10:20} 格就送你`:it.bundle==='expedition'?`${it.name}：派探險隊去洞穴、城堡，運氣好就會帶回來`:`${it.name}是新手大禮包限定的`);return}
   if(!inWin(it)){toast('這個限定商品現在沒有販售');return}
   const bal=coins();
@@ -1206,7 +1206,6 @@ function renderGames(){
      ${card('granny','granny','恐怖阿嬤（迷你版）',`答題開門逃出去・第 ${lvOpen('granny')}／4 關`,`<span style="color:var(--gold)">★ ${gStarSum('granny')}/12</span><br>今天 ${g.granny}/${GAME_CAP}`)}
      ${card('tower','castle','單字守城',`答對打倒怪物・第 ${lvOpen('tower')}／4 關`,`<span style="color:var(--gold)">★ ${gStarSum('tower')}/12</span><br>今天 ${g.tower}/${GAME_CAP}`)}
      ${S.tier==='kid'?'':card('chal','fire','雙倍挑戰','押金幣答 5 題，答得好翻倍',`剩 ${Math.max(0,CHAL_PER_DAY-g.chal)} 次`)}
-     ${card('gacha','capsule','魔法盲盒','抽盲盒限定的服裝、寵物和家具',gachaFree()?'今天可以免費抽':`今天抽了 ${gstate().pulls}/${GACHA_DAY}`)}
      ${card('bank','coin','金幣銀行','存起來每天生利息',`存款 ${bank.toLocaleString()}`)}
    </div>
    <p class="demo" style="text-align:left;line-height:1.6">小遊戲每場最多 ${GAME_MAX}～${lvMax(4)} 金幣（關卡越後面越多），每種每天最多 ${GAME_CAP}。雙倍挑戰要靠實力，不是靠運氣。</p>`;
@@ -1779,7 +1778,7 @@ function arDone(st){
   paintSprites($('#view'));
   $('#aragain').onclick=arFind;$('#arhome').onclick=gArena;
 }
-/* ---------- 魔法盲盒 ----------
+/* ---------- 許願池（魔法盲盒）：2026-11-28 從遊樂場搬到城市廣場的噴水池 ----------
    機率公開、50 抽保底 SSR、十連保底 SR、每天最多 10 抽、重複的轉成金幣、答完今日一題每天免費抽一次。
    線上版由資料庫 gacha_pull() 抽（用資料庫的亂數），網頁只顯示結果。 */
 const RARITY={N:['N','#c7b8e8',60,10],R:['R','#6ab0f3',28,25],SR:['SR','#b48cf0',10,80],SSR:['SSR','#ffd166',2,200]};
@@ -1804,9 +1803,10 @@ async function gGacha(){
   if(ONLINE){const st=await cloud.run(()=>sb.rpc('gacha_info'));if(st){const g=gstate();g.pity=st.pity;g.pulls=st.pulls;g.free=st.free_used?today():'';g.tickets=st.tickets||0}}
   const g=gstate(),all=SHOP.filter(x=>x.gacha&&!x.old),have=all.filter(x=>S.owned[x.id]!=null).length,left=GACHA_PITY-g.pity,canFree=gachaFree();
   const RK=['SSR','SR','R','N'],byR=(a,b)=>RK.indexOf(a.gacha)-RK.indexOf(b.gacha),oldMine=SHOP.filter(x=>x.gacha&&x.old&&S.owned[x.id]!=null).sort(byR);
-  gameShell('魔法盲盒',`
+  gameShell('許願池',`
     <div class="box" style="background:linear-gradient(90deg,#8fc6f5,#c7b8e8);color:var(--night);padding:8px 12px;outline-color:var(--night);font-size:14px;line-height:1.5"><b>盲盒換新・冬季雪夜系列 ${all.length} 款！</b>冰晶龍、冰雪后冠（SSR）、雪狐、毛絨耳罩、下雪窗（SR）…快來抽！<br><span style="font-size:12px">上一批已經絕版抽不到了，你抽過的都還在。</span></div>
     <div style="display:flex;justify-content:center;padding:6px 0"><span data-s="capsule" data-z="14" id="gmach" style="display:block"></span></div>
+    <p class="small" style="margin:0;text-align:center">在廣場的許願池投下金幣，許一個願，盲盒就會浮上來！</p>
     <div class="flist">
       ${g.tickets?`<button class="btn gold" id="gticket">用盲盒券抽一次（還有 ${g.tickets} 張）</button>`:''}
       ${canFree?'<button class="btn gold" id="gfree">今天的免費抽（答完今日一題的獎勵）</button>':!S.answers[dkey()]?'<p class="small" style="margin:0;text-align:center">答完今日一題，就能免費抽一次</p>':''}
@@ -1820,7 +1820,7 @@ async function gGacha(){
       return `<div class="sitem" style="border-color:${RARITY[x.gacha][1]};${own?'':'opacity:.5'}">${own?itemThumb(x):'<span style="font-size:28px;height:40px;line-height:40px">?</span>'}<span>${own?esc(x.name):'？？？'}${x.isNew?' <b style="color:var(--coral)">NEW</b>':''}</span><span class="pill" style="background:${RARITY[x.gacha][1]};color:var(--night)">${x.gacha}</span></div>`}).join('')}</div>
     ${oldMine.length?`<p class="small" style="margin:0">我的絕版收藏 ${oldMine.length} 件（前兩批，已經抽不到）</p>
     <div class="shop">${oldMine.map(x=>`<div class="sitem" style="border-color:${RARITY[x.gacha][1]}">${itemThumb(x)}<span>${esc(x.name)}</span><span class="pill" style="background:${RARITY[x.gacha][1]};color:var(--night)">絕版 ${x.gacha}</span></div>`).join('')}</div>`:''}
-    <p class="demo" style="text-align:left;line-height:1.6">盲盒只能用讀書賺來的金幣抽，不能用真錢買金幣。抽到的東西會自動放進百貨公司，可以直接換上。</p>`,'games');
+    <p class="demo" style="text-align:left;line-height:1.6">許願池的盲盒只能用讀書賺來的金幣抽，不能用真錢買金幣。抽到的東西會自動放進百貨公司，可以直接換上。</p>`,'city');
   const pull=async(n,free,ticket)=>{
     const cost=free||ticket?0:n===1?GACHA_ONE:GACHA_TEN;
     if(!free&&!ticket&&g.pulls+n>GACHA_DAY){toast(`今天最多抽 ${GACHA_DAY} 次，明天再來`);return}
@@ -1927,6 +1927,8 @@ const CITY_MAP=[
 const CW=CITY_MAP[0].length,CH=CITY_MAP.length,TS=16,CSC=4,VW=13,VH=17,CITY_V=2;
 /* 大頭菜市場的攤位（湖邊沙灘） */
 const MARKET_AT=[25,19];
+/* 許願池＝廣場噴水池（地圖上 ~ 的格子），站在正下方那格就會打開 */
+const WISH_AT=[15,9];
 /* 冒險之門（城市左下角） */
 const ADV_GATE=[4,23];
 const BUILDINGS=[
@@ -2276,7 +2278,7 @@ function cityCam(){const me=city.me;return [Math.round(Math.max(0,Math.min(CW*TS
 function openCityMap(){
   const Z=4,m=modal(`<h2 style="text-align:center">魔法城市全圖</h2><canvas id="mmap" width="${CW*Z*2}" height="${CH*Z*2}" style="width:100%;image-rendering:pixelated;border:3px solid var(--ink);cursor:pointer"></canvas>
     <p class="small" style="margin:0;text-align:center">點地圖上的地方就會走過去・黃點是你</p>
-    <div class="chips" style="justify-content:center">${BUILDINGS.map(b=>`<button class="chip" data-mb="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-mx="${HW_STAND[0]},${HW_STAND[1]}">廣場</button><button class="chip" data-mx="27,16">湖邊釣魚</button><button class="chip" data-mx="${MARKET_AT[0]},${MARKET_AT[1]}">大頭菜市場</button><button class="chip" data-mx="${NOTICE[0]},${NOTICE[1]}">布告欄</button><button class="chip" data-mx="${QUEST[0]},${QUEST[1]}">任務板</button></div>
+    <div class="chips" style="justify-content:center">${BUILDINGS.map(b=>`<button class="chip" data-mb="${b.id}">${b.name}</button>`).join('')}<button class="chip" data-mx="${HW_STAND[0]},${HW_STAND[1]}">廣場</button><button class="chip" data-mx="${WISH_AT[0]},${WISH_AT[1]}">許願池</button><button class="chip" data-mx="27,16">湖邊釣魚</button><button class="chip" data-mx="${MARKET_AT[0]},${MARKET_AT[1]}">大頭菜市場</button><button class="chip" data-mx="${NOTICE[0]},${NOTICE[1]}">布告欄</button><button class="chip" data-mx="${QUEST[0]},${QUEST[1]}">任務板</button></div>
     <button class="btn ghost" data-close>關閉</button>`);
   const cv=m.querySelector('#mmap'),c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);
   const col={'=':'#c9b98f',D:'#c9b98f',w:'#3a7bd5','~':'#8fc6f5',b:'#8b5e3c',s:'#e8d39a',T:'#2f7045',f:'#8b5e3c',g:'#8b5e3c',L:'#c9b98f',c:'#c9b98f',p:'#2f7045',N:'#c98a3a',Q:'#c98a3a'};
@@ -2303,6 +2305,7 @@ function cityTap(tx,ty){
   if(halloween()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='hw';if(!p.length){me.goal=null;hwOpen()}}return}
   if(tx===ADV_GATE[0]&&ty===ADV_GATE[1]){const p=bfs(me.x,me.y,ADV_GATE[0]+1,ADV_GATE[1]);if(p){me.path=p;me.goal='adv';if(!p.length){me.goal=null;renderAdventure()}}return}
   {const gd=GUIDES.find(g=>g.at[0]===tx&&g.at[1]===ty);if(gd){const p=bfs(me.x,me.y,tx,ty);if(p){me.path=p;me.goal='guide:'+gd.id;if(!p.length){me.goal=null;guideTalk(gd.id)}}return}}
+  if(CITY[ty]&&CITY[ty][tx]==='~'){const p=bfs(me.x,me.y,WISH_AT[0],WISH_AT[1]+1);if(p){me.path=p;me.goal='wish';if(!p.length){me.goal=null;gGacha()}}return}
   if(tx===MARKET_AT[0]&&ty===MARKET_AT[1]){const p=bfs(me.x,me.y,MARKET_AT[0],MARKET_AT[1]+1);if(p){me.path=p;me.goal='market';if(!p.length){me.goal=null;openMarket()}}return}
   if(xmasStage()&&tx===HW_STAND[0]&&ty===HW_STAND[1]){const p=bfs(me.x,me.y,HW_STAND[0],HW_STAND[1]+1);if(p){me.path=p;me.goal='xmas';if(!p.length){me.goal=null;xmasOpen()}}return}
   const npc=city.npcs.find(n=>n.x===tx&&n.y===ty);
@@ -2327,6 +2330,7 @@ function cityTick(dt){
     else if(!me.path.length&&me.goal==='hw'){me.goal=null;hwOpen()}
     else if(!me.path.length&&me.goal==='xmas'){me.goal=null;xmasOpen()}
     else if(!me.path.length&&me.goal==='market'){me.goal=null;openMarket()}
+    else if(!me.path.length&&me.goal==='wish'){me.goal=null;gGacha()}
     else if(!me.path.length&&me.goal==='adv'){me.goal=null;renderAdventure()}
     else if(!me.path.length&&me.goal&&me.goal.startsWith('guide:')){const id=me.goal.slice(6);me.goal=null;guideTalk(id)}
     else if(!me.path.length&&me.goal==='fish'){me.goal=null;openFishing()}
@@ -2922,6 +2926,9 @@ function cityDraw(){
   c.fillStyle='#cfe8fb';c.fillRect(15*TS+4,9*TS-jh,8,1);c.fillRect(15*TS+3+Math.round(Math.sin(t*5)),9*TS-jh+2,2,1);c.fillRect(15*TS+11-Math.round(Math.sin(t*5)),9*TS-jh+2,2,1);
   c.font='7px "DotGothic16", sans-serif';c.textAlign='center';
   BUILDINGS.forEach(b=>{const X=(b.x+b.w/2)*TS,Y=b.y*TS+(b.door[1]<b.y?b.h*TS-6:20),w=c.measureText(b.name).width+6;c.fillStyle='rgba(15,10,26,.8)';c.fillRect(X-w/2,Y-7,w,10);c.fillStyle='#f4ecd8';c.fillText(b.name,X,Y)});
+  /* 許願池：池底的金幣閃一下，上面掛名牌 */
+  [[14,8,3,9],[16,8,10,5],[14,9,9,4],[16,9,4,8],[15,8,3,3]].forEach(([x,y,dx,dy],i)=>{const a=.55+.45*Math.sin(t*2.2+i*1.7);c.fillStyle=`rgba(255,209,102,${a})`;c.fillRect(x*TS+dx,y*TS+dy,2,2);if(a>.95){c.fillStyle='#fff';c.fillRect(x*TS+dx,y*TS+dy,1,1)}});
+  {const X=WISH_AT[0]*TS+8,Y=8*TS-12,n='許願池',w=c.measureText(n).width+6;c.fillStyle='rgba(122,63,158,.85)';c.fillRect(X-w/2,Y-7,w,10);c.fillStyle='#ffd166';c.fillText(n,X,Y)}
   /* 地圖金幣：轉來轉去 */
   mapCoins().forEach(cn=>{if(cn.got)return;const X=cn.x*TS+8,Y=cn.y*TS+8+Math.round(Math.sin(t*3+cn.i)*1.5),w=Math.max(1,Math.round(Math.abs(Math.cos(t*3+cn.i))*5));
     c.fillStyle='rgba(0,0,0,.2)';c.fillRect(X-4,cn.y*TS+13,8,2);c.fillStyle='#c98a3a';c.fillRect(X-w-1,Y-5,w*2+2,10);c.fillStyle='#ffd166';c.fillRect(X-w,Y-4,w*2,8);if(w>2){c.fillStyle='#fff6c9';c.fillRect(X-1,Y-3,1,3)}});
@@ -3444,9 +3451,9 @@ async function showStarter(){
     <div class="flist">
       <div class="frow" style="padding:10px"><span data-s="coin" data-z="4"></span><span class="grow"><span style="font-size:16px">${STARTER.coins} 金幣</span><br><span class="small">可以去百貨公司買東西</span></span></div>
       <div class="frow" style="padding:10px">${itemThumb(ITEM.pet_chick)}<span class="grow"><span style="font-size:16px">新手小雞</span><br><span class="small">禮包限定寵物，買不到喔</span></span></div>
-      <div class="frow" style="padding:10px"><span data-s="capsule" data-z="4"></span><span class="grow"><span style="font-size:16px">盲盒券 × ${STARTER.tickets}</span><br><span class="small">到遊樂場的魔法盲盒免費抽</span></span></div>
+      <div class="frow" style="padding:10px"><span data-s="capsule" data-z="4"></span><span class="grow"><span style="font-size:16px">盲盒券 × ${STARTER.tickets}</span><br><span class="small">到城市廣場的許願池免費抽</span></span></div>
     </div>
-    <div class="row"><button class="btn" id="spet">帶小雞回家</button><button class="btn gold" id="sgacha">去抽盲盒</button></div>
+    <div class="row"><button class="btn" id="spet">帶小雞回家</button><button class="btn gold" id="sgacha">去許願池抽</button></div>
     <button class="btn ghost" data-close>收下了</button>`);
   m.querySelector('#spet').onclick=()=>{m.remove();S.look=S.look||{};const L=myLook();S.look.room={...L.room,pet:'pet_chick'};saveLook();renderHome()};
   m.querySelector('#sgacha').onclick=()=>{m.remove();gGacha()};
@@ -3455,8 +3462,11 @@ async function showStarter(){
 /* ---------- 更新介紹：每次更新後第一次打開跳一次「這次更新了什麼」，我的 → 更新紀錄 可以再看 ----------
    以後每次更新：在最前面加一筆 {v:'日期',title,items:[[圖,標題,說明,前往]]}。 */
 const CHANGES=[
+ {v:'2026-11-28b',title:'廣場噴水池變成許願池',items:[
+  ['capsule','盲盒搬到許願池','魔法盲盒從遊樂場搬家了！走到城市廣場中間的噴水池，投下金幣許願就能抽。免費抽、盲盒券都一樣能用。',()=>{go('city');setTimeout(()=>cityTap(WISH_AT[0],WISH_AT[1]),300)}],
+ ]},
  {v:'2026-11-28',title:'盲盒換新：冬季雪夜系列',items:[
-  ['capsule','冬季雪夜系列 13 款','魔法盲盒換新一批：冰晶龍、冰雪后冠（SSR）、雪狐、毛絨耳罩、下雪窗（SR）、小北極熊、毛線帽…上一批已經絕版抽不到，你抽過的都還在百貨公司！',()=>{go('games');setTimeout(gGacha,200)}],
+  ['capsule','冬季雪夜系列 13 款','魔法盲盒換新一批：冰晶龍、冰雪后冠（SSR）、雪狐、毛絨耳罩、下雪窗（SR）、小北極熊、毛線帽…上一批已經絕版抽不到，你抽過的都還在百貨公司！',()=>gGacha()],
  ]},
  {v:'2026-11-26',title:'讀書房可以不限時了',items:[
   ['lamp','不限時專注','讀書房多了「不限時」：從 0 開始往上算，想讀多久就讀多久，讀完按「結束並記錄」，時數和金幣照算！',()=>go('room')],
@@ -3535,7 +3545,7 @@ const CHANGES=[
   ['coin','我的獎盃','「我的」頁會擺出你拿過的獎盃，努力讀書就有機會被老師看見！',()=>go('me')]]},
  {v:'2026-10-12',title:'段考週 ×3＋盲盒秋季新品',items:[
   ['fire','段考週加成 ×3','10/12～10/18 答題、專注、任務的金幣都變 3 倍，還會隨機掉盲盒券！考試加油！',()=>go('daily')],
-  ['capsule','盲盒秋季新品','新增 10 款：月兔、星河魔法帽（SSR）、九尾狐、花冠（SR）、小刺蝟、紅燈籠…',()=>{go('games');setTimeout(gGacha,200)}],
+  ['capsule','盲盒秋季新品','新增 10 款：月兔、星河魔法帽（SSR）、九尾狐、花冠（SR）、小刺蝟、紅燈籠…',()=>gGacha()],
   ['ghost','萬聖節商品','萬聖節商品 11/7 下架，已經買的會一直留著，可以繼續穿戴和布置。',()=>renderShop('wear','city')]]},
  {v:'2026-10-10',title:'專注時間不會再不見',items:[
   ['lamp','專注紀錄更安全','讀書時間如果因為網路不穩沒存到，會自動補存，不會再被吃掉。讀書房會顯示今天專注幾分鐘、有沒有存好。',()=>go('room')]]},
